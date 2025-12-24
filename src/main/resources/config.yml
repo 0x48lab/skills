@@ -1,0 +1,71 @@
+# Skills Plugin Configuration
+
+# Database settings
+database:
+  type: sqlite  # sqlite or mysql
+  # MySQL settings (only used if type is mysql)
+  host: localhost
+  port: 3306
+  name: skills
+  user: root
+  password: ""
+
+# Skill settings
+skills:
+  total_cap: 700.0       # Maximum total skill points
+  individual_max: 100.0  # Maximum for each skill
+  gain_amount: 0.1       # Amount gained per successful gain check
+
+# Combat settings
+combat:
+  damage_multiplier: 10.0    # Converts vanilla damage to internal
+  parry_chance_max: 50.0     # Maximum parry chance (%)
+  critical_chance_max: 50.0  # Maximum critical hit chance (%)
+
+# Magic settings
+magic:
+  casting_time_base: 2000   # Base casting time in milliseconds
+  targeting_timeout: 10000  # Targeting mode timeout in milliseconds
+  spell_range: 12.0         # Maximum spell range in blocks
+
+# Thief settings
+thief:
+  hide_movement_breaks: false  # Whether walking breaks hiding
+  stealth_max_distance: 10.0   # Maximum stealth distance
+  detect_range: 10.0           # Maximum detect range
+
+# Taming settings
+taming:
+  attempt_cooldown: 5000  # Cooldown between tame attempts in milliseconds
+
+# Language settings
+language:
+  default: ja                    # Default language (en, ja)
+  use_client_locale: true        # Use client's locale setting
+  allow_player_change: true      # Allow players to change language
+
+# Auto-save settings
+auto_save:
+  enabled: true
+  interval: 300  # Seconds between auto-saves
+
+# Integration with other plugins
+integration:
+  notoriety: true  # Enable notoriety plugin integration
+
+# Cooldown settings (in seconds)
+cooldowns:
+  hide: 10
+  detect: 5
+  snoop: 5
+  steal: 10
+  poison: 10
+  tame: 5
+  animal_lore: 3
+  arms_lore: 3
+  evaluate: 5
+  cast_spell: 2
+  meditation: 30
+
+# Debug mode
+debug: false

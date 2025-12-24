@@ -1,0 +1,185 @@
+# English Language File for Skills Plugin
+
+# System messages
+system:
+  plugin_enabled: "Skills plugin enabled"
+  plugin_disabled: "Skills plugin disabled"
+  player_data_loaded: "Player data loaded for {player}"
+  player_data_saved: "Player data saved for {player}"
+  no_permission: "<red>You don't have permission to do that."
+  player_only: "<red>This command is for players only."
+  player_not_found: "<red>Player not found: {player}"
+  invalid_amount: "<red>Invalid amount: {amount}"
+  reload_success: "<green>Configuration reloaded."
+
+# Skill messages
+skill:
+  gain: "<green>+{amount} {skill} <gray>({current})"
+  decrease: "<red>-{amount} {skill} <gray>({current})"
+  cap_reached: "<yellow>Skill cap reached. Increase other skills to continue training."
+  list_header: "<gold>=== Your Skills ==="
+  list_entry: "  {skill}: {value}"
+  set: "<green>Set {player}'s {skill} to {value}"
+  reset: "<green>Reset all skills for {player}"
+
+# Stats messages
+stats:
+  header: "<gold>=== Your Stats ==="
+  hp: "<red>❤ HP: {current} / {max}"
+  mana: "<blue>🍖 Mana: {current} / {max}"
+  str: "<red>STR: {value}"
+  dex: "<green>DEX: {value}"
+  int: "<blue>INT: {value}"
+  total_skills: "<aqua>Total Skills: {current} / {max}"
+
+# Magic messages
+magic:
+  cast_start: "<yellow>Casting {spell}..."
+  targeting: "<yellow>Select target for {action}... ({seconds}s)"
+  cast_success: "<green>Successfully cast {spell}!"
+  cast_failed: "<red>Failed to cast {spell}."
+  cancelled: "<gray>Spell cancelled."
+  target_timeout: "<red>Targeting timed out."
+  select_target: "<yellow>Click to select target!"
+  invalid_target: "<red>Invalid target."
+  no_spellbook: "<red>You need a spellbook to cast spells."
+  spell_not_in_book: "<red>That spell is not in your spellbook."
+  no_reagents: "<red>You don't have the required reagents."
+  no_mana: "<red>Not enough mana."
+  out_of_range: "<red>Target is out of range."
+  interrupted: "<red>Spell interrupted!"
+
+# Heal messages
+heal:
+  target: "<green>Healed {target} for {amount} HP."
+  self: "<green>{caster} healed you for {amount} HP."
+  amount: "<green>+{amount} HP"
+
+# Teleport messages
+teleport:
+  mark_success: "<green>Location marked on rune."
+  recall_success: "<green>Recalled to {location}."
+  gate_open: "<gold>A gate has been opened!"
+  no_rune: "<red>You need a rune in your hand."
+  rune_not_marked: "<red>This rune has no marked location."
+
+# Thief skill messages
+thief:
+  hide_success: "<gray>You fade into the shadows..."
+  hide_failed: "<red>Failed to hide."
+  hide_broken: "<red>Your cover is blown!"
+  stealth_distance: "<gray>Stealth: {distance} blocks remaining"
+  stealth_ended: "<red>You've moved too far. Hiding ended."
+  detect_found: "<gold>You detected {player}!"
+  detect_none: "<gray>No hidden players found nearby."
+  snoop_success: "<gray>You peek into {player}'s inventory..."
+  snoop_failed: "<red>Failed to snoop."
+  snoop_noticed: "<yellow>{player} is trying to look in your bags!"
+  steal_success: "<green>You stole {item}!"
+  steal_failed: "<red>Failed to steal."
+  steal_noticed: "<yellow>{player} tried to steal your {item}!"
+  poison_applied: "<dark_green>Poison applied ({charges} charges)."
+  poison_failed: "<red>Failed to apply poison."
+  poison_hit: "<dark_green>Poisoned!"
+
+# Taming messages
+taming:
+  start: "<yellow>Attempting to tame..."
+  success: "<green>Successfully tamed {entity}!"
+  failed: "<red>Failed to tame."
+  already_tamed: "<yellow>This animal is already tamed."
+  cannot_tame: "<red>This creature cannot be tamed."
+  too_difficult: "<red>This creature is too difficult for your skill level."
+
+# Animal Lore messages
+lore:
+  header: "<gold>=== Animal Lore ==="
+  owner: "Owner: {owner}"
+  health: "Health: {current}/{max}"
+  tameable: "Tameable: {status}"
+  difficulty: "Taming Difficulty: {difficulty}"
+
+# Veterinary messages
+veterinary:
+  heal: "<green>Healed {entity} for {amount} HP."
+  wrong_food: "<red>This food won't help this animal."
+  not_owner: "<red>You don't own this animal."
+
+# Evaluate messages
+evaluate:
+  result: "<aqua>{player}'s Mana: {mana}"
+  self: "<aqua>Your Mana: {mana}"
+
+# Crafting messages
+crafting:
+  success: "<green>Crafted {item}!"
+  quality: "<gray>Quality: {quality}"
+
+# Scroll messages
+scroll:
+  created: "<green>Created scroll of {spell}."
+  failed: "<red>Failed to create scroll."
+  used: "<yellow>Used scroll of {spell}."
+  learned: "<green>Learned {spell} from the scroll!"
+
+# Rune messages
+rune:
+  created: "<light_purple>Created a blank rune."
+  marked: "<gold>Rune marked with this location."
+
+# Gate messages
+gate:
+  created: "<gold>A bidirectional gate has been opened! (Duration: {duration} seconds)"
+  travel_used: "<aqua>Traveled through the gate!"
+
+# Combat messages
+combat:
+  parry: "<aqua>Parried!"
+  critical: "<gold>Critical hit!"
+  resist: "<blue>Resisted some damage."
+
+# Gathering messages
+gathering:
+  bonus_drop: "<green>Bonus drop!"
+  rare_find: "<gold>Rare find!"
+
+# Arms Lore messages
+arms_lore:
+  header: "<gold>=== Arms Lore ==="
+  quality: "Quality: {quality}"
+  damage: "Damage: {damage}"
+  durability: "Durability: {current}/{max}"
+
+# Admin messages
+admin:
+  skill_set: "<green>Set {player}'s {skill} to {value}."
+  stats_reset: "<green>Reset stats for {player}."
+  data_reloaded: "<green>Player data reloaded."
+
+# Language messages
+language:
+  changed: "<green>Language changed to {language}."
+  current: "<gray>Current language: {language}"
+  available: "<gray>Available languages: {languages}"
+
+# Survival skill messages
+survival:
+  athletics_roll: "<aqua>You rolled to safety!"
+  swimming_breath: "<aqua>Your swimming skill helps you hold your breath longer."
+  heat_resist: "<gold>Your heat resistance reduces the burn damage."
+  extinguished: "<aqua>You extinguished yourself!"
+  warmed_up: "<gold>You warmed yourself up!"
+  endured: "<aqua>You endured the pressure!"
+
+# Cooldown messages
+cooldown:
+  active: "<red>You must wait {seconds} seconds before using this ability again."
+
+# Common words
+common:
+  "yes": "Yes"
+  "no": "No"
+  none: "None"
+  unknown: "Unknown"
+  enabled: "Enabled"
+  disabled: "Disabled"

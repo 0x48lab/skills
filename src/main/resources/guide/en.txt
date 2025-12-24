@@ -1,0 +1,261 @@
+=== Skills Guide ===
+
+Welcome, adventurer!
+
+This guide covers the complete skill and magic system.
+
+---PAGE---
+
+=== Skill System ===
+
+- Use skills to gain XP
+- +0.1 per successful use
+- Max 100 per skill
+- Total cap: 700 points
+
+When at skill cap:
+Least used skill decreases to make room.
+
+---PAGE---
+
+=== Stats ===
+
+STR (Strength)
+- Max HP increase
+- Mining speed
+- Melee damage
+
+DEX (Dexterity)
+- Attack speed
+- Movement speed
+- Archery accuracy
+
+INT (Intelligence)
+- Mana cost reduction
+- Spell success rate
+
+---PAGE---
+
+=== Combat Skills ===
+
+Weapons:
+- Swordsmanship (swords)
+- Axe (axes)
+- Mace Fighting (maces)
+- Archery (bows)
+- Throwing (tridents)
+- Wrestling (unarmed)
+
+Support:
+- Tactics, Anatomy
+- Parrying, Focus
+
+---PAGE---
+
+=== Crafting Skills ===
+
+- Blacksmithy: Weapons/Armor
+- Bowcraft: Bows/Arrows
+- Alchemy: Potions
+- Cooking: Food
+- Inscription: Scrolls
+- Tinkering: Tools
+- Craftsmanship: Wood
+
+---PAGE---
+
+=== Gathering Skills ===
+
+- Mining: Ore, gems
+- Lumberjacking: Wood
+- Fishing: Fish, rare items
+
+Higher skill = better drops
+
+---PAGE---
+
+=== Thief Skills ===
+
+- Hiding (/hide)
+- Stealth (move hidden)
+- Detecting Hidden (/detect)
+- Snooping (/snoop)
+- Stealing
+- Poisoning (/poison)
+
+---PAGE---
+
+=== Taming Skills ===
+
+- Animal Taming (/tame)
+- Animal Lore (/lore)
+- Veterinary (feed to heal)
+
+---PAGE---
+
+=== Survival Skills ===
+
+- Athletics: Fall damage
+- Swimming: Breath time
+- Heat Resistance: Fire
+- Cold Resistance: Freeze
+- Endurance: Suffocation
+
+---PAGE---
+
+=== Magic System ===
+
+Requirements:
+- Spellbook (hold)
+- Reagents (consumed)
+- Mana (regenerates)
+- Magery skill
+
+/cast <spell> to use
+
+---PAGE---
+
+=== Reagents ===
+
+Minecraft items used as reagents:
+- String
+- Spider Eye
+- Gunpowder
+- Blaze Powder
+- Golden Carrot
+- Poisonous Potato
+- Nether Wart
+- Glowstone Dust
+- Ender Pearl
+
+---PAGE---
+
+=== Spell Circles ===
+
+1st Circle: Mana 1
+2nd Circle: Mana 2
+3rd Circle: Mana 3
+4th Circle: Mana 4
+5th Circle: Mana 5
+6th Circle: Mana 6
+7th Circle: Mana 7
+8th Circle: Mana 8
+
+---PAGE---
+
+=== Attack Spells ===
+
+Magic Arrow (1st) - Small dmg
+  Reagent: String
+
+Harm (2nd) - Medium dmg
+  Reagent: Spider Eye
+
+Fireball (3rd) - Dmg + Fire
+  Reagent: Gunpowder, Spider Eye
+
+Lightning (4th) - Large dmg
+  Reagent: Gunpowder, Blaze Powder
+
+---PAGE---
+
+=== Attack Spells 2 ===
+
+Mind Blast (5th)
+  Drains target's hunger
+  Reagent: Spider Eye, Blaze Powder
+
+Explosion (6th) - Area dmg
+  Reagent: Gunpowder, Blaze Powder
+
+Meteor Swarm (8th)
+  Massive area dmg + fire
+  Reagent: Gunpowder, Blaze Powder x3
+
+---PAGE---
+
+=== Healing Spells ===
+
+Heal (1st) - Small HP restore
+  Reagent: Golden Carrot
+
+Cure (2nd) - Remove debuffs
+  Reagent: Golden Carrot,
+           Poisonous Potato
+
+Greater Heal (4th) - Large HP
+  Reagent: Golden Carrot x2
+
+---PAGE---
+
+=== Buff Spells ===
+
+Night Sight (1st) - Night vision
+  Reagent: Glowstone Dust
+
+Bless (3rd) - Attack power UP
+  Reagent: Nether Wart
+
+Protection (5th) - Defense UP
+  Reagent: Nether Wart, String
+
+Invisibility (6th)
+  Reagent: Nether Wart, Blaze Powder
+
+---PAGE---
+
+=== Movement Spells ===
+
+Teleport (3rd) - Blink to location
+  Range: 15 blocks
+  Reagent: Ender Pearl
+
+Mark (5th) - Mark a rune
+  Reagent: Ender Pearl, Blaze Powder
+
+Recall (5th) - TP to rune
+  Reagent: Ender Pearl
+
+---PAGE---
+
+=== Utility Spells ===
+
+Paralyze (5th)
+  Immobilize target
+  Reagent: Spider Eye, String
+
+Gate Travel (7th)
+  Open portal to rune
+  Reagent: Ender Pearl x2, Blaze Powder
+
+---PAGE---
+
+=== Commands ===
+
+/skills - Skill list
+/stats - HP/Mana/Stats
+/cast <spell> - Cast
+/hide - Hide
+/detect - Find hidden
+/tame - Tame animal
+/arms - Evaluate gear
+/scribe - Make scroll
+/spellbook - Get spellbook
+/skillbook - This guide
+
+---PAGE---
+
+=== Tips ===
+
+1. Choose a build:
+   Warrior, Mage, Crafter
+
+2. 700 cap = specialize
+
+3. Sneak (Shift) to meditate
+
+4. INT reduces mana cost
+
+5. Scrolls use half mana
+
+Good luck!

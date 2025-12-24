@@ -1,0 +1,72 @@
+# Spellbook Localization - English
+
+# Item display
+name: "Spellbook"
+description: "A book for recording magical spells"
+spells_count: "Spells: {count}"
+
+# Circle names
+circles:
+  first: "1st Circle"
+  second: "2nd Circle"
+  third: "3rd Circle"
+  fourth: "4th Circle"
+  fifth: "5th Circle"
+  sixth: "6th Circle"
+  seventh: "7th Circle"
+  eighth: "8th Circle"
+
+# Spell descriptions
+spells:
+  # Attack
+  MAGIC_ARROW: "Fires a magic arrow (small damage)"
+  HARM: "Deals direct damage (medium damage)"
+  FIREBALL: "Hurls a fireball, sets target on fire"
+  LIGHTNING: "Lightning strike (large damage)"
+  FIRE_WALL: "Creates a wall of fire (continuous damage)"
+  MIND_BLAST: "Drains target's mana (hunger)"
+  EXPLOSION: "Area damage around target"
+  METEOR_SWARM: "Massive area damage"
+
+  # Healing
+  HEAL: "Restores small amount of HP"
+  CURE: "Removes status effects"
+  GREATER_HEAL: "Restores large amount of HP"
+
+  # Buffs
+  BLESS: "Increases attack power"
+  PROTECTION: "Increases defense"
+  INVISIBILITY: "Turns invisible"
+
+  # Utility
+  CREATE_FOOD: "Creates synthetic meat"
+  NIGHT_SIGHT: "Grants night vision"
+  FEATHER_FALL: "Grants slow falling"
+  WATER_BREATHING: "Grants water breathing"
+  TELEPORT: "Short range teleport to clicked location"
+  MARK: "Marks a rune with current location"
+  RECALL: "Teleports to a marked rune"
+  PARALYZE: "Immobilizes target"
+  GATE_TRAVEL: "Opens a gate to a marked rune"
+
+# Material names (Minecraft items)
+materials:
+  STRING: "String"
+  SPIDER_EYE: "Spider Eye"
+  GUNPOWDER: "Gunpowder"
+  BLAZE_POWDER: "Blaze Powder"
+  GOLDEN_CARROT: "Golden Carrot"
+  POISONOUS_POTATO: "Poisonous Potato"
+  NETHER_WART: "Nether Wart"
+  GLOWSTONE_DUST: "Glowstone Dust"
+  ENDER_PEARL: "Ender Pearl"
+  WHEAT: "Wheat"
+  FEATHER: "Feather"
+  PUFFERFISH: "Pufferfish"
+
+# UI strings
+empty_message: "No spells recorded.\n\nUse scrolls to learn spells."
+click_hint: "Click spell to cast"
+click_to_cast: "Click to cast"
+reagents_label: "Reagents"
+author: "Arcane Library"

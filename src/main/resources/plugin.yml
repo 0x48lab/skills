@@ -1,0 +1,95 @@
+name: Skills
+version: '${version}'
+main: com.hacklab.minecraft.skills.Skills
+api-version: '1.21'
+description: UO-style skill system for Minecraft
+author: hacklab
+
+softdepend:
+  - notoriety
+
+commands:
+  skills:
+    description: View your skills
+    usage: /skills [category|skill name]
+    aliases: [skill]
+
+  stats:
+    description: View your stats (HP, Mana, STR/DEX/INT)
+    usage: /stats
+
+  cast:
+    description: Cast a spell from your spellbook
+    usage: /cast <spell name>
+
+  language:
+    description: Change your display language
+    usage: /language [code]
+    aliases: [lang]
+
+  hide:
+    description: Attempt to hide (Hiding skill)
+    usage: /hide
+
+  detect:
+    description: Detect hidden players nearby
+    usage: /detect
+
+  snoop:
+    description: Snoop on another player's inventory
+    usage: /snoop
+
+  poison:
+    description: Apply poison to your weapon
+    usage: /poison
+
+  tame:
+    description: Attempt to tame an animal
+    usage: /tame
+
+  lore:
+    description: View information about an animal
+    usage: /lore
+
+  evaluate:
+    description: Evaluate another player's mana
+    usage: /evaluate
+
+  skilladmin:
+    description: Admin commands for skills
+    usage: /skilladmin <subcommand>
+    permission: skills.admin
+    aliases: [sa]
+
+  spellbook:
+    description: Get a spellbook
+    usage: /spellbook [list|all|spell name]
+    permission: skills.magic
+
+  skillbook:
+    description: Get a skills guide book
+    usage: /skillbook
+    aliases: [skillguide]
+
+  arms:
+    description: Evaluate a weapon or armor using Arms Lore
+    usage: /arms
+    aliases: [armslore]
+
+  scribe:
+    description: Create a spell scroll using Inscription
+    usage: /scribe [list|spell name]
+    aliases: [inscribe]
+
+permissions:
+  skills.admin:
+    description: Access to admin commands
+    default: op
+
+  skills.use:
+    description: Use basic skill commands
+    default: true
+
+  skills.magic:
+    description: Use magic commands (spellbook, cast)
+    default: true

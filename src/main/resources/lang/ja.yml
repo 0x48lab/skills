@@ -1,0 +1,185 @@
+# 日本語言語ファイル
+
+# システムメッセージ
+system:
+  plugin_enabled: "Skillsプラグインが有効になりました"
+  plugin_disabled: "Skillsプラグインが無効になりました"
+  player_data_loaded: "{player}のデータを読み込みました"
+  player_data_saved: "{player}のデータを保存しました"
+  no_permission: "<red>権限がありません。"
+  player_only: "<red>このコマンドはプレイヤーのみ使用できます。"
+  player_not_found: "<red>プレイヤーが見つかりません: {player}"
+  invalid_amount: "<red>無効な値: {amount}"
+  reload_success: "<green>設定を再読み込みしました。"
+
+# スキルメッセージ
+skill:
+  gain: "<green>+{amount} {skill} <gray>({current})"
+  decrease: "<red>-{amount} {skill} <gray>({current})"
+  cap_reached: "<yellow>スキル上限に達しました。他のスキルを上げるには訓練を続けてください。"
+  list_header: "<gold>=== あなたのスキル ==="
+  list_entry: "  {skill}: {value}"
+  set: "<green>{player}の{skill}を{value}に設定しました"
+  reset: "<green>{player}の全スキルをリセットしました"
+
+# ステータスメッセージ
+stats:
+  header: "<gold>=== あなたのステータス ==="
+  hp: "<red>❤ HP: {current} / {max}"
+  mana: "<blue>🍖 マナ: {current} / {max}"
+  str: "<red>STR: {value}"
+  dex: "<green>DEX: {value}"
+  int: "<blue>INT: {value}"
+  total_skills: "<aqua>合計スキル: {current} / {max}"
+
+# 魔法メッセージ
+magic:
+  cast_start: "<yellow>{spell}を詠唱中..."
+  targeting: "<yellow>{action}のターゲットを選択... ({seconds}秒)"
+  cast_success: "<green>{spell}の詠唱成功！"
+  cast_failed: "<red>{spell}の詠唱失敗。"
+  cancelled: "<gray>魔法をキャンセルしました。"
+  target_timeout: "<red>ターゲット選択がタイムアウトしました。"
+  select_target: "<yellow>クリックでターゲットを選択！"
+  invalid_target: "<red>無効なターゲットです。"
+  no_spellbook: "<red>魔法を詠唱するにはスペルブックが必要です。"
+  spell_not_in_book: "<red>その魔法はスペルブックにありません。"
+  no_reagents: "<red>必要な触媒がありません。"
+  no_mana: "<red>マナが足りません。"
+  out_of_range: "<red>ターゲットが範囲外です。"
+  interrupted: "<red>詠唱が中断されました！"
+
+# 回復メッセージ
+heal:
+  target: "<green>{target}を{amount}HP回復しました。"
+  self: "<green>{caster}があなたを{amount}HP回復しました。"
+  amount: "<green>+{amount} HP"
+
+# テレポートメッセージ
+teleport:
+  mark_success: "<green>ルーンに場所を記録しました。"
+  recall_success: "<green>{location}にリコールしました。"
+  gate_open: "<gold>ゲートが開きました！"
+  no_rune: "<red>手にルーンが必要です。"
+  rune_not_marked: "<red>このルーンには場所が記録されていません。"
+
+# シーフスキルメッセージ
+thief:
+  hide_success: "<gray>影に溶け込んだ..."
+  hide_failed: "<red>隠れることに失敗しました。"
+  hide_broken: "<red>姿が見つかった！"
+  stealth_distance: "<gray>ステルス: 残り{distance}ブロック"
+  stealth_ended: "<red>移動しすぎました。隠れ状態が解除されました。"
+  detect_found: "<gold>{player}を発見しました！"
+  detect_none: "<gray>近くに隠れているプレイヤーはいません。"
+  snoop_success: "<gray>{player}のインベントリを覗いている..."
+  snoop_failed: "<red>覗き見に失敗しました。"
+  snoop_noticed: "<yellow>{player}があなたの持ち物を覗こうとしています！"
+  steal_success: "<green>{item}を盗みました！"
+  steal_failed: "<red>盗むことに失敗しました。"
+  steal_noticed: "<yellow>{player}があなたの{item}を盗もうとしました！"
+  poison_applied: "<dark_green>毒を塗りました（{charges}回分）。"
+  poison_failed: "<red>毒の塗布に失敗しました。"
+  poison_hit: "<dark_green>毒が効いた！"
+
+# テイムメッセージ
+taming:
+  start: "<yellow>テイム中..."
+  success: "<green>{entity}のテイムに成功！"
+  failed: "<red>テイムに失敗しました。"
+  already_tamed: "<yellow>この動物は既にテイムされています。"
+  cannot_tame: "<red>この生物はテイムできません。"
+  too_difficult: "<red>この生物はあなたのスキルでは難しすぎます。"
+
+# アニマルロアメッセージ
+lore:
+  header: "<gold>=== アニマルロア ==="
+  owner: "所有者: {owner}"
+  health: "体力: {current}/{max}"
+  tameable: "テイム可能: {status}"
+  difficulty: "テイム難易度: {difficulty}"
+
+# ベテリナリーメッセージ
+veterinary:
+  heal: "<green>{entity}を{amount}HP回復しました。"
+  wrong_food: "<red>この食べ物はこの動物には効きません。"
+  not_owner: "<red>あなたはこの動物の所有者ではありません。"
+
+# イバリュエートメッセージ
+evaluate:
+  result: "<aqua>{player}のマナ: {mana}"
+  self: "<aqua>あなたのマナ: {mana}"
+
+# クラフトメッセージ
+crafting:
+  success: "<green>{item}を作成しました！"
+  quality: "<gray>品質: {quality}"
+
+# スクロールメッセージ
+scroll:
+  created: "<green>{spell}のスクロールを作成しました。"
+  failed: "<red>スクロールの作成に失敗しました。"
+  used: "<yellow>{spell}のスクロールを使用しました。"
+  learned: "<green>スクロールから{spell}を習得しました！"
+
+# ルーンメッセージ
+rune:
+  created: "<light_purple>空のルーンを作成しました。"
+  marked: "<gold>ルーンにこの場所を記録しました。"
+
+# ゲートメッセージ
+gate:
+  created: "<gold>双方向ゲートを開きました！（持続時間: {duration}秒）"
+  travel_used: "<aqua>ゲートを通過しました！"
+
+# 戦闘メッセージ
+combat:
+  parry: "<aqua>パリィ！"
+  critical: "<gold>クリティカルヒット！"
+  resist: "<blue>ダメージを軽減した。"
+
+# 採集メッセージ
+gathering:
+  bonus_drop: "<green>ボーナスドロップ！"
+  rare_find: "<gold>レア発見！"
+
+# アームズロアメッセージ
+arms_lore:
+  header: "<gold>=== アームズロア ==="
+  quality: "品質: {quality}"
+  damage: "ダメージ: {damage}"
+  durability: "耐久度: {current}/{max}"
+
+# 管理者メッセージ
+admin:
+  skill_set: "<green>{player}の{skill}を{value}に設定しました。"
+  stats_reset: "<green>{player}のステータスをリセットしました。"
+  data_reloaded: "<green>プレイヤーデータを再読み込みしました。"
+
+# 言語メッセージ
+language:
+  changed: "<green>言語を{language}に変更しました。"
+  current: "<gray>現在の言語: {language}"
+  available: "<gray>利用可能な言語: {languages}"
+
+# サバイバルスキルメッセージ
+survival:
+  athletics_roll: "<aqua>受け身を取った！"
+  swimming_breath: "<aqua>水泳スキルで息を長く止められる。"
+  heat_resist: "<gold>耐熱スキルで炎ダメージを軽減した。"
+  extinguished: "<aqua>火を消した！"
+  warmed_up: "<gold>体を温めた！"
+  endured: "<aqua>圧力に耐えた！"
+
+# クールダウンメッセージ
+cooldown:
+  active: "<red>再使用まであと{seconds}秒お待ちください。"
+
+# 共通
+common:
+  "yes": "はい"
+  "no": "いいえ"
+  none: "なし"
+  unknown: "不明"
+  enabled: "有効"
+  disabled: "無効"

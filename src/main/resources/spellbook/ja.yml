@@ -1,0 +1,72 @@
+# Spellbook Localization - Japanese
+
+# Item display
+name: "魔法書"
+description: "魔法の呪文を記録するための本"
+spells_count: "呪文数: {count}"
+
+# Circle names
+circles:
+  first: "第1サークル"
+  second: "第2サークル"
+  third: "第3サークル"
+  fourth: "第4サークル"
+  fifth: "第5サークル"
+  sixth: "第6サークル"
+  seventh: "第7サークル"
+  eighth: "第8サークル"
+
+# Spell descriptions
+spells:
+  # 攻撃
+  MAGIC_ARROW: "魔法の矢を放つ（小ダメージ）"
+  HARM: "直接ダメージ（中ダメージ）"
+  FIREBALL: "火球を放ち、対象を燃やす"
+  LIGHTNING: "雷撃（大ダメージ）"
+  FIRE_WALL: "炎の壁を作り継続ダメージ"
+  MIND_BLAST: "対象のマナ（空腹）を減少"
+  EXPLOSION: "範囲ダメージ"
+  METEOR_SWARM: "大範囲ダメージ"
+
+  # 回復
+  HEAL: "少量のHPを回復"
+  CURE: "状態異常を解除"
+  GREATER_HEAL: "大量のHPを回復"
+
+  # バフ
+  BLESS: "攻撃力UP"
+  PROTECTION: "防御力UP"
+  INVISIBILITY: "透明化"
+
+  # ユーティリティ
+  CREATE_FOOD: "合成肉を生成"
+  NIGHT_SIGHT: "暗視を付与"
+  FEATHER_FALL: "落下速度を遅くする"
+  WATER_BREATHING: "水中呼吸を付与"
+  TELEPORT: "クリック地点へ短距離TP"
+  MARK: "現在地をルーンに記録"
+  RECALL: "ルーンへ移動"
+  PARALYZE: "対象を移動不可にする"
+  GATE_TRAVEL: "ルーンへゲートを開く"
+
+# マテリアル名（マイクラアイテム）
+materials:
+  STRING: "糸"
+  SPIDER_EYE: "スパイダーアイ"
+  GUNPOWDER: "ガンパウダー"
+  BLAZE_POWDER: "ブレイズパウダー"
+  GOLDEN_CARROT: "金のニンジン"
+  POISONOUS_POTATO: "毒じゃがいも"
+  NETHER_WART: "ネザーウォート"
+  GLOWSTONE_DUST: "グロウストーンダスト"
+  ENDER_PEARL: "エンダーパール"
+  WHEAT: "小麦"
+  FEATHER: "羽根"
+  PUFFERFISH: "フグ"
+
+# UI文字列
+empty_message: "呪文が記録されていません。\n\nスクロールで呪文を習得しましょう。"
+click_hint: "クリックで詠唱"
+click_to_cast: "クリックで詠唱"
+reagents_label: "触媒"
+author: "アルケイン図書館"

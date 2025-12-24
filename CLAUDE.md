@@ -1,0 +1,2462 @@
+# Skills Plugin 仕様書
+
+Ultima Onlineのスキルシステムを参考にしたMinecraftプラグイン
+
+## 概要
+
+プレイヤーが行動するほどスキルが上昇するシステム。スキル合計には上限があり、特定のスキルに特化するか、万能型になるかをプレイヤーが選択できる。
+
+## スキルシステム基本仕様
+
+### 内部ステータス（STR/DEX/INT）
+
+UO風の3つの内部ステータスを持ち、関連スキルの合計値に応じて自動計算される。
+
+#### ステータス計算
+```
+STR = STR対象スキル合計 / 対象スキル数（11スキル）× 100 / 100
+DEX = DEX対象スキル合計 / 対象スキル数（11スキル）× 100 / 100
+INT = INT対象スキル合計 / 対象スキル数（8スキル）× 100 / 100
+```
+※ 各対象スキルの平均値がそのままステータス値となる
+※ 各ステータスの最大値: 100（全対象スキルが100の場合）
+
+#### 対象スキル（全34スキルを分類）
+| ステータス | 対象スキル（11スキル） |
+|-----------|----------------------|
+| STR | Swordsmanship, Axe, Mace Fighting, Wrestling, Tactics, Anatomy, Mining, Lumberjacking, Blacksmithy, Craftsmanship, Cooking |
+| DEX | Archery, Throwing, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Tinkering |
+| INT | Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Alchemy, Bowcraft, Animal Lore |
+
+#### 複数ステータスに影響するスキル
+| スキル | 影響ステータス |
+|-------|---------------|
+| Animal Taming | STR 50% + DEX 50% |
+| Veterinary | STR 50% + INT 50% |
+| Detecting Hidden | DEX 50% + INT 50% |
+| Arms Lore | STR 33% + DEX 33% + INT 33% |
+
+#### ステータス効果
+| ステータス | 効果 |
+|-----------|------|
+| STR | 最大HP +（STR）、採掘・伐採速度 +（STR / 10）% |
+| DEX | 攻撃速度 +（DEX / 20）%、移動速度 +（DEX / 50）% |
+| INT | マナ消費 -（INT / 2）%、詠唱成功率 +（INT / 5）% |
+
+### 内部HP/マナシステム
+
+バニラのハート・空腹ゲージとは別に、内部でHP/マナを管理する。
+
+#### 内部HP
+```
+最大HP = 100 + STR
+```
+- 範囲: 100〜200（STR 0〜100）
+- 小数点ダメージ対応
+- バニラハートと同期（内部HP% = ハート%）
+
+#### 内部マナ
+```
+最大マナ = 20（空腹ゲージと同じ）
+実消費 = 基礎消費 × (1 - INT / 200)
+```
+- INT 100で消費50%軽減
+- 空腹ゲージと同期
+
+#### ダメージ計算フロー
+```
+1. バニラダメージ発生
+2. 内部ダメージに変換: 内部ダメージ = バニラダメージ × 10
+3. スキル補正適用（Parrying, Resisting Spells等）
+4. 内部HPを減少（小数点OK）
+5. バニラHPに同期: バニラHP = (内部HP / 最大内部HP) × 20
+```
+
+#### 回復計算
+```
+食事回復: 内部HP += 回復量 × 10
+ポーション: 内部HP += 回復量 × 10
+魔法回復: 内部HP += Heal/Greater Heal の回復量 × 10
+```
+
+#### 表示方法
+- **通常時**: バニラのハート・空腹ゲージのみ（内部値と同期）
+- **詳細確認**: `/stats` コマンドで内部HP/マナ/ステータスを表示
+
+#### /stats 表示例
+```
+=== あなたのステータス ===
+❤ HP: 156 / 180
+🍖 Mana: 15 / 20
+━━━━━━━━━━━━━━━━
+STR: 80  (+80 HP, +8% 採掘速度)
+DEX: 45  (-22% ダッシュ消費, +2% 攻撃速度)
+INT: 60  (-30% マナ消費, +6% 詠唱成功率)
+```
+
+#### 実装
+- 内部HP/マナ: プレイヤーごとにメモリ管理
+- ハート同期: `player.setHealth()` で反映
+- 空腹同期: `player.setFoodLevel()` で反映
+- 攻撃速度: `Attribute.GENERIC_ATTACK_SPEED` で実装
+- ダッシュ消費: `PlayerMoveEvent` で消費量を調整
+
+### スキルキャップ
+- **スキル合計上限**: 600ポイント
+- **各スキル上限**: 100ポイント
+- スキル合計が600に達した場合、新しいスキルが上がると使用頻度の低いスキルが自動的に下がる
+- 6スキルをMAX（100）にできる計算
+
+### スキル上昇システム（UO準拠）
+
+#### 基本原則
+- スキルを使用するたびに上昇判定が発生
+- 成功/失敗に関わらず判定
+- 難易度が適正な行動で上がりやすい
+
+#### 上昇確率計算
+```
+基礎確率 = (100 - スキル値) / 10 %
+上昇確率 = 基礎確率 × 難易度補正
+上昇量 = 0.1 ポイント
+```
+
+#### 難易度補正
+| 条件 | 補正 | 説明 |
+|-----|------|------|
+| 難易度 > スキル + 20 | ×0.5 | 難しすぎ |
+| 難易度 ≒ スキル（±20） | ×1.0 | 適正 |
+| 難易度 < スキル - 20 | ×0.2 | 簡単すぎ |
+
+#### 難易度の定義
+| スキル種別 | 難易度基準 |
+|-----------|-----------|
+| 戦闘 | 相手Mobの強さ（下記参照） |
+| 生産 | 作成アイテムの難易度（下記参照） |
+| 魔法 | 魔法のサークル × 10 |
+| 資源収集 | 鉱石・素材の種類（下記参照） |
+| シーフ | 対象プレイヤーのスキル |
+
+#### 戦闘難易度（Mob別）
+| Mob | 難易度 | 備考 |
+|-----|--------|------|
+| ゾンビ、スケルトン | 20 | 基本的な敵 |
+| クリーパー | 30 | 爆発あり |
+| スパイダー | 25 | 壁登り |
+| エンダーマン | 50 | 高HP、瞬間移動 |
+| ブレイズ | 45 | 遠距離攻撃 |
+| ウィッチ | 40 | ポーション使用 |
+| ピグリンブルート | 55 | 高攻撃力 |
+| ウィザースケルトン | 50 | 衰弱付与 |
+| ガスト | 35 | 遠距離、飛行 |
+| ファントム | 30 | 飛行、群れ |
+| ラヴェジャー | 60 | 高HP、高攻撃力 |
+| エヴォーカー | 55 | 召喚、範囲攻撃 |
+| ヴィンディケーター | 45 | 高攻撃力 |
+| ウォーデン | 100 | 最強Mob |
+| プレイヤー | 対象の戦闘スキル平均 | PvP時 |
+
+#### 生産難易度（素材別）
+| 素材 | 難易度 | 対象スキル |
+|-----|--------|-----------|
+| 木製品 | 10 | Craftsmanship |
+| 石製品 | 20 | Blacksmithy（石ツール） |
+| 革製品 | 25 | Craftsmanship |
+| 鉄製品 | 40 | Blacksmithy |
+| 金製品 | 35 | Blacksmithy |
+| ダイヤ製品 | 60 | Blacksmithy |
+| ネザライト製品 | 80 | Blacksmithy |
+| 弓・クロスボウ | 40 | Bowcraft |
+| 矢（通常） | 15 | Bowcraft |
+| 矢（特殊） | 35 | Bowcraft |
+| ポーション（基本） | 30 | Alchemy |
+| ポーション（強化） | 50 | Alchemy |
+| ポーション（延長） | 45 | Alchemy |
+| スクロール | 魔法サークル × 10 | Inscription |
+| 食料（基本） | 10 | Cooking |
+| 食料（複合） | 30 | Cooking |
+| 細工品（基本） | 15 | Tinkering |
+| 細工品（複合） | 35 | Tinkering |
+| 細工品（精密） | 50 | Tinkering |
+
+#### 資源収集難易度
+| 資源 | 難易度 | 対象スキル |
+|-----|--------|-----------|
+| 石炭 | 10 | Mining |
+| 鉄鉱石 | 25 | Mining |
+| 銅鉱石 | 20 | Mining |
+| 金鉱石 | 40 | Mining |
+| レッドストーン | 35 | Mining |
+| ラピスラズリ | 35 | Mining |
+| ダイヤモンド | 60 | Mining |
+| エメラルド | 70 | Mining |
+| 古代の残骸 | 90 | Mining |
+| オーク等（通常木） | 10 | Lumberjacking |
+| ダークオーク | 20 | Lumberjacking |
+| マングローブ | 25 | Lumberjacking |
+| 桜 | 30 | Lumberjacking |
+| 通常の魚 | 15 | Fishing |
+| 熱帯魚 | 25 | Fishing |
+| フグ | 30 | Fishing |
+| 宝（エンチャント本等） | 70 | Fishing |
+
+#### 例：スキル50、適正難易度
+```
+基礎確率 = (100 - 50) / 10 = 5%
+上昇確率 = 5% × 1.0 = 5%
+```
+
+### スキル下降システム
+
+#### 下降条件
+- スキル合計が600に達している
+- 新しいスキルが上昇しようとした時
+
+#### 下降対象の選定
+- **最長未使用スキル**が下降対象
+- 各スキルの最終使用時刻を記録
+- 最も長く使っていないスキルが下がる
+
+#### 下降量
+- 上昇量と同じ **0.1** ポイント
+- スキルは0未満にならない
+
+#### フロー
+```
+スキル使用
+    ↓
+上昇判定（確率計算）
+    ↓ 成功
+合計 < 600?
+    ├─ Yes → スキル +0.1
+    └─ No  → 最長未使用スキル -0.1 → 使用スキル +0.1
+```
+
+#### データ構造
+```kotlin
+data class SkillData(
+    val value: Double,       // スキル値（0.0〜100.0）
+    val lastUsed: Long       // 最終使用時刻
+)
+```
+
+## スキル一覧
+
+### 戦闘系スキル（武器）
+| スキル名 | 対象武器 | 説明 | 上昇条件 |
+|---------|---------|------|---------|
+| Swordsmanship | 剣 | 剣の扱い。ダメージに影響 | 剣でダメージを与えた時 |
+| Axe | 斧 | 斧の扱い。ダメージに影響 | 斧でダメージを与えた時 |
+| Mace Fighting | メイス | メイスの扱い。ダメージに影響（1.21+） | メイスでダメージを与えた時 |
+| Archery | 弓、クロスボウ | 弓術。ダメージに影響 | 射撃でダメージを与えた時 |
+| Throwing | トライデント | 投擲。投擲ダメージに影響 | トライデントでダメージを与えた時 |
+| Wrestling | 素手 | 素手戦闘。素手時のダメージ | 素手でダメージを与えた時 |
+
+### 戦闘補助スキル
+| スキル名 | 効果 | 上昇条件 |
+|---------|------|---------|
+| Tactics | ダメージ +（スキル値/5）% | 攻撃でダメージを与えた時 |
+| Anatomy | クリティカル率 +（スキル値/2）% | 敵を倒した時 |
+| Parrying | 受け流し。盾・武器での被ダメージ軽減 | 盾ブロック・パリィ発動時 |
+| Focus | スタミナ回復速度 +（スキル値）% | ダッシュ時 |
+
+### 生産系スキル
+| スキル名 | 対象アイテム | 説明 | 上昇条件 |
+|---------|-------------|------|---------|
+| Alchemy | ポーション | 醸造台でのポーション作成。品質で効果時間・強度変動 | ポーション作成時 |
+| Blacksmithy | 金属武器・防具・ツール | 鉄/金/ダイヤ/ネザライト製品。金床修理も対象 | 対象アイテムクラフト時 |
+| Bowcraft | 弓、クロスボウ、矢 | 射撃武器・弾薬の作成。品質で威力変動 | 対象アイテムクラフト時 |
+| Craftsmanship | 木製品、革製品 | 盾、ドア、チェスト、革防具など（木工+裁縫統合） | 対象アイテムクラフト時 |
+| Cooking | 食料 | かまど/燻製器での調理。品質で回復量変動 | 食料を取り出した時 |
+| Inscription | 魔法スクロール | 魔法を封じ込めた巻物の作成。Mageryと連携 | スクロール作成時 |
+| Tinkering | 小物・ツール | ハサミ、釣り竿、火打石、時計、コンパスなど | 対象アイテムクラフト時 |
+
+#### 生産スキル対象アイテム詳細
+##### Alchemy（錬金術）
+- 治癒のポーション / 再生のポーション / 耐火のポーション
+- 俊敏のポーション / 跳躍のポーション / 暗視のポーション
+- 力のポーション / 水中呼吸のポーション
+- 毒のポーション / 負傷のポーション / 鈍化のポーション
+- スプラッシュポーション / 残留ポーション
+
+##### Blacksmithy（鍛冶）
+- 鉄/金/ダイヤ/ネザライトの剣
+- 鉄/金/ダイヤ/ネザライトの斧（武器として）
+- 鉄/金/ダイヤ/ネザライトのツルハシ/シャベル/クワ
+- 鉄/金/ダイヤ/ネザライトのヘルメット/チェストプレート/レギンス/ブーツ
+- チェーン防具（素材: 鉄塊）
+- 金床での修理作業
+- 石のツール（難易度低）
+
+##### Bowcraft（弓職人）
+- 弓 / クロスボウ
+- 矢（通常） / 矢（光の矢、効能付きの矢）
+
+##### Craftsmanship（工芸）
+- 盾 / 木の剣 / 木のツール
+- ドア / トラップドア / フェンス / フェンスゲート
+- チェスト / 樽 / 額縁 / 看板
+- ベッド / 本棚 / 作業台 / 織機 / 製図台
+- 革の帽子/上着/ズボン/ブーツ
+- 本と羽根ペン / 地図（紙ベース）
+- 旗 / カーペット
+
+##### Cooking（料理）
+- 焼き肉（牛/豚/鶏/羊/ウサギ）
+- 焼き魚（鮭/タラ）
+- ベイクドポテト / パン / クッキー
+- ケーキ / パンプキンパイ
+- キノコシチュー / ウサギシチュー / ビートルートスープ
+- 乾燥昆布
+
+##### Inscription（書写）
+- 魔法スクロール（全魔法）
+- ルーン（アメジストの欠片 + 紙）
+
+##### Tinkering（細工）
+- **基本（難易度15）**: ハサミ / 火打石と打ち金 / 金塊・鉄塊
+- **複合（難易度35）**: 釣り竿 / ランタン / 蝋燭 / 鎖 / 火薬
+- **精密（難易度50）**: 時計 / コンパス / 望遠鏡 / ロケット花火
+
+### 資源収集系スキル
+| スキル名 | 対象 | 説明 | 上昇条件 |
+|---------|------|------|---------|
+| Mining | 鉱石 | 採掘速度向上、レア鉱石（エメラルド等）発見率上昇 | 鉱石を採掘した時 |
+| Lumberjacking | 木材 | 伐採速度向上、追加ドロップ確率 | 原木を伐採した時 |
+| Fishing | 魚、宝 | 釣果品質向上、レアアイテム（宝釣り）確率上昇 | 釣りで何かを釣った時 |
+
+#### 資源スキルの具体的効果
+| スキル | 効果 | 計算式 |
+|--------|------|--------|
+| Mining | 採掘速度 | +（スキル値 / 10）%（最大+10%） |
+| Mining | レア鉱石ボーナスドロップ | スキル値 / 2 %（最大50%）で追加1個 |
+| Mining | 経験値オーブ増加 | +（スキル値 / 5）%（最大+20%） |
+| Lumberjacking | 伐採速度 | +（スキル値 / 10）%（最大+10%） |
+| Lumberjacking | 追加ドロップ | スキル値 / 2 %（最大50%）で追加1個 |
+| Lumberjacking | 苗木ドロップ率 | +（スキル値 / 5）%（最大+20%） |
+| Fishing | 釣り待ち時間短縮 | -（スキル値 / 5）%（最大-20%） |
+| Fishing | 宝物確率 | +（スキル値 / 4）%（最大+25%） |
+| Fishing | ゴミ確率 | -（スキル値 / 2）%（最大-50%） |
+
+### 魔法系スキル
+| スキル名 | 説明 | 上昇条件 |
+|---------|------|---------|
+| Magery | 魔法詠唱。詠唱成功率に影響 | 魔法詠唱時（成功/失敗問わず） |
+
+### 魔法補助スキル
+| スキル名 | 効果 | 上昇条件 |
+|---------|------|---------|
+| Evaluating Intelligence | 魔法ダメージ +（スキル値/2）%、`/evaluate` で相手のマナ確認 | 魔法ダメージを与えた時 |
+| Meditation | スニーク静止中の空腹回復速度 +（スキル値）% | 瞑想状態で空腹が回復した時 |
+| Resisting Spells | 被魔法ダメージ -（スキル値/2）%、状態異常抵抗 +（スキル値×0.8）% | 魔法ダメージを受けた時 |
+
+#### Evaluating Intelligence（魔力鑑定）
+- 発動: `/evaluate` コマンド → ターゲットモード → プレイヤーをクリック
+- 効果: 対象プレイヤーの現在マナ/最大マナを表示
+- 表示例: 「Steve のマナ: 12 / 20」
+- 精度: スキル値に応じて誤差（スキル100で正確、低スキルでは±20%の誤差）
+
+### シーフ系スキル
+| スキル名 | 効果 | 上昇条件 |
+|---------|------|---------|
+| Hiding | `/hide` で透明化（成功率=スキル値%） | 隠れ成功時 |
+| Stealth | Hiding中に移動可能（距離=スキル値/10ブロック） | ステルス移動中 |
+| Detecting Hidden | `/detect` で隠れたプレイヤー発見（範囲=スキル値/10ブロック） | 発見試行時 |
+| Snooping | `/snoop` で相手のインベントリを覗く | 覗き試行時 |
+| Stealing | Snooping中にアイテムを盗む | 窃盗試行時 |
+| Poisoning | `/poison` で武器に毒付与（持続=スキル値/20回） | 毒塗り・毒攻撃時 |
+
+#### Hiding（隠れる）
+- 発動: `/hide` コマンド
+- 効果: 透明化（Invisibility エフェクト）
+- 成功率: スキル値%
+- 解除条件: 攻撃、アイテム使用、ダメージを受ける、走る
+
+#### Stealth（ステルス移動）
+- 発動: Hiding成功後に歩く
+- 移動可能距離: スキル値 / 10 ブロック（最大10ブロック）
+- 解除条件: 距離超過、走る、攻撃
+- 実装: 移動距離を累積計算（PlayerMoveEventで距離を加算）
+
+#### Detecting Hidden（発見）
+- 発動: `/detect` コマンド
+- 範囲: スキル値 / 10 ブロック（最大10ブロック）
+- 判定: 範囲内の隠れているプレイヤーそれぞれに対して発見判定
+```
+発見成功率 = Detecting Hiddenスキル - 対象のHidingスキル + 50%
+最小: 10%、最大: 95%
+```
+- 成功時: 対象のHiding解除、位置にパーティクル表示
+- 失敗時: 何も起こらない（対象には通知されない）
+
+#### Snooping → Stealing
+```
+1. /snoop 実行 → ターゲットモード
+2. プレイヤーをクリック → Snooping判定
+3. 成功: 相手のインベントリをGUIで表示
+4. 失敗: 相手に「誰かが覗こうとしている」と通知
+5. GUI内でアイテムをクリック → Stealing判定（アイテム移動ではなく判定トリガー）
+6. Stealing成功: アイテムを自分のインベントリへコピー＆相手から削除
+7. Stealing失敗: 相手に通知、GUI強制終了
+```
+
+#### Snooping成功率
+```
+成功率 = Snoopingスキル - (対象のDetecting Hiddenスキル / 2) + 20%
+最小: 5%、最大: 95%
+```
+
+#### Stealing成功率
+```
+成功率 = Stealingスキル - (対象のDetecting Hiddenスキル / 2) - アイテム重量補正 + 10%
+アイテム重量補正: スタック数 × 2%
+最小: 5%、最大: 90%
+```
+
+#### Poisoning（毒塗り）
+- 効果: 手持ち武器に毒エフェクト付与
+- 持続: スキル値 / 20 回の攻撃（最大5回）
+- 毒ダメージ: ポーションの強度に依存
+
+#### 毒塗りフロー
+```
+1. 毒のポーションをインベントリに所持
+2. 毒を塗りたい武器をメインハンドに持つ
+3. /poison を実行
+4. スキル判定（成功率 = Poisoningスキル%）
+5. 成功: 武器に毒付与、ポーション1本消費
+6. 失敗: 「毒塗りに失敗した」メッセージ、ポーション消費なし
+```
+
+#### 毒武器の効果
+- 攻撃ヒット時: 対象に毒効果付与（ポーション強度依存）
+- 毒の持続時間: 5秒
+- 使用回数消費: 攻撃がヒットするたびに-1
+- 残り回数0: 毒効果消滅
+- Lore表示: 「☠ 毒 (残り3回)」
+
+#### 犯罪フラグ連携
+- **notorietyプラグイン**との連携（ソフト依存）
+- プラグインが存在する場合: Stealing実行で犯罪記録
+- プラグインがない場合: 犯罪処理をスキップ
+```kotlin
+// ソフト依存の実装
+val notoriety = server.servicesManager.getRegistration(NotorietyAPI::class.java)?.provider
+notoriety?.recordCrime(
+    criminal = player.uniqueId,
+    crimeType = CrimeType.THEFT,
+    victim = target.uniqueId,
+    location = player.location,
+    detail = "Stealing: ${item.type.name}"
+)
+```
+
+### その他スキル
+| スキル名 | 効果 | 上昇条件 |
+|---------|------|---------|
+| Arms Lore | `/arms` で武器・防具の詳細情報表示 | コマンド使用時 |
+
+#### Arms Lore（武器鑑定）
+- 発動: `/arms` + 手持ちアイテム
+- 効果: 武器・防具の詳細情報を表示
+  - 基本攻撃力/防御力
+  - 品質（LQ/NQ/HQ/EX）
+  - 耐久度
+  - 製作者名
+- 高スキル: より詳細な情報（隠しステータス等）
+
+### テイミング系スキル
+| スキル名 | 効果 | 上昇条件 |
+|---------|------|---------|
+| Animal Taming | テイム成功率向上 | テイム試行時 |
+| Animal Lore | `/lore` でMobのHP・状態確認 | コマンド使用時 |
+| Veterinary | エサをあげてテイムMobを回復（回復量=スキル値×0.2） | Mob回復時 |
+
+#### Animal Lore（動物知識）
+- 発動: `/lore` コマンド → ターゲットモード → Mobをクリック
+- 効果: 対象MobのHP・状態を表示
+- 表示例:
+```
+=== 狼 ===
+❤ HP: 8 / 20
+状態: 健康
+オーナー: Steve
+テイム済み: はい
+```
+- 高スキル: 野生Mobの詳細情報（攻撃力、ドロップ等）も表示
+
+#### テイム対象（バニラ制御可能Mob）
+| 難易度 | Mob | 必要スキル | 好物（成功率+20%） |
+|-------|-----|-----------|------------------|
+| 易 | 狼 | 0〜 | 骨 |
+| 易 | 猫 | 0〜 | 生鱈、生鮭 |
+| 易 | オウム | 10〜 | 種 |
+| 中 | 馬 | 30〜 | 金のニンジン |
+| 中 | ロバ | 30〜 | 金のニンジン |
+| 中 | ラマ | 40〜 | 干草の俵 |
+
+#### テイム成功率
+```
+成功率 = (Animal Tamingスキル - 必要スキル) + 30%
+好物所持: +20%
+最大: 90%
+```
+
+#### テイムフロー（ターゲットシステム）
+```
+1. /tame を実行
+2. 「ターゲット待ち」状態になる
+3. ActionBar: 「🐾 Tame - 左クリック:テイム / 右クリック:キャンセル (残り10秒)」
+4. 対象Mobを左クリック → テイム判定
+5. 右クリック → キャンセル
+6. 一定時間（10秒）経過 → 自動キャンセル
+```
+
+- 好物を手に持っている場合: 成功率+20%ボーナス
+- テイム不可Mob: 「このMobはテイムできません」メッセージ
+- 必要スキル不足: 「スキルが足りません（必要: XX）」メッセージ
+
+#### テイム後の操作（バニラ機能）
+| 操作 | 方法 |
+|-----|------|
+| 追従/待機 | 右クリック（座らせる） |
+| 攻撃 | プレイヤーが攻撃した対象を攻撃（狼） |
+| 騎乗 | 右クリック（馬、ロバ、ラマ） |
+
+#### テイム上限
+- 同時テイム数 = Animal Tamingスキル / 20（最大5体）
+
+#### Veterinary（獣医）
+- 発動: 食料を持ってテイムMobを右クリック
+- 消費: 食料 ×1
+- 回復量: 食料の回復量 × (1 + Veterinaryスキル / 100)
+- 対象: 自分がテイムしたMobのみ
+- 実装: `PlayerInteractEntityEvent` でテイムMob + 食料所持を検知
+- 例: スキル100で食料の回復量が2倍
+
+## クラフト品質システム
+
+### 基本仕様
+- **失敗なし**: クラフトは必ず成功（素材ロストなし）
+- **品質変動**: スキル値に応じて品質が決定
+- **バニラクラフト使用**: 通常のクラフトテーブル/金床を使用
+- `CraftItemEvent` で品質を付与
+
+### 品質レベル
+| 品質 | スキル条件 | 判定 | 性能補正 | 耐久度補正 |
+|-----|-----------|------|---------|-----------|
+| Low Quality (LQ) | 0〜49 | 確定 | -15% | -25%（減少確率増加） |
+| Normal Quality (NQ) | 50〜69 | 確定 | ±0% | ±0% |
+| High Quality (HQ) | 70〜89 | 確率判定 | +15% | +30%（減少確率軽減） |
+| Exceptional (EX) | 90〜100 | 確率判定 | +25% | +50%（減少確率軽減）+ 製作者名 |
+
+### 品質判定フロー
+```
+スキル70以上 → HQ判定（成功率 = スキル値%）
+  ├─ 成功 → スキル90以上なら EX判定（成功率 = (スキル-90)*10%）
+  │           ├─ 成功 → Exceptional
+  │           └─ 失敗 → High Quality
+  └─ 失敗 → Normal Quality
+
+スキル50〜69 → Normal Quality（確定）
+
+スキル0〜49 → Low Quality（確定）
+```
+
+### 性能補正の適用先
+| アイテム種別 | 補正対象 | 実装方法 |
+|-------------|---------|---------|
+| 武器 | 攻撃力 | AttributeModifier |
+| 防具 | 防御力 | AttributeModifier |
+| ツール | 採掘速度 | AttributeModifier / Efficiency付与 |
+| 弓 | 矢ダメージ | EntityDamageByEntityEvent で補正 |
+
+### 耐久度補正の実装
+- PlayerItemDamageEvent をフック
+- 品質に応じて耐久度減少の確率を制御
+  - LQ: 耐久度減少時に追加ダメージ
+  - HQ: 33%の確率で耐久度減少をキャンセル
+  - EX: 50%の確率で耐久度減少をキャンセル
+
+### NBTタグ設計
+```yaml
+# PersistentDataContainer に保存
+skills:quality: "HQ"         # LQ / NQ / HQ / EX
+skills:crafter: "PlayerName" # 製作者名（EXのみ）
+skills:bonus: 15             # 性能補正値(%)
+```
+
+### Lore表示例
+```
+鉄の剣
+[High Quality]
+攻撃力: +15%
+耐久度: +30%
+```
+
+```
+ダイヤモンドの剣
+[Exceptional]
+攻撃力: +25%
+耐久度: +50%
+製作者: Steve
+```
+
+## 魔法システム
+
+### マナシステム（空腹ゲージ連動）
+- マナ = 空腹ゲージを使用
+- 魔法を使うと空腹ゲージが減少
+- 食事でマナ（空腹ゲージ）を回復
+- Meditation スキルで空腹ゲージの自然回復速度が向上
+
+### 魔法レジスト
+```
+ダメージ軽減率 = Resist Spells × 0.5 (最大50%軽減)
+状態異常抵抗率 = Resist Spells × 0.8 (最大80%抵抗)
+```
+
+### 魔法ダメージ計算
+```
+基礎ダメージ = 魔法の基礎値（下記参照）
+Magery補正 = 1 + (Magery / 200)  // スキル100で1.5倍
+EvalInt補正 = 1 + (Evaluating Intelligence / 200)  // スキル100で1.5倍
+最終ダメージ = 基礎ダメージ × Magery補正 × EvalInt補正 × (1 - 対象のResist軽減率)
+```
+
+#### 魔法別基礎ダメージ
+| 魔法 | 基礎ダメージ | 追加効果 |
+|-----|-------------|---------|
+| Magic Arrow | 2 | - |
+| Harm | 4 | - |
+| Fireball | 6 | 炎上 3秒 |
+| Lightning | 8 | - |
+| Mind Blast | 0 | マナ（空腹）-3 |
+| Explosion | 10 | 範囲 3ブロック |
+| Meteor Swarm | 15 | 範囲 5ブロック |
+
+#### 回復魔法の回復量
+| 魔法 | 基礎回復量 | 計算式 |
+|-----|-----------|--------|
+| Heal | 3 | 3 + (Magery / 25) |
+| Greater Heal | 8 | 8 + (Magery / 15) |
+
+#### バフ魔法の持続時間
+```
+基礎持続時間（秒） = 魔法の基礎値（下記参照）
+持続時間 = 基礎持続時間 + (Magery / 5) 秒
+```
+
+| 魔法 | 基礎持続時間 | 効果量 |
+|-----|-------------|--------|
+| Bless | 30秒 | 攻撃力 +10% |
+| Protection | 30秒 | 防御力 +10% |
+| Invisibility | 20秒 | 透明化 |
+| Night Sight | 60秒 | 暗視 |
+| Paralyze | 3秒 | 移動不可 |
+
+### 詠唱成功率
+```
+基礎成功率 = (Mageryスキル - 魔法サークル × 10) + 50
+INTボーナス = INT / 5
+最終成功率 = 基礎成功率 + INTボーナス
+```
+- 最小: 5%、最大: 100%
+- 例: Magery 70、サークル5th、INT 60の場合
+  - 基礎成功率 = (70 - 50) + 50 = 70%
+  - INTボーナス = 60 / 5 = 12%
+  - 最終成功率 = 70 + 12 = 82%
+
+#### スクロール使用時
+- 触媒不要（書写時に消費済み）
+- 成功率ボーナスは品質依存で**加算**
+  - LQ: +10%、NQ: +20%、HQ: +30%、EX: +40%
+
+### 触媒（リージェント）
+
+#### 触媒対応表
+| UO名 | Minecraftアイテム | 用途 |
+|-----|------------------|------|
+| Black Pearl | エンダーパール | 移動系 |
+| Blood Moss | ネザーウォート | 移動補助 |
+| Garlic | 毒じゃがいも | 解毒・防御 |
+| Ginseng | 金のニンジン | 回復系 |
+| Mandrake Root | ブレイズパウダー | 強力な魔法 |
+| Nightshade | スパイダーアイ | 攻撃・毒系 |
+| Spider's Silk | 糸 | 束縛・防御 |
+| Sulphurous Ash | ガンパウダー | 火・爆発系 |
+
+#### 魔法ごとの必要触媒
+| 魔法 | 触媒 |
+|-----|------|
+| Magic Arrow | 糸 |
+| Harm | スパイダーアイ |
+| Fireball | ガンパウダー + スパイダーアイ |
+| Lightning | ガンパウダー + ブレイズパウダー |
+| Mind Blast | スパイダーアイ + ブレイズパウダー |
+| Explosion | ガンパウダー + ブレイズパウダー |
+| Meteor Swarm | ガンパウダー + ブレイズパウダー ×3 |
+| Heal | 金のニンジン |
+| Cure | 金のニンジン + 毒じゃがいも |
+| Bless | ネザーウォート |
+| Greater Heal | 金のニンジン ×2 |
+| Protection | ネザーウォート + 糸 |
+| Invisibility | ネザーウォート + ブレイズパウダー |
+| Night Sight | グロウストーンダスト |
+| Teleport | エンダーパール |
+| Mark | エンダーパール + ブレイズパウダー |
+| Recall | エンダーパール |
+| Paralyze | スパイダーアイ + 糸 |
+| Gate Travel | エンダーパール ×2 + ブレイズパウダー |
+
+### 魔法一覧
+
+#### 攻撃魔法
+| 魔法 | サークル | 効果 | マナ消費 |
+|-----|---------|------|---------|
+| Magic Arrow | 1st | 単体小ダメージ | 1 |
+| Harm | 2nd | 単体中ダメージ | 2 |
+| Fireball | 3rd | 単体火炎ダメージ + 炎上 | 3 |
+| Lightning | 4th | 単体大ダメージ | 4 |
+| Mind Blast | 5th | 対象のマナ（空腹）を減少 | 5 |
+| Explosion | 6th | 範囲ダメージ | 6 |
+| Meteor Swarm | 8th | 大範囲ダメージ | 8 |
+
+#### 回復・補助魔法
+| 魔法 | サークル | 効果 | マナ消費 |
+|-----|---------|------|---------|
+| Heal | 1st | 小回復 | 1 |
+| Cure | 2nd | 状態異常解除 | 2 |
+| Bless | 3rd | 攻撃力UP（一定時間） | 3 |
+| Greater Heal | 4th | 大回復 | 4 |
+| Protection | 5th | 防御力UP（一定時間） | 5 |
+| Invisibility | 6th | 透明化（一定時間） | 6 |
+
+#### 移動・ユーティリティ魔法
+| 魔法 | サークル | 効果 | マナ消費 |
+|-----|---------|------|---------|
+| Night Sight | 1st | 暗視（一定時間） | 1 |
+| Teleport | 3rd | クリック地点へ短距離TP（射程15ブロック） | 3 |
+| Mark | 5th | 現在地をルーンに記憶 | 5 |
+| Recall | 5th | ルーンの地点へTP | 5 |
+| Paralyze | 5th | 対象を移動不可（数秒） | 5 |
+| Gate Travel | 7th | ルーンの地点へゲートを開く（一定時間、他者も通行可） | 7 |
+
+### 魔法の書（スペルブック）
+
+#### コマンド
+```
+/spellbook [魔法名]    - 指定した魔法の書を取得
+/spellbook all         - 全魔法の書を取得
+/spellbook list        - 魔法一覧を表示
+```
+
+#### 魔法の書の内容（Lore表示）
+```
+記された本
+[Fireball]
+━━━━━━━━━━━━━━━━
+サークル: 3rd
+マナ消費: 3
+触媒: ガンパウダー + スパイダーアイ
+━━━━━━━━━━━━━━━━
+効果:
+対象に火炎ダメージを与え、
+炎上状態を付与する
+━━━━━━━━━━━━━━━━
+詠唱: /cast fireball
+```
+
+#### 詠唱方法
+- **魔法の書を持っている必要がある**（メインハンド or オフハンド）
+- `/cast <魔法名>` コマンドでショートカット詠唱
+- 本を持っていない場合は詠唱不可
+
+#### 実装方法
+- Written Book（記された本）として生成
+- 各ページに魔法の詳細を記載
+- PersistentDataContainerに魔法IDを保存
+- 詠唱時に本の所持チェック → 触媒チェック → マナチェック → 成功判定
+
+### ターゲットシステム（UO風）
+
+#### 詠唱〜発動の流れ
+```
+1. /cast <魔法名> を実行
+2. チェック（本所持・触媒・マナ）
+3. 「ターゲット待ち」状態になる
+4. ActionBar: 「🔮 Fireball - 左クリック:発動 / 右クリック:キャンセル (残り10秒)」
+5. 左クリック → クリックした対象に発動
+6. 右クリック → キャンセル（マナ・触媒消費なし）
+7. 一定時間（10秒）経過 → 自動キャンセル
+```
+
+#### 魔法タイプ別ターゲット
+| タイプ | クリック対象 | 魔法例 |
+|-------|------------|-------|
+| エンティティ対象 | Mob/プレイヤーをクリック | Magic Arrow, Harm, Fireball, Lightning, Heal, Greater Heal, Paralyze, Mind Blast |
+| 地点対象 | ブロックをクリック | Teleport, Explosion, Meteor Swarm |
+| 自己対象 | クリック不要（即発動） | Bless, Protection, Night Sight, Invisibility, Cure |
+| ルーン対象（地点） | 空のルーンを持って地点クリック | Mark |
+| ルーン対象（即時） | 記録済みルーンを持って即発動 | Recall, Gate Travel |
+
+#### ターゲット補助UI
+- カーソルが指しているエンティティにグロウ効果（発光）で強調表示
+- ActionBarで残り時間表示
+- ターゲット成功時: 発動サウンド再生
+- ターゲット失敗時（射程外等）: エラーサウンド再生
+
+#### キャンセル方法
+| 方法 | 消費 |
+|-----|------|
+| 右クリック | なし |
+| `/cast cancel` コマンド | なし |
+| タイムアウト（10秒） | なし |
+| 別の魔法を詠唱 | 新しい魔法のチェック開始 |
+
+### 魔法詳細仕様
+
+#### 共通仕様
+| 項目 | 仕様 |
+|-----|------|
+| 詠唱時間 | なし（即時ターゲットモード） |
+| 詠唱失敗時 | マナ消費あり、触媒消費なし |
+| 射程外ターゲット | 「射程外です」メッセージ、マナ・触媒消費なし |
+
+#### 攻撃魔法詳細
+| 魔法 | 射程 | 着弾方式 | パーティクル | サウンド |
+|-----|------|---------|-------------|---------|
+| Magic Arrow | 20 | 投射体（速度20/s） | CRIT_MAGIC（軌跡） | ENTITY_ARROW_SHOOT |
+| Harm | 15 | 即時 | DAMAGE_INDICATOR（対象） | ENTITY_GENERIC_HURT |
+| Fireball | 25 | 投射体（速度15/s） | FLAME + LAVA（軌跡） | ENTITY_BLAZE_SHOOT |
+| Lightning | 30 | 即時 | ELECTRIC_SPARK（対象→上空） | ENTITY_LIGHTNING_BOLT_THUNDER |
+| Mind Blast | 15 | 即時 | WITCH（対象の頭） | ENTITY_WITCH_AMBIENT |
+| Explosion | 20 | 地点指定 | EXPLOSION_LARGE（中心） | ENTITY_GENERIC_EXPLODE |
+| Meteor Swarm | 25 | 地点指定 | LAVA + FLAME（上空→地点） | ENTITY_GENERIC_EXPLODE ×3 |
+
+#### 投射体の挙動
+- 直進し、最初に接触したエンティティ/ブロックで発動
+- ブロックに当たった場合は不発（ダメージなし）
+- 投射体の当たり判定: 0.5ブロック
+- 最大飛距離を超えると消滅
+
+#### 範囲魔法の形状
+| 魔法 | 形状 | 中心 | サイズ |
+|-----|------|------|-------|
+| Explosion | 球形 | クリック地点 | 半径3ブロック |
+| Meteor Swarm | 球形 | クリック地点 | 半径5ブロック |
+
+#### 炎上ダメージ（Fireball）
+- 炎上時間: 3秒（60tick）
+- ダメージ: バニラ炎上（0.5ダメージ/秒）
+- 実装: `entity.setFireTicks(60)`
+
+#### 回復・補助魔法詳細
+| 魔法 | 射程 | パーティクル | サウンド |
+|-----|------|-------------|---------|
+| Heal | 15 | HEART（対象） | ENTITY_PLAYER_LEVELUP |
+| Greater Heal | 15 | HEART ×3（対象） | ENTITY_PLAYER_LEVELUP |
+| Cure | 0（自己のみ） | VILLAGER_HAPPY（自分） | ENTITY_GENERIC_DRINK |
+| Bless | 0（自己のみ） | ENCHANTMENT_TABLE（自分） | BLOCK_ENCHANTMENT_TABLE_USE |
+| Protection | 0（自己のみ） | END_ROD（自分周囲） | ITEM_ARMOR_EQUIP_DIAMOND |
+| Invisibility | 0（自己のみ） | SMOKE_LARGE→消滅 | ENTITY_ILLUSIONER_CAST_SPELL |
+| Night Sight | 0（自己のみ） | GLOW（自分の目） | ENTITY_EXPERIENCE_ORB_PICKUP |
+
+#### Heal/Greater Heal の自己回復
+- ターゲットモードでプレイヤーをクリック → そのプレイヤーを回復
+- ターゲットモードでプレイヤー以外（ブロック、Mob等）をクリック → 自分を回復
+- 自分自身をクリックすることはできないため、この仕様で自己回復を実現
+
+#### Cureで解除できる状態異常
+- POISON（毒）
+- WITHER（ウィザー）
+- HUNGER（空腹）
+- WEAKNESS（弱体化）
+- SLOWNESS（鈍化）
+- MINING_FATIGUE（採掘疲労）
+- NAUSEA（吐き気）
+- BLINDNESS（盲目）
+
+#### 移動魔法詳細
+| 魔法 | 射程 | パーティクル | サウンド |
+|-----|------|-------------|---------|
+| Teleport | 15 | PORTAL（出発点・到着点） | ENTITY_ENDERMAN_TELEPORT |
+| Mark | 0 | ENCHANTMENT_TABLE（ルーン周囲） | BLOCK_ENCHANTMENT_TABLE_USE |
+| Recall | 0 | PORTAL（出発点・到着点） | ENTITY_ENDERMAN_TELEPORT |
+| Gate Travel | 0 | PORTAL（門形状） | BLOCK_PORTAL_AMBIENT（継続） |
+| Paralyze | 20 | SOUL（対象足元） | ENTITY_ELDER_GUARDIAN_CURSE |
+
+#### Teleportの詳細
+- `/cast teleport` → ターゲット待機 → ブロッククリック → テレポート発動
+- クリックしたブロックの上面にテレポート
+- 障害物判定: 到着点に2ブロックの空間が必要
+- 空間がない場合: 「テレポート先が塞がれています」メッセージ、マナ・触媒消費なし
+- 奈落（Y<-64）へのテレポート: 不可
+- 異なるワールドへのテレポート: 不可
+
+#### Paralyzeの詳細
+- 移動不可: Slowness 255 付与
+- ジャンプ不可: Jump Boost -128 付与
+- 攻撃・アイテム使用: 可能
+- 解除条件: 時間経過のみ（Cureでは解除不可）
+
+#### 詠唱エフェクト（共通）
+- 詠唱開始: ENCHANTMENT_TABLE パーティクル（術者周囲）
+- 詠唱開始サウンド: BLOCK_BEACON_ACTIVATE
+- ターゲット待機中: SPELL_WITCH パーティクル（術者の手）
+
+### スクロールシステム
+
+#### コマンド
+```
+/scribe <魔法名>       - スクロールを作成（触媒消費）
+/scribe list           - 作成可能なスクロール一覧
+```
+
+#### 作成条件
+- 紙を所持している
+- 該当魔法の触媒を所持している
+- Inscriptionスキルによる成功判定
+
+#### 作成成功率
+```
+成功率 = Inscriptionスキル - (魔法サークル × 10) + 50%
+最小: 10%、最大: 95%
+```
+- 例: Inscription 70、サークル3rd の場合
+  - 成功率 = 70 - 30 + 50 = 90%
+- 失敗時: 紙のみ消費、触媒は消費しない
+
+#### 作成時の消費
+- 紙 ×1
+- 該当魔法の触媒（全て消費）
+- マナ（空腹）は消費しない
+
+#### スクロール使用
+- スクロールを持って右クリック or `/use scroll`
+- **触媒不要**（作成時に消費済み）
+- **魔法の書不要**
+- 使用後スクロールは消滅（使い捨て）
+- 成功率ボーナスは品質依存（下記参照）
+
+#### スクロール表示例（Lore）
+```
+紙
+[Fireball Scroll]
+━━━━━━━━━━━━━━━━
+サークル: 3rd
+マナ消費: 3
+━━━━━━━━━━━━━━━━
+効果:
+対象に火炎ダメージを与え、
+炎上状態を付与する
+━━━━━━━━━━━━━━━━
+右クリックで使用
+書写者: Steve
+```
+
+#### 品質（Inscriptionスキル依存）
+| 品質 | 条件 | 効果 |
+|-----|------|------|
+| LQ | スキル50未満 | 成功率ボーナス +10% |
+| NQ | スキル50〜69 | 成功率ボーナス +20% |
+| HQ | スキル70〜89 | 成功率ボーナス +30% |
+| EX | スキル90以上 | 成功率ボーナス +40% + 書写者名 |
+
+### ルーンシステム
+- **ベースアイテム**: アメジストの欠片
+- **Mark**: 空のルーンに現在地を記録
+- **Recall**: ルーンの地点へTP
+- **Gate Travel**: ルーンの地点へゲートを開く
+
+#### ルーン作成
+- コマンド: `/scribe rune`
+- 消費: アメジストの欠片 ×1 + 紙 ×1
+- 成功率: 100%（失敗なし）
+- 結果: 空のルーン（Blank Rune）を取得
+
+#### Mark詠唱フロー
+```
+1. 空のルーンをメインハンドに持つ
+2. /cast mark を実行
+3. チェック（本所持・触媒・マナ・空のルーン所持）
+4. ターゲットモード → 地点をクリック
+5. クリックした地点がルーンに記録される
+6. 場所名入力（チャットで入力、10秒でタイムアウト→座標が名前になる）
+```
+
+#### Recall詠唱フロー
+```
+【魔法の書で詠唱】
+1. 記録済みルーンをメインハンドに持つ
+2. /cast recall を実行
+3. チェック（本所持・触媒・マナ・記録済みルーン所持）
+4. 即発動 → ルーンの地点へテレポート
+
+【スクロールで詠唱】
+1. メインハンド: Recallスクロール
+2. オフハンド: 記録済みルーン
+3. 右クリックでスクロール使用
+4. 即発動 → ルーンの地点へテレポート
+```
+
+#### Gate Travel詠唱フロー
+```
+【魔法の書で詠唱】
+1. 記録済みルーンをメインハンドに持つ
+2. /cast gate を実行
+3. チェック（本所持・触媒・マナ・記録済みルーン所持）
+4. 即発動 → 両地点にゲート出現
+
+【スクロールで詠唱】
+1. メインハンド: Gate Travelスクロール
+2. オフハンド: 記録済みルーン
+3. 右クリックでスクロール使用
+4. 即発動 → 両地点にゲート出現
+```
+
+#### Gate Travel 実装詳細
+- パーティクルで門の形（縦3×横2ブロック）を生成
+- 詠唱者側とルーン地点側の両方にゲートが出現
+- どちらからでも通行可能（双方向）
+- ゲートに入ると反対側のゲート前に出現
+- 持続時間: 30秒
+- 当たり判定: ゲート内のエリアに入った時にテレポート発動
+
+#### ルーン表示例（Lore）
+```
+アメジストの欠片
+[ルーン]
+場所: 自宅
+座標: X:100 Y:64 Z:-200
+ワールド: world
+記録者: Steve
+```
+
+#### 実装方法
+- PersistentDataContainerに座標・ワールド・名前を保存
+- ItemMetaのLoreに場所情報を表示
+- Mark詠唱時に場所名を入力可能（チャット or 看板UI）
+
+## 戦闘システム
+
+### 戦闘ダメージ計算
+```
+バニラダメージ = 武器の基礎攻撃力（Minecraft標準）
+武器スキル補正 = 1 + (武器スキル値 / 200)  // スキル100で1.5倍
+Tactics補正 = 1 + (Tactics / 500)  // スキル100で+20%
+品質補正 = 武器の品質による補正（-15%〜+25%）
+クリティカル判定 = Anatomy / 200  // スキル100で50%
+クリティカル倍率 = 1.5
+
+通常ダメージ = バニラダメージ × 武器スキル補正 × Tactics補正 × 品質補正
+クリティカル発生時 = 通常ダメージ × クリティカル倍率
+```
+
+#### 武器スキル対応表
+| 武器 | 対応スキル |
+|-----|-----------|
+| 木/石/鉄/金/ダイヤ/ネザライトの剣 | Swordsmanship |
+| 木/石/鉄/金/ダイヤ/ネザライトの斧 | Axe |
+| メイス（1.21+） | Mace Fighting |
+| 弓、クロスボウ | Archery |
+| トライデント | Throwing |
+| 素手 | Wrestling |
+
+### Parrying（受け流し）
+
+#### バニラとの比較
+| 項目 | バニラ | Parryingシステム |
+|-----|-------|-----------------|
+| 盾ブロック成功率 | 100% | 100%（変更なし） |
+| 盾ダメージ軽減率 | 100% | 50% + (スキル値/2)% |
+| 武器パリィ | 不可 | スキル値/2%で発動 |
+| 斧クールダウン | 5秒 | 5秒（変更なし） |
+
+#### 盾ブロック時
+- ブロック自体は100%成功（バニラ通り）
+- ダメージ軽減率 = 50% + (Parryingスキル / 2)%
+- スキル0: 50%軽減、スキル100: 100%軽減（バニラ同等）
+
+| Parryingスキル | ダメージ軽減率 |
+|---------------|--------------|
+| 0 | 50% |
+| 50 | 75% |
+| 100 | 100% |
+
+#### 武器パリィ（盾なし）
+- 武器を持っている時、被ダメージ時に発動判定
+- 発動率 = Parryingスキル / 2%
+- 発動時: 50%ダメージ軽減
+
+| Parryingスキル | パリィ発動率 | 発動時軽減 |
+|---------------|-------------|-----------|
+| 0 | 0% | - |
+| 50 | 25% | 50% |
+| 100 | 50% | 50% |
+
+#### スキル上昇条件
+- 盾ブロック成功時に上昇判定
+- 武器パリィ発動時に上昇判定
+
+## 隠密システム
+
+### Hiding（隠れる）
+- `/hide` コマンドで発動
+- 成功すると透明化（他プレイヤーから見えなくなる）
+- 攻撃・アイテム使用・ダメージを受けると解除
+
+### Stealth（ステルス）
+- Hiding成功後に移動可能
+- スキル値に応じて移動可能距離が増加（スキル値/10ブロック）
+- 走ると即座に解除
+
+### Snooping（覗き見）
+- 他プレイヤーのインベントリを確認
+- 失敗すると相手に通知される
+- Stealingの前提スキル
+
+## 技術仕様
+
+### データ保存
+- **SQLite**（デフォルト）または **MySQL** を選択可能
+- プレイヤーごとのスキル値・最終使用時刻を保存
+
+#### テーブル設計
+```sql
+CREATE TABLE player_skills (
+    uuid VARCHAR(36) NOT NULL,
+    skill_name VARCHAR(50) NOT NULL,
+    skill_value DOUBLE DEFAULT 0.0,
+    last_used BIGINT DEFAULT 0,
+    PRIMARY KEY (uuid, skill_name)
+);
+
+CREATE TABLE player_data (
+    uuid VARCHAR(36) PRIMARY KEY,
+    total_skill_points DOUBLE DEFAULT 0.0,
+    current_hp DOUBLE DEFAULT 100.0,      -- 内部HP現在値
+    current_mana DOUBLE DEFAULT 20.0,     -- 内部マナ現在値
+    last_login BIGINT
+);
+```
+※ STR/DEX/INTはスキル値から計算されるため保存不要
+※ 最大HP/最大マナもSTR/INTから計算されるため保存不要
+
+### 設定ファイル（config.yml）
+```yaml
+database:
+  type: sqlite  # sqlite / mysql
+  sqlite:
+    file: skills.db
+  mysql:
+    host: localhost
+    port: 3306
+    database: skills
+    username: root
+    password: ""
+
+skills:
+  total-cap: 600
+  individual-cap: 100
+  gain-amount: 0.1
+
+difficulty:
+  easy-multiplier: 0.2
+  normal-multiplier: 1.0
+  hard-multiplier: 0.5
+
+integrations:
+  notoriety: true
+```
+
+### コマンド一覧
+
+#### 一般コマンド
+| コマンド | 説明 | 権限 |
+|---------|------|------|
+| `/skills` | 自分のスキル一覧表示 | skills.use |
+| `/stats` | 自分のSTR/DEX/INT表示 | skills.use |
+| `/arms` | 手持ち武器・防具の詳細表示 | skills.use |
+
+#### 魔法コマンド
+| コマンド | 説明 | 権限 |
+|---------|------|------|
+| `/cast <魔法名>` | 魔法詠唱 | skills.magic |
+| `/cast cancel` | 詠唱キャンセル | skills.magic |
+| `/scribe <魔法名>` | スクロール作成 | skills.magic |
+| `/spellbook [魔法名]` | 魔法の書取得 | skills.magic |
+| `/spellbook all` | 全魔法の書取得 | skills.magic |
+| `/spellbook list` | 魔法一覧表示 | skills.magic |
+| `/evaluate` | 相手のマナ確認 | skills.magic |
+
+#### シーフコマンド
+| コマンド | 説明 | 権限 |
+|---------|------|------|
+| `/hide` | 隠れる | skills.thief |
+| `/detect` | 隠れた人を発見 | skills.thief |
+| `/snoop` | インベントリ覗き | skills.thief |
+| `/poison` | 武器に毒付与 | skills.thief |
+
+#### テイミングコマンド
+| コマンド | 説明 | 権限 |
+|---------|------|------|
+| `/tame` | テイム開始 | skills.taming |
+| `/lore` | Mob情報確認 | skills.taming |
+
+#### 管理コマンド
+| コマンド | 説明 | 権限 |
+|---------|------|------|
+| `/skillcheck <プレイヤー>` | 対象のスキル確認 | skills.admin |
+| `/skillset <プレイヤー> <スキル> <値>` | スキル値設定 | skills.admin |
+| `/skillreset <プレイヤー>` | スキルリセット | skills.admin |
+
+### 権限一覧
+| 権限 | 説明 |
+|-----|------|
+| `skills.use` | 基本機能使用 |
+| `skills.magic` | 魔法関連コマンド |
+| `skills.thief` | シーフ関連コマンド |
+| `skills.taming` | テイミング関連コマンド |
+| `skills.admin` | 管理コマンド |
+| `skills.*` | 全権限 |
+
+### 依存関係
+| プラグイン | 種別 | 用途 |
+|-----------|------|------|
+| notoriety | ソフト依存 | 犯罪フラグ連携（Stealing時） |
+
+## クラス設計
+
+### パッケージ構造
+```
+com.hacklab.minecraft.skills/
+├── Skills.kt                      # メインプラグイン
+├── config/
+│   └── SkillsConfig.kt           # 設定管理
+├── i18n/
+│   ├── MessageKey.kt             # メッセージキーenum
+│   ├── Language.kt               # 言語enum
+│   ├── MessageManager.kt         # メッセージ管理（言語切替）
+│   ├── PlayerLocaleManager.kt    # プレイヤー別言語設定
+│   └── MessageSender.kt          # メッセージ送信ユーティリティ
+├── data/
+│   ├── Database.kt               # DB接続インターフェース
+│   ├── SQLiteDatabase.kt         # SQLite実装
+│   ├── MySQLDatabase.kt          # MySQL実装
+│   ├── PlayerData.kt             # プレイヤーデータ（HP/マナ/ログイン）
+│   ├── SkillData.kt              # スキルデータ（値/最終使用）
+│   └── PlayerDataManager.kt      # プレイヤーデータ管理
+├── skill/
+│   ├── SkillType.kt              # スキル種別enum
+│   ├── SkillCategory.kt          # スキルカテゴリenum
+│   ├── StatType.kt               # ステータス種別enum（STR/DEX/INT）
+│   ├── SkillManager.kt           # スキル管理（上昇/下降処理）
+│   └── StatCalculator.kt         # ステータス計算
+├── combat/
+│   ├── CombatManager.kt          # 戦闘ダメージ計算
+│   ├── InternalHealth.kt         # 内部HP管理
+│   ├── ParryingHandler.kt        # パリィ処理
+│   └── WeaponType.kt             # 武器種別enum
+├── magic/
+│   ├── SpellType.kt              # 魔法種別enum
+│   ├── SpellCircle.kt            # 魔法サークルenum
+│   ├── SpellManager.kt           # 魔法詠唱管理
+│   ├── TargetManager.kt          # ターゲットシステム
+│   ├── TargetType.kt             # ターゲット種別enum
+│   ├── SpellEffect.kt            # 魔法エフェクト基底
+│   ├── ManaManager.kt            # マナ（空腹）管理
+│   ├── ReagentManager.kt         # 触媒管理
+│   ├── spells/
+│   │   ├── AttackSpell.kt        # 攻撃魔法基底
+│   │   ├── HealSpell.kt          # 回復魔法基底
+│   │   ├── BuffSpell.kt          # バフ魔法基底
+│   │   ├── TeleportSpell.kt      # 移動魔法基底
+│   │   └── impl/                 # 各魔法の実装
+│   │       ├── MagicArrow.kt
+│   │       ├── Fireball.kt
+│   │       ├── Heal.kt
+│   │       └── ...
+│   ├── spellbook/
+│   │   └── SpellbookManager.kt   # 魔法の書管理
+│   ├── scroll/
+│   │   └── ScrollManager.kt      # スクロール管理
+│   └── rune/
+│       └── RuneManager.kt        # ルーン管理
+├── crafting/
+│   ├── QualityType.kt            # 品質種別enum（LQ/NQ/HQ/EX）
+│   ├── QualityManager.kt         # 品質判定・付与
+│   ├── CraftingSkillType.kt      # 生産スキル種別
+│   └── ItemQualityHandler.kt     # アイテム品質処理
+├── gathering/
+│   ├── MiningHandler.kt          # 採掘処理
+│   ├── LumberjackingHandler.kt   # 伐採処理
+│   └── FishingHandler.kt         # 釣り処理
+├── thief/
+│   ├── HidingManager.kt          # 隠れる管理
+│   ├── StealthManager.kt         # ステルス移動管理
+│   ├── SnoopingManager.kt        # 覗き見管理
+│   ├── StealingManager.kt        # 窃盗管理
+│   └── PoisoningManager.kt       # 毒塗り管理
+├── taming/
+│   ├── TamingManager.kt          # テイム管理
+│   ├── AnimalLoreManager.kt      # 動物知識管理
+│   └── VeterinaryManager.kt      # 獣医管理
+├── command/
+│   ├── SkillsCommand.kt          # /skills
+│   ├── StatsCommand.kt           # /stats
+│   ├── ArmsCommand.kt            # /arms
+│   ├── CastCommand.kt            # /cast
+│   ├── ScribeCommand.kt          # /scribe
+│   ├── SpellbookCommand.kt       # /spellbook
+│   ├── EvaluateCommand.kt        # /evaluate
+│   ├── HideCommand.kt            # /hide
+│   ├── DetectCommand.kt          # /detect
+│   ├── SnoopCommand.kt           # /snoop
+│   ├── PoisonCommand.kt          # /poison
+│   ├── TameCommand.kt            # /tame
+│   ├── LoreCommand.kt            # /lore
+│   └── admin/
+│       ├── SkillCheckCommand.kt  # /skillcheck
+│       ├── SkillSetCommand.kt    # /skillset
+│       └── SkillResetCommand.kt  # /skillreset
+├── listener/
+│   ├── DamageListener.kt         # ダメージイベント
+│   ├── CraftListener.kt          # クラフトイベント
+│   ├── BlockBreakListener.kt     # ブロック破壊イベント
+│   ├── FishingListener.kt        # 釣りイベント
+│   ├── PlayerInteractListener.kt # プレイヤー操作イベント
+│   ├── PlayerMoveListener.kt     # 移動イベント
+│   ├── InventoryListener.kt      # インベントリイベント
+│   └── PlayerJoinQuitListener.kt # 入退出イベント
+└── util/
+    ├── MessageUtil.kt            # メッセージ送信
+    ├── ParticleUtil.kt           # パーティクル表示
+    ├── SoundUtil.kt              # サウンド再生
+    ├── ItemUtil.kt               # アイテム操作
+    └── MathUtil.kt               # 計算ユーティリティ
+```
+
+### 主要クラス詳細
+
+#### Enum定義
+
+```kotlin
+// スキル種別（34スキル）
+enum class SkillType(
+    val displayName: String,
+    val category: SkillCategory,
+    val statContribution: Map<StatType, Double>  // ステータス寄与率
+) {
+    // 戦闘系
+    SWORDSMANSHIP("Swordsmanship", SkillCategory.COMBAT, mapOf(StatType.STR to 1.0)),
+    AXE("Axe", SkillCategory.COMBAT, mapOf(StatType.STR to 1.0)),
+    MACE_FIGHTING("Mace Fighting", SkillCategory.COMBAT, mapOf(StatType.STR to 1.0)),
+    ARCHERY("Archery", SkillCategory.COMBAT, mapOf(StatType.DEX to 1.0)),
+    THROWING("Throwing", SkillCategory.COMBAT, mapOf(StatType.DEX to 1.0)),
+    WRESTLING("Wrestling", SkillCategory.COMBAT, mapOf(StatType.STR to 1.0)),
+    TACTICS("Tactics", SkillCategory.COMBAT, mapOf(StatType.STR to 1.0)),
+    ANATOMY("Anatomy", SkillCategory.COMBAT, mapOf(StatType.STR to 1.0)),
+    PARRYING("Parrying", SkillCategory.COMBAT, mapOf(StatType.DEX to 1.0)),
+    FOCUS("Focus", SkillCategory.COMBAT, mapOf(StatType.DEX to 1.0)),
+
+    // 魔法系
+    MAGERY("Magery", SkillCategory.MAGIC, mapOf(StatType.INT to 1.0)),
+    EVALUATING_INTELLIGENCE("Evaluating Intelligence", SkillCategory.MAGIC, mapOf(StatType.INT to 1.0)),
+    MEDITATION("Meditation", SkillCategory.MAGIC, mapOf(StatType.INT to 1.0)),
+    RESISTING_SPELLS("Resisting Spells", SkillCategory.MAGIC, mapOf(StatType.INT to 1.0)),
+    INSCRIPTION("Inscription", SkillCategory.MAGIC, mapOf(StatType.INT to 1.0)),
+
+    // 生産系
+    ALCHEMY("Alchemy", SkillCategory.CRAFTING, mapOf(StatType.INT to 1.0)),
+    BLACKSMITHY("Blacksmithy", SkillCategory.CRAFTING, mapOf(StatType.STR to 1.0)),
+    BOWCRAFT("Bowcraft", SkillCategory.CRAFTING, mapOf(StatType.INT to 1.0)),
+    CRAFTSMANSHIP("Craftsmanship", SkillCategory.CRAFTING, mapOf(StatType.STR to 1.0)),
+    COOKING("Cooking", SkillCategory.CRAFTING, mapOf(StatType.STR to 1.0)),
+    TINKERING("Tinkering", SkillCategory.CRAFTING, mapOf(StatType.DEX to 1.0)),
+
+    // 資源収集系
+    MINING("Mining", SkillCategory.GATHERING, mapOf(StatType.STR to 1.0)),
+    LUMBERJACKING("Lumberjacking", SkillCategory.GATHERING, mapOf(StatType.STR to 1.0)),
+    FISHING("Fishing", SkillCategory.GATHERING, mapOf(StatType.DEX to 1.0)),
+
+    // シーフ系
+    HIDING("Hiding", SkillCategory.THIEF, mapOf(StatType.DEX to 1.0)),
+    STEALTH("Stealth", SkillCategory.THIEF, mapOf(StatType.DEX to 1.0)),
+    DETECTING_HIDDEN("Detecting Hidden", SkillCategory.THIEF, mapOf(StatType.DEX to 0.5, StatType.INT to 0.5)),
+    SNOOPING("Snooping", SkillCategory.THIEF, mapOf(StatType.DEX to 1.0)),
+    STEALING("Stealing", SkillCategory.THIEF, mapOf(StatType.DEX to 1.0)),
+    POISONING("Poisoning", SkillCategory.THIEF, mapOf(StatType.DEX to 1.0)),
+
+    // テイミング系
+    ANIMAL_TAMING("Animal Taming", SkillCategory.TAMING, mapOf(StatType.STR to 0.5, StatType.DEX to 0.5)),
+    ANIMAL_LORE("Animal Lore", SkillCategory.TAMING, mapOf(StatType.INT to 1.0)),
+    VETERINARY("Veterinary", SkillCategory.TAMING, mapOf(StatType.STR to 0.5, StatType.INT to 0.5)),
+
+    // その他
+    ARMS_LORE("Arms Lore", SkillCategory.OTHER, mapOf(StatType.STR to 0.33, StatType.DEX to 0.33, StatType.INT to 0.34))
+}
+
+enum class SkillCategory {
+    COMBAT, MAGIC, CRAFTING, GATHERING, THIEF, TAMING, OTHER
+}
+
+enum class StatType {
+    STR, DEX, INT
+}
+
+// 品質
+enum class QualityType(val displayName: String, val damageBonus: Double, val durabilityBonus: Double) {
+    LOW_QUALITY("Low Quality", -0.15, -0.25),
+    NORMAL_QUALITY("Normal Quality", 0.0, 0.0),
+    HIGH_QUALITY("High Quality", 0.15, 0.30),
+    EXCEPTIONAL("Exceptional", 0.25, 0.50)
+}
+
+// 魔法サークル
+enum class SpellCircle(val level: Int, val manaCost: Int) {
+    FIRST(1, 1), SECOND(2, 2), THIRD(3, 3), FOURTH(4, 4),
+    FIFTH(5, 5), SIXTH(6, 6), SEVENTH(7, 7), EIGHTH(8, 8)
+}
+
+// 魔法種別
+enum class SpellType(
+    val displayName: String,
+    val circle: SpellCircle,
+    val targetType: TargetType,
+    val reagents: List<Material>
+) {
+    MAGIC_ARROW("Magic Arrow", SpellCircle.FIRST, TargetType.ENTITY, listOf(Material.STRING)),
+    HARM("Harm", SpellCircle.SECOND, TargetType.ENTITY, listOf(Material.SPIDER_EYE)),
+    FIREBALL("Fireball", SpellCircle.THIRD, TargetType.ENTITY, listOf(Material.GUNPOWDER, Material.SPIDER_EYE)),
+    // ... 他の魔法
+}
+
+// ターゲット種別
+enum class TargetType {
+    ENTITY,      // Mob/プレイヤー
+    LOCATION,    // 地点
+    SELF,        // 自己（即発動）
+    RUNE_MARK,   // ルーン（地点記録）
+    RUNE_RECALL  // ルーン（即時発動）
+}
+
+// 武器種別
+enum class WeaponType(val skill: SkillType, val materials: List<Material>) {
+    SWORD(SkillType.SWORDSMANSHIP, listOf(
+        Material.WOODEN_SWORD, Material.STONE_SWORD, Material.IRON_SWORD,
+        Material.GOLDEN_SWORD, Material.DIAMOND_SWORD, Material.NETHERITE_SWORD
+    )),
+    AXE(SkillType.AXE, listOf(
+        Material.WOODEN_AXE, Material.STONE_AXE, Material.IRON_AXE,
+        Material.GOLDEN_AXE, Material.DIAMOND_AXE, Material.NETHERITE_AXE
+    )),
+    MACE(SkillType.MACE_FIGHTING, listOf(Material.MACE)),
+    BOW(SkillType.ARCHERY, listOf(Material.BOW, Material.CROSSBOW)),
+    TRIDENT(SkillType.THROWING, listOf(Material.TRIDENT)),
+    FIST(SkillType.WRESTLING, emptyList())
+}
+```
+
+#### データクラス
+
+```kotlin
+// スキルデータ
+data class SkillData(
+    val value: Double = 0.0,      // 0.0〜100.0
+    val lastUsed: Long = 0L       // 最終使用時刻（System.currentTimeMillis）
+)
+
+// プレイヤーデータ
+data class PlayerData(
+    val uuid: UUID,
+    val skills: MutableMap<SkillType, SkillData> = mutableMapOf(),
+    var currentHp: Double = 100.0,
+    var currentMana: Double = 20.0,
+    var lastLogin: Long = 0L
+) {
+    fun getTotalSkillPoints(): Double = skills.values.sumOf { it.value }
+    fun getSkillValue(type: SkillType): Double = skills[type]?.value ?: 0.0
+}
+
+// ターゲット状態
+data class TargetingState(
+    val player: UUID,
+    val spell: SpellType?,
+    val command: String,          // "cast", "tame", "snoop" など
+    val startTime: Long,
+    val timeoutSeconds: Int = 10
+) {
+    fun isExpired(): Boolean = System.currentTimeMillis() - startTime > timeoutSeconds * 1000
+}
+```
+
+#### 主要マネージャー
+
+```kotlin
+// === データ層 ===
+
+interface Database {
+    fun connect()
+    fun disconnect()
+    fun loadPlayerData(uuid: UUID): PlayerData?
+    fun savePlayerData(data: PlayerData)
+    fun loadAllPlayerData(): List<PlayerData>
+}
+
+class PlayerDataManager(private val database: Database) {
+    private val cache: MutableMap<UUID, PlayerData> = ConcurrentHashMap()
+
+    fun getPlayerData(uuid: UUID): PlayerData
+    fun savePlayerData(uuid: UUID)
+    fun loadPlayerData(uuid: UUID)
+    fun unloadPlayerData(uuid: UUID)
+}
+
+// === スキル管理 ===
+
+class SkillManager(private val plugin: Skills, private val dataManager: PlayerDataManager) {
+    // スキル値取得
+    fun getSkillValue(player: Player, skill: SkillType): Double
+
+    // スキル使用（上昇判定）
+    fun useSkill(player: Player, skill: SkillType, difficulty: Int)
+
+    // 上昇判定
+    private fun tryGainSkill(player: Player, skill: SkillType, difficulty: Int): Boolean
+
+    // スキル下降（キャップ到達時）
+    private fun decreaseLeastUsedSkill(player: Player)
+
+    // 最終使用時刻更新
+    private fun updateLastUsed(player: Player, skill: SkillType)
+}
+
+class StatCalculator(private val dataManager: PlayerDataManager) {
+    // STR/DEX/INT計算
+    fun calculateStat(player: Player, stat: StatType): Double
+
+    // 最大HP計算（100 + STR）
+    fun calculateMaxHp(player: Player): Double
+
+    // 最大マナ計算（固定20）
+    fun calculateMaxMana(): Double = 20.0
+
+    // マナ消費計算（INT軽減適用）
+    fun calculateManaCost(player: Player, baseCost: Int): Double
+}
+
+// === 戦闘管理 ===
+
+class CombatManager(
+    private val plugin: Skills,
+    private val skillManager: SkillManager,
+    private val statCalculator: StatCalculator
+) {
+    // ダメージ計算
+    fun calculateDamage(attacker: Player, baseDamage: Double, weapon: WeaponType): Double
+
+    // クリティカル判定
+    fun rollCritical(player: Player): Boolean
+
+    // 武器種別取得
+    fun getWeaponType(item: ItemStack?): WeaponType
+}
+
+class InternalHealthManager(
+    private val plugin: Skills,
+    private val dataManager: PlayerDataManager,
+    private val statCalculator: StatCalculator
+) {
+    // 内部ダメージ適用
+    fun applyDamage(player: Player, internalDamage: Double)
+
+    // 内部HP回復
+    fun heal(player: Player, amount: Double)
+
+    // バニラHPと同期
+    fun syncWithVanilla(player: Player)
+
+    // 内部HP取得
+    fun getCurrentHp(player: Player): Double
+    fun getMaxHp(player: Player): Double
+}
+
+class ParryingHandler(private val skillManager: SkillManager) {
+    // 盾ブロック軽減率計算
+    fun calculateShieldReduction(player: Player): Double
+
+    // 武器パリィ判定
+    fun rollWeaponParry(player: Player): Boolean
+}
+
+// === 魔法管理 ===
+
+class SpellManager(
+    private val plugin: Skills,
+    private val skillManager: SkillManager,
+    private val manaManager: ManaManager,
+    private val reagentManager: ReagentManager,
+    private val targetManager: TargetManager
+) {
+    // 魔法詠唱開始
+    fun startCast(player: Player, spell: SpellType): Boolean
+
+    // 詠唱成功判定
+    fun rollCastSuccess(player: Player, spell: SpellType): Boolean
+
+    // 魔法発動
+    fun executeSpell(player: Player, spell: SpellType, target: Any)
+
+    // ダメージ計算
+    fun calculateSpellDamage(player: Player, spell: SpellType): Double
+}
+
+class TargetManager(private val plugin: Skills) {
+    private val targetingPlayers: MutableMap<UUID, TargetingState> = ConcurrentHashMap()
+
+    // ターゲットモード開始
+    fun startTargeting(player: Player, state: TargetingState)
+
+    // ターゲットモード終了
+    fun cancelTargeting(player: Player)
+
+    // ターゲット中か確認
+    fun isTargeting(player: Player): Boolean
+    fun getTargetingState(player: Player): TargetingState?
+
+    // クリック処理（リスナーから呼ばれる）
+    fun handleLeftClick(player: Player, target: Any)
+    fun handleRightClick(player: Player)
+
+    // ActionBar更新タスク
+    fun startActionBarTask(player: Player)
+}
+
+class ManaManager(
+    private val dataManager: PlayerDataManager,
+    private val statCalculator: StatCalculator
+) {
+    // マナ消費
+    fun consumeMana(player: Player, amount: Double): Boolean
+
+    // マナ残量確認
+    fun hasMana(player: Player, amount: Double): Boolean
+
+    // マナ回復
+    fun restoreMana(player: Player, amount: Double)
+
+    // バニラ空腹ゲージと同期
+    fun syncWithVanilla(player: Player)
+}
+
+class ReagentManager {
+    // 触媒確認
+    fun hasReagents(player: Player, spell: SpellType): Boolean
+
+    // 触媒消費
+    fun consumeReagents(player: Player, spell: SpellType)
+
+    // 不足触媒メッセージ
+    fun getMissingReagentsMessage(player: Player, spell: SpellType): String
+}
+
+// === 生産管理 ===
+
+class QualityManager(private val skillManager: SkillManager) {
+    // 品質判定
+    fun determineQuality(player: Player, skill: SkillType): QualityType
+
+    // 品質をアイテムに付与
+    fun applyQuality(item: ItemStack, quality: QualityType, crafter: Player?)
+
+    // アイテムの品質取得
+    fun getQuality(item: ItemStack): QualityType?
+}
+
+// === シーフ管理 ===
+
+class HidingManager(private val plugin: Skills, private val skillManager: SkillManager) {
+    private val hiddenPlayers: MutableSet<UUID> = ConcurrentHashSet()
+
+    // 隠れる試行
+    fun tryHide(player: Player): Boolean
+
+    // 隠れ解除
+    fun reveal(player: Player)
+
+    // 隠れ中か確認
+    fun isHidden(player: Player): Boolean
+}
+
+class StealthManager(private val plugin: Skills, private val skillManager: SkillManager) {
+    private val stealthData: MutableMap<UUID, Double> = ConcurrentHashMap()  // 移動距離
+
+    // ステルス開始
+    fun startStealth(player: Player)
+
+    // 移動距離加算
+    fun addDistance(player: Player, distance: Double)
+
+    // ステルス解除
+    fun endStealth(player: Player)
+
+    // 残り距離取得
+    fun getRemainingDistance(player: Player): Double
+}
+
+// === テイミング管理 ===
+
+class TamingManager(private val plugin: Skills, private val skillManager: SkillManager) {
+    // テイム試行
+    fun tryTame(player: Player, entity: LivingEntity): Boolean
+
+    // テイム可能か確認
+    fun canTame(entity: LivingEntity): Boolean
+
+    // 必要スキル取得
+    fun getRequiredSkill(entity: LivingEntity): Int
+
+    // テイム上限確認
+    fun canTameMore(player: Player): Boolean
+
+    // テイム数取得
+    fun getTamedCount(player: Player): Int
+}
+```
+
+#### メインプラグイン
+
+```kotlin
+class Skills : JavaPlugin() {
+    // マネージャー
+    lateinit var config: SkillsConfig
+    lateinit var database: Database
+    lateinit var dataManager: PlayerDataManager
+    lateinit var skillManager: SkillManager
+    lateinit var statCalculator: StatCalculator
+    lateinit var combatManager: CombatManager
+    lateinit var healthManager: InternalHealthManager
+    lateinit var spellManager: SpellManager
+    lateinit var targetManager: TargetManager
+    lateinit var manaManager: ManaManager
+    lateinit var qualityManager: QualityManager
+    lateinit var hidingManager: HidingManager
+    lateinit var stealthManager: StealthManager
+    lateinit var tamingManager: TamingManager
+
+    // notoriety連携（ソフト依存）
+    var notorietyAPI: NotorietyAPI? = null
+
+    override fun onEnable() {
+        // 設定読み込み
+        // DB初期化
+        // マネージャー初期化
+        // コマンド登録
+        // リスナー登録
+        // notoriety連携
+    }
+
+    override fun onDisable() {
+        // データ保存
+        // DB切断
+    }
+}
+```
+
+#### リスナー
+
+```kotlin
+// ダメージイベント
+class DamageListener(private val plugin: Skills) : Listener {
+    @EventHandler
+    fun onEntityDamageByEntity(event: EntityDamageByEntityEvent) {
+        // プレイヤーが攻撃した場合：ダメージ計算、スキル上昇
+        // プレイヤーが攻撃された場合：パリィ判定、内部HP適用
+    }
+
+    @EventHandler
+    fun onEntityDeath(event: EntityDeathEvent) {
+        // Anatomy スキル上昇（敵を倒した時）
+    }
+}
+
+// クラフトイベント
+class CraftListener(private val plugin: Skills) : Listener {
+    @EventHandler
+    fun onCraftItem(event: CraftItemEvent) {
+        // 生産スキル判定、品質付与
+    }
+
+    @EventHandler
+    fun onBrewingStand(event: BrewEvent) {
+        // Alchemy スキル判定（醸造完了時）
+    }
+
+    @EventHandler
+    fun onFurnaceExtract(event: FurnaceExtractEvent) {
+        // Cooking スキル判定（かまどから取り出し時）
+    }
+}
+
+// ブロック破壊イベント
+class BlockBreakListener(private val plugin: Skills) : Listener {
+    @EventHandler
+    fun onBlockBreak(event: BlockBreakEvent) {
+        // Mining: 鉱石採掘時
+        // Lumberjacking: 原木伐採時
+        // ボーナスドロップ処理
+    }
+}
+
+// 釣りイベント
+class FishingListener(private val plugin: Skills) : Listener {
+    @EventHandler
+    fun onPlayerFish(event: PlayerFishEvent) {
+        // Fishing スキル判定
+        // 宝物確率補正
+    }
+}
+
+// プレイヤー操作イベント
+class PlayerInteractListener(private val plugin: Skills) : Listener {
+    @EventHandler
+    fun onPlayerInteract(event: PlayerInteractEvent) {
+        // 左クリック: ターゲットシステム
+        // 右クリック: ターゲットキャンセル、スクロール使用
+    }
+
+    @EventHandler
+    fun onPlayerInteractEntity(event: PlayerInteractEntityEvent) {
+        // Veterinary: 食料でテイムMob回復
+        // ターゲットシステム（エンティティ対象）
+    }
+}
+
+// 移動イベント
+class PlayerMoveListener(private val plugin: Skills) : Listener {
+    @EventHandler
+    fun onPlayerMove(event: PlayerMoveEvent) {
+        // Stealth: 移動距離計算
+        // Hiding解除判定（走った場合）
+        // Focus: ダッシュ時スキル上昇
+    }
+}
+
+// インベントリイベント
+class InventoryListener(private val plugin: Skills) : Listener {
+    @EventHandler
+    fun onInventoryClick(event: InventoryClickEvent) {
+        // Snooping GUI でのアイテムクリック → Stealing判定
+    }
+
+    @EventHandler
+    fun onPlayerItemDamage(event: PlayerItemDamageEvent) {
+        // 品質による耐久度減少確率制御
+    }
+}
+
+// 入退出イベント
+class PlayerJoinQuitListener(private val plugin: Skills) : Listener {
+    @EventHandler
+    fun onPlayerJoin(event: PlayerJoinEvent) {
+        // プレイヤーデータ読み込み
+        // 内部HP/マナをバニラと同期
+    }
+
+    @EventHandler
+    fun onPlayerQuit(event: PlayerQuitEvent) {
+        // プレイヤーデータ保存
+        // ターゲットモード解除
+        // Hiding/Stealth解除
+    }
+}
+
+// 食事イベント
+class FoodLevelChangeListener(private val plugin: Skills) : Listener {
+    @EventHandler
+    fun onFoodLevelChange(event: FoodLevelChangeEvent) {
+        // Meditation: 瞑想中の回復速度向上
+        // マナ同期
+    }
+}
+
+// 盾ブロックイベント
+class EntityBlockWithShieldListener(private val plugin: Skills) : Listener {
+    @EventHandler
+    fun onBlockWithShield(event: EntityDamageByEntityEvent) {
+        // Parrying: 盾ブロック時の軽減率計算
+    }
+}
+```
+
+### 国際化対応（i18n）
+
+#### 言語ファイル構造
+
+```
+plugins/Skills/
+├── config.yml
+├── lang/
+│   ├── en.yml        # 英語（デフォルト）
+│   ├── ja.yml        # 日本語
+│   └── ...           # 他言語
+└── skills.db
+```
+
+#### 言語ファイル例（en.yml）
+
+```yaml
+# === システムメッセージ ===
+system:
+  plugin_enabled: "Skills plugin enabled"
+  plugin_disabled: "Skills plugin disabled"
+  player_data_loaded: "Player data loaded for {player}"
+  player_data_saved: "Player data saved for {player}"
+
+# === スキル関連 ===
+skill:
+  gain: "&a+{amount} {skill} ({current})"
+  decrease: "&c-{amount} {skill} ({current})"
+  cap_reached: "&eSkill cap reached. {decreased_skill} decreased."
+  list_header: "&6=== Your Skills ==="
+  list_entry: "&7{skill}: &f{value}"
+
+# === ステータス関連 ===
+stats:
+  header: "&6=== Your Stats ==="
+  hp: "&c❤ HP: {current} / {max}"
+  mana: "&b🍖 Mana: {current} / {max}"
+  str: "&4STR: {value}  (+{hp_bonus} HP, +{mining_bonus}% mining speed)"
+  dex: "&eDEX: {value}  (+{attack_speed}% attack speed, +{move_speed}% move speed)"
+  int: "&9INT: {value}  (-{mana_reduction}% mana cost, +{cast_bonus}% cast success)"
+
+# === 魔法関連 ===
+magic:
+  cast_start: "&d🔮 Casting {spell}..."
+  targeting: "&d🔮 {spell} - Left click: Cast / Right click: Cancel ({seconds}s)"
+  cast_success: "&aCast successful!"
+  cast_failed: "&cCast failed! Mana consumed."
+  cancelled: "&7Spell cancelled."
+  timeout: "&7Targeting timed out."
+  no_spellbook: "&cYou need a spellbook to cast this spell."
+  no_reagents: "&cMissing reagents: {reagents}"
+  no_mana: "&cNot enough mana! (Need: {required}, Have: {current})"
+  out_of_range: "&cTarget out of range!"
+  invalid_target: "&cInvalid target!"
+
+# === 回復魔法 ===
+heal:
+  healed_self: "&aHealed yourself for {amount} HP"
+  healed_other: "&aHealed {target} for {amount} HP"
+  cure_success: "&aStatus effects cured!"
+
+# === 移動魔法 ===
+teleport:
+  success: "&aTeleported!"
+  blocked: "&cDestination is blocked."
+  invalid_world: "&cCannot teleport to different world."
+  mark_success: "&aLocation marked on rune: {name}"
+  mark_input: "&eEnter location name in chat (10 seconds):"
+  gate_opened: "&aGate opened for {seconds} seconds."
+
+# === シーフ関連 ===
+thief:
+  hide_success: "&7You are now hidden."
+  hide_failed: "&cFailed to hide."
+  revealed: "&cYou have been revealed!"
+  stealth_start: "&7Stealth mode active. Distance: {distance} blocks"
+  stealth_end: "&7Stealth ended."
+  detect_found: "&aFound hidden player: {player}"
+  detect_none: "&7No hidden players found."
+  snoop_success: "&7Viewing {player}'s inventory..."
+  snoop_failed: "&c{player} noticed you!"
+  snoop_noticed: "&cSomeone tried to peek at your inventory!"
+  steal_success: "&aStole {item}!"
+  steal_failed: "&c{player} caught you stealing!"
+  steal_caught: "&c{player} tried to steal from you!"
+  poison_success: "&aWeapon poisoned ({charges} charges)"
+  poison_failed: "&cFailed to apply poison."
+  poison_no_weapon: "&cHold a weapon to poison it."
+  poison_no_potion: "&cYou need a poison potion."
+
+# === テイミング関連 ===
+taming:
+  tame_success: "&aTamed {mob}!"
+  tame_failed: "&cFailed to tame {mob}."
+  tame_limit: "&cYou cannot tame more animals. (Max: {max})"
+  tame_skill_low: "&cNeed {required} Animal Taming skill. (Current: {current})"
+  tame_invalid: "&cThis mob cannot be tamed."
+  lore_header: "&6=== {mob} ==="
+  lore_hp: "&c❤ HP: {current} / {max}"
+  lore_owner: "&7Owner: {owner}"
+  lore_tamed: "&7Tamed: {status}"
+  veterinary_heal: "&aHealed {mob} for {amount} HP"
+  veterinary_not_owner: "&cThis is not your pet."
+
+# === 生産関連 ===
+crafting:
+  quality_lq: "&7[Low Quality]"
+  quality_nq: "&f[Normal Quality]"
+  quality_hq: "&a[High Quality]"
+  quality_ex: "&6[Exceptional]"
+  quality_crafter: "&7Crafter: {name}"
+
+# === スクロール関連 ===
+scroll:
+  created: "&aCreated {spell} scroll ({quality})"
+  create_failed: "&cFailed to create scroll. Paper consumed."
+  used: "&aUsed {spell} scroll."
+  no_rune: "&cHold a rune in your off-hand."
+
+# === ルーン関連 ===
+rune:
+  created: "&aBlank rune created."
+  no_materials: "&cNeed amethyst shard and paper."
+
+# === 戦闘関連 ===
+combat:
+  critical: "&c⚔ Critical hit!"
+  parry: "&e🛡 Parried!"
+
+# === 資源収集関連 ===
+gathering:
+  bonus_drop: "&a+1 bonus drop!"
+
+# === 武器鑑定 ===
+arms:
+  header: "&6=== {item} ==="
+  damage: "&7Damage: {value}"
+  armor: "&7Armor: {value}"
+  durability: "&7Durability: {current} / {max}"
+
+# === 管理コマンド ===
+admin:
+  skill_set: "&aSet {player}'s {skill} to {value}"
+  skill_reset: "&aReset {player}'s skills"
+  player_not_found: "&cPlayer not found: {player}"
+  invalid_skill: "&cInvalid skill: {skill}"
+  invalid_value: "&cInvalid value: {value}"
+
+# === 共通 ===
+common:
+  no_permission: "&cYou don't have permission."
+  player_only: "&cThis command is for players only."
+  usage: "&cUsage: {usage}"
+  yes: "Yes"
+  no: "No"
+```
+
+#### 言語ファイル例（ja.yml）
+
+```yaml
+# === システムメッセージ ===
+system:
+  plugin_enabled: "Skillsプラグインが有効になりました"
+  plugin_disabled: "Skillsプラグインが無効になりました"
+  player_data_loaded: "{player}のデータを読み込みました"
+  player_data_saved: "{player}のデータを保存しました"
+
+# === スキル関連 ===
+skill:
+  gain: "&a+{amount} {skill} ({current})"
+  decrease: "&c-{amount} {skill} ({current})"
+  cap_reached: "&eスキル上限に達しました。{decreased_skill}が低下しました。"
+  list_header: "&6=== あなたのスキル ==="
+  list_entry: "&7{skill}: &f{value}"
+
+# === ステータス関連 ===
+stats:
+  header: "&6=== あなたのステータス ==="
+  hp: "&c❤ HP: {current} / {max}"
+  mana: "&b🍖 マナ: {current} / {max}"
+  str: "&4STR: {value}  (+{hp_bonus} HP, +{mining_bonus}% 採掘速度)"
+  dex: "&eDEX: {value}  (+{attack_speed}% 攻撃速度, +{move_speed}% 移動速度)"
+  int: "&9INT: {value}  (-{mana_reduction}% マナ消費, +{cast_bonus}% 詠唱成功率)"
+
+# === 魔法関連 ===
+magic:
+  cast_start: "&d🔮 {spell}を詠唱中..."
+  targeting: "&d🔮 {spell} - 左クリック:発動 / 右クリック:キャンセル (残り{seconds}秒)"
+  cast_success: "&a詠唱成功！"
+  cast_failed: "&c詠唱失敗！マナを消費しました。"
+  cancelled: "&7詠唱をキャンセルしました。"
+  timeout: "&7ターゲット待機がタイムアウトしました。"
+  no_spellbook: "&cこの魔法を唱えるには魔法の書が必要です。"
+  no_reagents: "&c触媒が不足: {reagents}"
+  no_mana: "&cマナが足りません！(必要: {required}, 現在: {current})"
+  out_of_range: "&c射程外です！"
+  invalid_target: "&c無効なターゲットです！"
+
+# === 回復魔法 ===
+heal:
+  healed_self: "&a自分を{amount}HP回復しました"
+  healed_other: "&a{target}を{amount}HP回復しました"
+  cure_success: "&a状態異常を解除しました！"
+
+# === 移動魔法 ===
+teleport:
+  success: "&aテレポートしました！"
+  blocked: "&cテレポート先が塞がれています。"
+  invalid_world: "&c別のワールドにはテレポートできません。"
+  mark_success: "&aルーンに場所を記録しました: {name}"
+  mark_input: "&eチャットで場所名を入力してください（10秒）:"
+  gate_opened: "&aゲートを開きました（{seconds}秒間）"
+
+# === シーフ関連 ===
+thief:
+  hide_success: "&7姿を隠しました。"
+  hide_failed: "&c隠れることに失敗しました。"
+  revealed: "&c見つかってしまいました！"
+  stealth_start: "&7ステルスモード開始。移動可能距離: {distance}ブロック"
+  stealth_end: "&7ステルスが解除されました。"
+  detect_found: "&a隠れているプレイヤーを発見: {player}"
+  detect_none: "&7隠れているプレイヤーは見つかりませんでした。"
+  snoop_success: "&7{player}のインベントリを覗いています..."
+  snoop_failed: "&c{player}に気づかれました！"
+  snoop_noticed: "&c誰かがあなたのインベントリを覗こうとしました！"
+  steal_success: "&a{item}を盗みました！"
+  steal_failed: "&c{player}に捕まりました！"
+  steal_caught: "&c{player}があなたから盗もうとしました！"
+  poison_success: "&a武器に毒を塗りました（{charges}回）"
+  poison_failed: "&c毒塗りに失敗しました。"
+  poison_no_weapon: "&c武器を持ってください。"
+  poison_no_potion: "&c毒のポーションが必要です。"
+
+# === テイミング関連 ===
+taming:
+  tame_success: "&a{mob}をテイムしました！"
+  tame_failed: "&a{mob}のテイムに失敗しました。"
+  tame_limit: "&cこれ以上テイムできません。(上限: {max})"
+  tame_skill_low: "&cAnimal Tamingスキルが{required}必要です。(現在: {current})"
+  tame_invalid: "&cこのMobはテイムできません。"
+  lore_header: "&6=== {mob} ==="
+  lore_hp: "&c❤ HP: {current} / {max}"
+  lore_owner: "&7オーナー: {owner}"
+  lore_tamed: "&7テイム済み: {status}"
+  veterinary_heal: "&a{mob}を{amount}HP回復しました"
+  veterinary_not_owner: "&cこれはあなたのペットではありません。"
+
+# === 生産関連 ===
+crafting:
+  quality_lq: "&7[低品質]"
+  quality_nq: "&f[通常品質]"
+  quality_hq: "&a[高品質]"
+  quality_ex: "&6[最高品質]"
+  quality_crafter: "&7製作者: {name}"
+
+# === スクロール関連 ===
+scroll:
+  created: "&a{spell}スクロールを作成しました ({quality})"
+  create_failed: "&cスクロール作成に失敗しました。紙を消費しました。"
+  used: "&a{spell}スクロールを使用しました。"
+  no_rune: "&cオフハンドにルーンを持ってください。"
+
+# === ルーン関連 ===
+rune:
+  created: "&a空のルーンを作成しました。"
+  no_materials: "&cアメジストの欠片と紙が必要です。"
+
+# === 戦闘関連 ===
+combat:
+  critical: "&c⚔ クリティカルヒット！"
+  parry: "&e🛡 パリィ！"
+
+# === 資源収集関連 ===
+gathering:
+  bonus_drop: "&a+1 ボーナスドロップ！"
+
+# === 武器鑑定 ===
+arms:
+  header: "&6=== {item} ==="
+  damage: "&7攻撃力: {value}"
+  armor: "&7防御力: {value}"
+  durability: "&7耐久度: {current} / {max}"
+
+# === 管理コマンド ===
+admin:
+  skill_set: "&a{player}の{skill}を{value}に設定しました"
+  skill_reset: "&a{player}のスキルをリセットしました"
+  player_not_found: "&cプレイヤーが見つかりません: {player}"
+  invalid_skill: "&c無効なスキル: {skill}"
+  invalid_value: "&c無効な値: {value}"
+
+# === 共通 ===
+common:
+  no_permission: "&c権限がありません。"
+  player_only: "&cこのコマンドはプレイヤー専用です。"
+  usage: "&c使い方: {usage}"
+  yes: "はい"
+  no: "いいえ"
+```
+
+#### i18nクラス
+
+```kotlin
+// 言語enum
+enum class Language(val code: String, val displayName: String) {
+    ENGLISH("en", "English"),
+    JAPANESE("ja", "日本語");
+
+    companion object {
+        fun fromCode(code: String): Language = entries.find { it.code == code } ?: ENGLISH
+    }
+}
+
+// メッセージキー（型安全なアクセス）
+enum class MessageKey(val path: String) {
+    // システム
+    SYSTEM_PLUGIN_ENABLED("system.plugin_enabled"),
+    SYSTEM_PLUGIN_DISABLED("system.plugin_disabled"),
+
+    // スキル
+    SKILL_GAIN("skill.gain"),
+    SKILL_DECREASE("skill.decrease"),
+    SKILL_CAP_REACHED("skill.cap_reached"),
+    SKILL_LIST_HEADER("skill.list_header"),
+    SKILL_LIST_ENTRY("skill.list_entry"),
+
+    // 魔法
+    MAGIC_CAST_START("magic.cast_start"),
+    MAGIC_TARGETING("magic.targeting"),
+    MAGIC_CAST_SUCCESS("magic.cast_success"),
+    MAGIC_CAST_FAILED("magic.cast_failed"),
+    MAGIC_CANCELLED("magic.cancelled"),
+    MAGIC_NO_SPELLBOOK("magic.no_spellbook"),
+    MAGIC_NO_REAGENTS("magic.no_reagents"),
+    MAGIC_NO_MANA("magic.no_mana"),
+    MAGIC_OUT_OF_RANGE("magic.out_of_range"),
+
+    // ... 他のキー
+}
+
+// メッセージ管理
+class MessageManager(private val plugin: Skills) {
+    private val messages: MutableMap<Language, YamlConfiguration> = mutableMapOf()
+    private var defaultLanguage: Language = Language.ENGLISH
+
+    // 初期化（言語ファイル読み込み）
+    fun loadLanguages() {
+        val langFolder = File(plugin.dataFolder, "lang")
+        if (!langFolder.exists()) {
+            langFolder.mkdirs()
+            // デフォルト言語ファイルをリソースからコピー
+            plugin.saveResource("lang/en.yml", false)
+            plugin.saveResource("lang/ja.yml", false)
+        }
+
+        Language.entries.forEach { lang ->
+            val file = File(langFolder, "${lang.code}.yml")
+            if (file.exists()) {
+                messages[lang] = YamlConfiguration.loadConfiguration(file)
+            }
+        }
+    }
+
+    // メッセージ取得（プレースホルダー置換対応）
+    fun get(key: MessageKey, lang: Language, vararg placeholders: Pair<String, Any>): String {
+        val config = messages[lang] ?: messages[defaultLanguage] ?: return key.path
+        var message = config.getString(key.path) ?: return key.path
+
+        placeholders.forEach { (placeholder, value) ->
+            message = message.replace("{$placeholder}", value.toString())
+        }
+
+        return ChatColor.translateAlternateColorCodes('&', message)
+    }
+
+    // Component形式で取得（1.16+ Adventure API対応）
+    fun getComponent(key: MessageKey, lang: Language, vararg placeholders: Pair<String, Any>): Component {
+        return Component.text(get(key, lang, *placeholders))
+    }
+}
+
+// プレイヤー言語設定管理
+class PlayerLocaleManager(private val plugin: Skills) {
+    private val playerLocales: MutableMap<UUID, Language> = ConcurrentHashMap()
+
+    // プレイヤーの言語取得（クライアント設定 or 保存設定）
+    fun getLanguage(player: Player): Language {
+        // 保存された設定を優先
+        playerLocales[player.uniqueId]?.let { return it }
+
+        // クライアントのロケールから推測
+        val locale = player.locale()
+        return when {
+            locale.startsWith("ja") -> Language.JAPANESE
+            else -> Language.ENGLISH
+        }
+    }
+
+    // プレイヤーの言語設定
+    fun setLanguage(player: Player, language: Language) {
+        playerLocales[player.uniqueId] = language
+        // DBに保存（PlayerDataに追加）
+    }
+
+    // 言語設定読み込み（ログイン時）
+    fun loadPlayerLocale(uuid: UUID, languageCode: String?) {
+        languageCode?.let {
+            playerLocales[uuid] = Language.fromCode(it)
+        }
+    }
+}
+
+// メッセージ送信ユーティリティ
+class MessageSender(
+    private val messageManager: MessageManager,
+    private val localeManager: PlayerLocaleManager
+) {
+    // チャットメッセージ送信
+    fun send(player: Player, key: MessageKey, vararg placeholders: Pair<String, Any>) {
+        val lang = localeManager.getLanguage(player)
+        player.sendMessage(messageManager.get(key, lang, *placeholders))
+    }
+
+    // ActionBar送信
+    fun sendActionBar(player: Player, key: MessageKey, vararg placeholders: Pair<String, Any>) {
+        val lang = localeManager.getLanguage(player)
+        val message = messageManager.get(key, lang, *placeholders)
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent(message))
+    }
+
+    // タイトル送信
+    fun sendTitle(
+        player: Player,
+        titleKey: MessageKey?,
+        subtitleKey: MessageKey?,
+        fadeIn: Int = 10,
+        stay: Int = 70,
+        fadeOut: Int = 20,
+        vararg placeholders: Pair<String, Any>
+    ) {
+        val lang = localeManager.getLanguage(player)
+        val title = titleKey?.let { messageManager.get(it, lang, *placeholders) } ?: ""
+        val subtitle = subtitleKey?.let { messageManager.get(it, lang, *placeholders) } ?: ""
+        player.sendTitle(title, subtitle, fadeIn, stay, fadeOut)
+    }
+
+    // 全プレイヤーにブロードキャスト（各プレイヤーの言語で）
+    fun broadcast(key: MessageKey, vararg placeholders: Pair<String, Any>) {
+        Bukkit.getOnlinePlayers().forEach { player ->
+            send(player, key, *placeholders)
+        }
+    }
+
+    // コンソールログ（デフォルト言語）
+    fun log(key: MessageKey, vararg placeholders: Pair<String, Any>) {
+        val message = messageManager.get(key, Language.ENGLISH, *placeholders)
+        Bukkit.getLogger().info(ChatColor.stripColor(message))
+    }
+
+    // ログレベル付き
+    fun log(level: Level, key: MessageKey, vararg placeholders: Pair<String, Any>) {
+        val message = messageManager.get(key, Language.ENGLISH, *placeholders)
+        Bukkit.getLogger().log(level, ChatColor.stripColor(message))
+    }
+}
+```
+
+#### 使用例
+
+```kotlin
+// 使用例: スキル上昇時
+messageSender.send(
+    player,
+    MessageKey.SKILL_GAIN,
+    "amount" to 0.1,
+    "skill" to skill.displayName,
+    "current" to newValue
+)
+
+// 使用例: ActionBar（ターゲット待機中）
+messageSender.sendActionBar(
+    player,
+    MessageKey.MAGIC_TARGETING,
+    "spell" to spell.displayName,
+    "seconds" to remainingSeconds
+)
+
+// 使用例: コンソールログ
+messageSender.log(MessageKey.SYSTEM_PLAYER_DATA_LOADED, "player" to player.name)
+```
+
+#### 設定ファイル追加（config.yml）
+
+```yaml
+# 言語設定
+language:
+  default: en                    # デフォルト言語 (en / ja)
+  use_client_locale: true        # クライアントのロケールを使用するか
+  allow_player_change: true      # プレイヤーが言語を変更できるか
+```
+
+#### 言語変更コマンド
+
+```kotlin
+// /language <言語コード>
+class LanguageCommand(private val plugin: Skills) : CommandExecutor {
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
+        if (sender !is Player) {
+            sender.sendMessage("This command is for players only.")
+            return true
+        }
+
+        if (args.isEmpty()) {
+            // 現在の言語を表示
+            val current = plugin.localeManager.getLanguage(sender)
+            sender.sendMessage("Current language: ${current.displayName}")
+            sender.sendMessage("Available: ${Language.entries.joinToString { "${it.code} (${it.displayName})" }}")
+            return true
+        }
+
+        val lang = Language.fromCode(args[0])
+        plugin.localeManager.setLanguage(sender, lang)
+        plugin.messageSender.send(sender, MessageKey.LANGUAGE_CHANGED, "language" to lang.displayName)
+        return true
+    }
+}
+```
+
+### クラス関連図
+
+```
+Skills (メインプラグイン)
+├── SkillsConfig
+├── Database (SQLite/MySQL)
+├── PlayerDataManager ─── PlayerData, SkillData
+│
+├── SkillManager ─────────┬── StatCalculator
+│                         └── (スキル上昇/下降ロジック)
+│
+├── CombatManager ────────┬── InternalHealthManager
+│                         └── ParryingHandler
+│
+├── SpellManager ─────────┬── TargetManager
+│                         ├── ManaManager
+│                         ├── ReagentManager
+│                         ├── SpellbookManager
+│                         ├── ScrollManager
+│                         └── RuneManager
+│
+├── QualityManager
+│
+├── GatheringHandlers ────┬── MiningHandler
+│                         ├── LumberjackingHandler
+│                         └── FishingHandler
+│
+├── ThiefManagers ────────┬── HidingManager
+│                         ├── StealthManager
+│                         ├── SnoopingManager
+│                         ├── StealingManager
+│                         └── PoisoningManager
+│
+├── TamingManagers ───────┬── TamingManager
+│                         ├── AnimalLoreManager
+│                         └── VeterinaryManager
+│
+└── i18n ─────────────────┬── MessageManager ─── Language, MessageKey
+                          ├── PlayerLocaleManager
+                          └── MessageSender
+```
+
