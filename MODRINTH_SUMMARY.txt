@@ -1,0 +1,1 @@
+A classic MMO-inspired skill-based progression system for Minecraft. Features 40+ skills, 8-circle magic system with spellbooks and reagents, crafting quality tiers, thief skills, animal taming, and bidirectional gate travel portals.
