@@ -23,6 +23,8 @@ import com.hacklab.minecraft.skills.taming.TamingManager
 import com.hacklab.minecraft.skills.taming.VeterinaryManager
 import com.hacklab.minecraft.skills.thief.*
 import com.hacklab.minecraft.skills.util.CooldownManager
+import com.hacklab.minecraft.skills.vengeful.VengefulMobsListener
+import com.hacklab.minecraft.skills.vengeful.VengefulMobsManager
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
 
@@ -114,6 +116,10 @@ class Skills : JavaPlugin() {
 
     // Guide
     lateinit var guideManager: GuideManager
+        private set
+
+    // VengefulMobs
+    lateinit var vengefulMobsManager: VengefulMobsManager
         private set
 
     // Listeners
@@ -224,6 +230,9 @@ class Skills : JavaPlugin() {
         // Guide
         guideManager = GuideManager(this)
         guideManager.loadGuides()
+
+        // VengefulMobs
+        vengefulMobsManager = VengefulMobsManager(this)
     }
 
     private fun registerListeners() {
@@ -240,6 +249,9 @@ class Skills : JavaPlugin() {
 
         survivalListener = SurvivalListener(this)
         pm.registerEvents(survivalListener, this)
+
+        // VengefulMobs
+        pm.registerEvents(VengefulMobsListener(this), this)
     }
 
     private fun registerCommands() {
@@ -307,5 +319,8 @@ class Skills : JavaPlugin() {
                 cooldownManager.cleanupExpiredCooldowns()
             }
         }.runTaskTimerAsynchronously(this, 1200L, 1200L) // Every minute
+
+        // VengefulMobs aggression task
+        vengefulMobsManager.startAggressionTask()
     }
 }
