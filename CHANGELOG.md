@@ -50,6 +50,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added BOGGED (1.21 swamp skeleton variant)
 
 ### Changed
+- **Swimming Skill Balance**
+  - Swimming skill now only gains on drowning damage (not every air tick)
+  - Previously gained too fast due to air change events firing every tick
+  - Now consistent with other survival skills (Athletics, Heat Resistance, etc.)
+  - Drowning damage handling separated from Endurance skill
+
 - **Combat Damage Formula** (Breaking Change)
   - Tactics now essential: `Tactics / 100` (0.1 to 1.0 multiplier)
   - Anatomy now affects damage: `0.5 + (Anatomy / 100)` (0.6 to 1.5 multiplier)
