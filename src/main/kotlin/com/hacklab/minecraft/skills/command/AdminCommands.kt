@@ -2,7 +2,9 @@ package com.hacklab.minecraft.skills.command
 
 import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.i18n.MessageKey
+import com.hacklab.minecraft.skills.skill.SkillCategory
 import com.hacklab.minecraft.skills.skill.SkillType
+import com.hacklab.minecraft.skills.skill.StatType
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
@@ -26,7 +28,9 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
         }
 
         when (args[0].lowercase()) {
+            "check" -> handleCheck(sender, args.drop(1))
             "set" -> handleSet(sender, args.drop(1))
+            "setstat" -> handleSetStat(sender, args.drop(1))
             "reset" -> handleReset(sender, args.drop(1))
             "reload" -> handleReload(sender)
             "give" -> handleGive(sender, args.drop(1))
@@ -38,13 +42,66 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
 
     private fun showHelp(sender: CommandSender) {
         sender.sendMessage(Component.text("═══ Skills Admin Commands ═══").color(NamedTextColor.GOLD))
+        sender.sendMessage(Component.text("/skilladmin check <player>").color(NamedTextColor.WHITE))
         sender.sendMessage(Component.text("/skilladmin set <player> <skill> <value>").color(NamedTextColor.WHITE))
+        sender.sendMessage(Component.text("/skilladmin setstat <player> <STR|DEX|INT> <value>").color(NamedTextColor.WHITE))
         sender.sendMessage(Component.text("/skilladmin reset <player>").color(NamedTextColor.WHITE))
         sender.sendMessage(Component.text("/skilladmin reload").color(NamedTextColor.WHITE))
         sender.sendMessage(Component.text("/skilladmin give <player> spellbook").color(NamedTextColor.WHITE))
         sender.sendMessage(Component.text("/skilladmin give <player> rune").color(NamedTextColor.WHITE))
         sender.sendMessage(Component.text("/skilladmin give <player> reagents").color(NamedTextColor.WHITE))
         sender.sendMessage(Component.text("/skilladmin give <player> scroll <spell|all>").color(NamedTextColor.WHITE))
+    }
+
+    private fun handleCheck(sender: CommandSender, args: List<String>) {
+        if (args.isEmpty()) {
+            sender.sendMessage("Usage: /skilladmin check <player>")
+            return
+        }
+
+        val target = Bukkit.getPlayer(args[0])
+        if (target == null) {
+            sender.sendMessage("Player not found: ${args[0]}")
+            return
+        }
+
+        val data = plugin.playerDataManager.getPlayerData(target)
+
+        // Header with player name and title
+        val title = plugin.skillTitleManager.getPlayerTitle(target)
+        sender.sendMessage(Component.text("═══ ${target.name}'s Skills ═══").color(NamedTextColor.GOLD))
+        sender.sendMessage(Component.text("Title: $title").color(NamedTextColor.YELLOW))
+        sender.sendMessage(Component.text(""))
+
+        // Stats
+        sender.sendMessage(Component.text("STR: ${data.str}  DEX: ${data.dex}  INT: ${data.int}").color(NamedTextColor.AQUA))
+        sender.sendMessage(Component.text("Total: ${String.format("%.1f", data.getTotalSkillPoints())} / ${SkillType.TOTAL_SKILL_CAP}").color(NamedTextColor.AQUA))
+        sender.sendMessage(Component.text(""))
+
+        // Skills by category
+        SkillCategory.entries.forEach { category ->
+            val categorySkills = SkillType.entries.filter { it.category == category }
+            val nonZeroSkills = categorySkills.filter { data.getSkillValue(it) > 0 }
+
+            if (nonZeroSkills.isNotEmpty()) {
+                sender.sendMessage(Component.text("─── ${category.displayName} ───").color(NamedTextColor.GRAY))
+                nonZeroSkills.forEach { skill ->
+                    val value = data.getSkillValue(skill)
+                    val color = when {
+                        value >= 100 -> NamedTextColor.LIGHT_PURPLE
+                        value >= 90 -> NamedTextColor.GOLD
+                        value >= 70 -> NamedTextColor.GREEN
+                        value >= 50 -> NamedTextColor.YELLOW
+                        else -> NamedTextColor.WHITE
+                    }
+                    sender.sendMessage(
+                        Component.text("  ${skill.displayName}: ")
+                            .color(NamedTextColor.WHITE)
+                            .append(Component.text(String.format("%.1f", value)).color(color))
+                    )
+                }
+            }
+        }
     }
 
     private fun handleSet(sender: CommandSender, args: List<String>) {
@@ -76,6 +133,46 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
 
         plugin.skillManager.setSkill(target, skill, value)
         sender.sendMessage("Set ${target.name}'s ${skill.displayName} to $value")
+    }
+
+    private fun handleSetStat(sender: CommandSender, args: List<String>) {
+        if (args.size < 3) {
+            sender.sendMessage("Usage: /skilladmin setstat <player> <STR|DEX|INT> <value>")
+            return
+        }
+
+        val target = Bukkit.getPlayer(args[0])
+        if (target == null) {
+            sender.sendMessage("Player not found: ${args[0]}")
+            return
+        }
+
+        val statName = args[1].uppercase()
+        val stat = when (statName) {
+            "STR" -> StatType.STR
+            "DEX" -> StatType.DEX
+            "INT" -> StatType.INT
+            else -> {
+                sender.sendMessage("Unknown stat: ${args[1]} (must be STR, DEX, or INT)")
+                return
+            }
+        }
+
+        val value = args[2].toIntOrNull()
+        if (value == null || value < StatType.MIN_STAT_VALUE || value > StatType.MAX_STAT_VALUE) {
+            sender.sendMessage("Invalid value: ${args[2]} (must be ${StatType.MIN_STAT_VALUE}-${StatType.MAX_STAT_VALUE})")
+            return
+        }
+
+        val data = plugin.playerDataManager.getPlayerData(target)
+        data.setStat(stat, value)
+        data.updateMaxStats()
+
+        // Apply attribute modifiers
+        val armorDexPenalty = plugin.armorManager.getTotalDexPenalty(target)
+        com.hacklab.minecraft.skills.skill.StatCalculator.applyAttributeModifiers(target, data, armorDexPenalty)
+
+        sender.sendMessage("Set ${target.name}'s $statName to $value")
     }
 
     private fun handleReset(sender: CommandSender, args: List<String>) {
@@ -173,14 +270,16 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
 
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<String>): List<String> {
         return when (args.size) {
-            1 -> listOf("set", "reset", "reload", "give").filter { it.startsWith(args[0].lowercase()) }
+            1 -> listOf("check", "set", "setstat", "reset", "reload", "give").filter { it.startsWith(args[0].lowercase()) }
             2 -> when (args[0].lowercase()) {
-                "set", "reset", "give" -> Bukkit.getOnlinePlayers().map { it.name }
+                "check", "set", "setstat", "reset", "give" -> Bukkit.getOnlinePlayers().map { it.name }
                     .filter { it.lowercase().startsWith(args[1].lowercase()) }
                 else -> emptyList()
             }
             3 -> when (args[0].lowercase()) {
                 "set" -> SkillType.entries.map { it.displayName }
+                    .filter { it.lowercase().startsWith(args[2].lowercase()) }
+                "setstat" -> listOf("STR", "DEX", "INT")
                     .filter { it.lowercase().startsWith(args[2].lowercase()) }
                 "give" -> listOf("spellbook", "rune", "reagents", "scroll")
                     .filter { it.startsWith(args[2].lowercase()) }

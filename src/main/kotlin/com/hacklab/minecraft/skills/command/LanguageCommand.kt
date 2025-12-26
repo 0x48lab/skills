@@ -26,13 +26,28 @@ class LanguageCommand(private val plugin: Skills) : CommandExecutor, TabComplete
 
         if (args.isEmpty()) {
             // Show current language
+            val playerData = plugin.playerDataManager.getPlayerData(sender)
             val current = plugin.localeManager.getLanguage(sender)
-            plugin.messageSender.send(sender, MessageKey.LANGUAGE_CURRENT,
-                "language" to current.displayName)
+
+            if (playerData.language == null) {
+                // Using client language
+                plugin.messageSender.send(sender, MessageKey.LANGUAGE_USING_CLIENT,
+                    "language" to current.displayName)
+            } else {
+                plugin.messageSender.send(sender, MessageKey.LANGUAGE_CURRENT,
+                    "language" to current.displayName)
+            }
 
             // Show available languages
             sender.sendMessage(Component.text("Available: ${Language.entries.joinToString { "${it.code} (${it.displayName})" }}")
                 .color(NamedTextColor.GRAY))
+            return true
+        }
+
+        // Reset language
+        if (args[0].equals("reset", ignoreCase = true)) {
+            plugin.localeManager.resetLanguage(sender)
+            plugin.messageSender.send(sender, MessageKey.LANGUAGE_RESET)
             return true
         }
 
@@ -47,8 +62,9 @@ class LanguageCommand(private val plugin: Skills) : CommandExecutor, TabComplete
 
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<String>): List<String> {
         if (args.size == 1) {
-            return Language.entries.map { it.code }
-                .filter { it.lowercase().startsWith(args[0].lowercase()) }
+            val options = mutableListOf("reset")
+            options.addAll(Language.entries.map { it.code })
+            return options.filter { it.lowercase().startsWith(args[0].lowercase()) }
         }
         return emptyList()
     }

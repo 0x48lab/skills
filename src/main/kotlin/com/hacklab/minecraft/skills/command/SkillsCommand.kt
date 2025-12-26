@@ -27,6 +27,7 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
 
         when (args[0].lowercase()) {
             "list" -> showAllSkills(sender)
+            "guide" -> giveGuideBook(sender)
             "category" -> {
                 if (args.size < 2) {
                     sender.sendMessage("Usage: /skills category <category>")
@@ -47,7 +48,9 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
     private fun showAllSkills(player: Player) {
         val data = plugin.playerDataManager.getPlayerData(player)
 
-        plugin.messageSender.send(player, MessageKey.SKILL_LIST_HEADER)
+        // Show title
+        val title = plugin.skillTitleManager.getPlayerTitle(player, useJapanese = false)
+        player.sendMessage(Component.text("═══ $title ═══").color(NamedTextColor.GOLD))
 
         // Group by category
         SkillCategory.entries.forEach { category ->
@@ -133,9 +136,24 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
         }
     }
 
+    private fun giveGuideBook(player: Player) {
+        val guidebook = plugin.guideManager.createGuideBook(plugin.localeManager.getLanguage(player))
+
+        val leftover = player.inventory.addItem(guidebook)
+        if (leftover.isEmpty()) {
+            plugin.messageSender.send(player, MessageKey.GUIDEBOOK_RECEIVED)
+        } else {
+            // Inventory full, drop at feet
+            leftover.values.forEach { item ->
+                player.world.dropItemNaturally(player.location, item)
+            }
+            plugin.messageSender.send(player, MessageKey.GUIDEBOOK_DROPPED)
+        }
+    }
+
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<String>): List<String> {
         if (args.size == 1) {
-            val options = mutableListOf("list", "category")
+            val options = mutableListOf("list", "guide", "category")
             options.addAll(SkillType.entries.map { it.displayName })
             return options.filter { it.lowercase().startsWith(args[0].lowercase()) }
         }

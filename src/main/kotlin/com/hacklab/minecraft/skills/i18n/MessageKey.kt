@@ -29,6 +29,9 @@ enum class MessageKey(val path: String) {
     STATS_DEX("stats.dex"),
     STATS_INT("stats.int"),
     STATS_TOTAL_SKILLS("stats.total_skills"),
+    STAT_GAIN("stats.gain"),
+    STAT_DECREASE("stats.decrease"),
+    STAT_LOCK_CHANGED("stats.lock_changed"),
 
     // Magic - General
     MAGIC_CAST_START("magic.cast_start"),
@@ -122,6 +125,12 @@ enum class MessageKey(val path: String) {
     COMBAT_PARRY("combat.parry"),
     COMBAT_CRITICAL("combat.critical"),
     COMBAT_RESIST("combat.resist"),
+    COMBAT_MISS("combat.miss"),
+
+    // Armor
+    ARMOR_CANNOT_EQUIP_STR("armor.cannot_equip_str"),
+    ARMOR_REMOVED_STR("armor.removed_str"),
+    ARMOR_DEX_PENALTY_WARNING("armor.dex_penalty_warning"),
 
     // Gathering
     GATHERING_BONUS_DROP("gathering.bonus_drop"),
@@ -142,6 +151,12 @@ enum class MessageKey(val path: String) {
     LANGUAGE_CHANGED("language.changed"),
     LANGUAGE_CURRENT("language.current"),
     LANGUAGE_AVAILABLE("language.available"),
+    LANGUAGE_RESET("language.reset"),
+    LANGUAGE_USING_CLIENT("language.using_client"),
+
+    // Guidebook
+    GUIDEBOOK_RECEIVED("guidebook.received"),
+    GUIDEBOOK_DROPPED("guidebook.dropped"),
 
     // Survival
     SURVIVAL_ATHLETICS_ROLL("survival.athletics_roll"),

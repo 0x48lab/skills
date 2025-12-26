@@ -3,6 +3,9 @@ package com.hacklab.minecraft.skills
 import com.hacklab.minecraft.skills.combat.CombatManager
 import com.hacklab.minecraft.skills.combat.InternalHealthManager
 import com.hacklab.minecraft.skills.command.*
+import com.hacklab.minecraft.skills.armor.ArmorManager
+import com.hacklab.minecraft.skills.config.ArmorConfig
+import com.hacklab.minecraft.skills.config.CombatConfig
 import com.hacklab.minecraft.skills.config.SkillsConfig
 import com.hacklab.minecraft.skills.crafting.CraftingManager
 import com.hacklab.minecraft.skills.crafting.QualityManager
@@ -18,11 +21,17 @@ import com.hacklab.minecraft.skills.i18n.PlayerLocaleManager
 import com.hacklab.minecraft.skills.listener.*
 import com.hacklab.minecraft.skills.magic.*
 import com.hacklab.minecraft.skills.skill.SkillManager
+import com.hacklab.minecraft.skills.skill.SkillTitleManager
 import com.hacklab.minecraft.skills.taming.AnimalLoreManager
 import com.hacklab.minecraft.skills.taming.TamingManager
 import com.hacklab.minecraft.skills.taming.VeterinaryManager
 import com.hacklab.minecraft.skills.thief.*
+import com.hacklab.minecraft.skills.scoreboard.ScoreboardManager
 import com.hacklab.minecraft.skills.util.CooldownManager
+import com.hacklab.minecraft.skills.vengeful.VengefulMobsListener
+import com.hacklab.minecraft.skills.vengeful.VengefulMobsManager
+import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
 
@@ -30,6 +39,10 @@ class Skills : JavaPlugin() {
 
     // Config
     lateinit var skillsConfig: SkillsConfig
+        private set
+    lateinit var combatConfig: CombatConfig
+        private set
+    lateinit var armorConfig: ArmorConfig
         private set
 
     // Database
@@ -51,11 +64,15 @@ class Skills : JavaPlugin() {
     // Skills
     lateinit var skillManager: SkillManager
         private set
+    lateinit var skillTitleManager: SkillTitleManager
+        private set
 
     // Combat
     lateinit var combatManager: CombatManager
         private set
     lateinit var healthManager: InternalHealthManager
+        private set
+    lateinit var armorManager: ArmorManager
         private set
 
     // Magic
@@ -116,6 +133,14 @@ class Skills : JavaPlugin() {
     lateinit var guideManager: GuideManager
         private set
 
+    // VengefulMobs
+    lateinit var vengefulMobsManager: VengefulMobsManager
+        private set
+
+    // Scoreboard
+    lateinit var scoreboardManager: ScoreboardManager
+        private set
+
     // Listeners
     private lateinit var meditationListener: MeditationListener
     lateinit var survivalListener: SurvivalListener
@@ -127,6 +152,8 @@ class Skills : JavaPlugin() {
 
         // Initialize config
         skillsConfig = SkillsConfig(this)
+        combatConfig = CombatConfig(this)
+        armorConfig = ArmorConfig(this)
 
         // Initialize i18n
         messageManager = MessageManager(this)
@@ -172,6 +199,11 @@ class Skills : JavaPlugin() {
             meditationListener.cleanup()
         }
 
+        // Cleanup scoreboard
+        if (::scoreboardManager.isInitialized) {
+            scoreboardManager.stopUpdateTask()
+        }
+
         // Disconnect database
         database.disconnect()
 
@@ -185,10 +217,12 @@ class Skills : JavaPlugin() {
 
         // Skills
         skillManager = SkillManager(this)
+        skillTitleManager = SkillTitleManager(this)
 
         // Combat
         combatManager = CombatManager(this)
         healthManager = InternalHealthManager(this)
+        armorManager = ArmorManager(this)
 
         // Magic
         targetManager = TargetManager(this)
@@ -224,6 +258,28 @@ class Skills : JavaPlugin() {
         // Guide
         guideManager = GuideManager(this)
         guideManager.loadGuides()
+
+        // VengefulMobs
+        vengefulMobsManager = VengefulMobsManager(this)
+
+        // Scoreboard
+        scoreboardManager = ScoreboardManager(this)
+
+        // Register crafting recipes
+        registerRecipes()
+    }
+
+    private fun registerRecipes() {
+        // Empty Spellbook: Book + Echo Shard = Empty Spellbook
+        val spellbookKey = NamespacedKey(this, "empty_spellbook")
+        val spellbookResult = spellbookManager.createSpellbook()
+
+        val spellbookRecipe = org.bukkit.inventory.ShapelessRecipe(spellbookKey, spellbookResult)
+        spellbookRecipe.addIngredient(Material.BOOK)
+        spellbookRecipe.addIngredient(Material.ECHO_SHARD)
+
+        server.addRecipe(spellbookRecipe)
+        logger.info("Registered empty spellbook crafting recipe")
     }
 
     private fun registerListeners() {
@@ -231,6 +287,7 @@ class Skills : JavaPlugin() {
 
         pm.registerEvents(PlayerListener(this), this)
         pm.registerEvents(CombatListener(this), this)
+        pm.registerEvents(ArmorListener(this), this)
         pm.registerEvents(CraftingListener(this), this)
         pm.registerEvents(GatheringListener(this), this)
         pm.registerEvents(TargetingListener(this), this)
@@ -240,12 +297,20 @@ class Skills : JavaPlugin() {
 
         survivalListener = SurvivalListener(this)
         pm.registerEvents(survivalListener, this)
+
+        // VengefulMobs
+        pm.registerEvents(VengefulMobsListener(this), this)
+
+        // Scroll loot (mob drops and End chest)
+        pm.registerEvents(ScrollLootListener(this), this)
     }
 
     private fun registerCommands() {
         // Player commands
         getCommand("skills")?.setExecutor(SkillsCommand(this))
-        getCommand("stats")?.setExecutor(StatsCommand(this))
+        val statsCmd = StatsCommand(this)
+        getCommand("stats")?.setExecutor(statsCmd)
+        getCommand("stats")?.tabCompleter = statsCmd
         getCommand("cast")?.setExecutor(CastCommand(this))
         getCommand("language")?.setExecutor(LanguageCommand(this))
 
@@ -264,12 +329,6 @@ class Skills : JavaPlugin() {
         val adminCmd = SkillAdminCommand(this)
         getCommand("skilladmin")?.setExecutor(adminCmd)
         getCommand("skilladmin")?.tabCompleter = adminCmd
-
-        // Book commands
-        val spellbookCmd = SpellbookCommand(this)
-        getCommand("spellbook")?.setExecutor(spellbookCmd)
-        getCommand("spellbook")?.tabCompleter = spellbookCmd
-        getCommand("skillbook")?.setExecutor(SkillbookCommand(this))
 
         // Crafting commands
         getCommand("arms")?.setExecutor(ArmsCommand(this))
@@ -307,5 +366,11 @@ class Skills : JavaPlugin() {
                 cooldownManager.cleanupExpiredCooldowns()
             }
         }.runTaskTimerAsynchronously(this, 1200L, 1200L) // Every minute
+
+        // VengefulMobs aggression task
+        vengefulMobsManager.startAggressionTask()
+
+        // Scoreboard update task
+        scoreboardManager.startUpdateTask()
     }
 }

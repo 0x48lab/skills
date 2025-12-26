@@ -21,7 +21,7 @@ class ManaManager(private val plugin: Skills) {
     fun calculateManaCost(player: Player, spell: SpellType): Double {
         val data = plugin.playerDataManager.getPlayerData(player)
         val baseCost = spell.baseMana.toDouble()
-        val intReduction = data.getInt() / 200.0  // INT 100 = 50% reduction
+        val intReduction = data.int / 200.0  // INT 100 = 50% reduction
         return baseCost * (1 - intReduction)
     }
 

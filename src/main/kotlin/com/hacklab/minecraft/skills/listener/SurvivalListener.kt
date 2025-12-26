@@ -23,8 +23,9 @@ class SurvivalListener(private val plugin: Skills) : Listener {
      * Athletics skill - reduces fall damage
      * Effect: Fall damage reduced by (skill / 2)% - max 50% at skill 100
      * Skill gain: When taking fall damage
+     * Note: Runs at NORMAL priority so CombatListener (HIGH) can apply to internal HP
      */
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     fun onFallDamage(event: EntityDamageEvent) {
         if (event.cause != DamageCause.FALL) return
         val player = event.entity as? Player ?: return
@@ -102,8 +103,9 @@ class SurvivalListener(private val plugin: Skills) : Listener {
      * Effect: Fire/lava damage reduced by (skill / 2)% - max 50% at skill 100
      * Also reduces burn time
      * Skill gain: When taking fire/lava damage
+     * Note: Runs at NORMAL priority so CombatListener (HIGH) can apply to internal HP
      */
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     fun onFireDamage(event: EntityDamageEvent) {
         val validCauses = setOf(
             DamageCause.FIRE,
@@ -156,8 +158,9 @@ class SurvivalListener(private val plugin: Skills) : Listener {
      * Effect: Freeze damage reduced by (skill / 2)% - max 50% at skill 100
      * Also reduces freeze buildup rate
      * Skill gain: When taking freeze damage
+     * Note: Runs at NORMAL priority so CombatListener (HIGH) can apply to internal HP
      */
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     fun onFreezeDamage(event: EntityDamageEvent) {
         if (event.cause != DamageCause.FREEZE) return
         val player = event.entity as? Player ?: return
@@ -193,8 +196,9 @@ class SurvivalListener(private val plugin: Skills) : Listener {
      * Endurance skill - reduces suffocation damage (being buried in blocks)
      * Effect: Suffocation damage reduced by (skill / 2)% - max 50% at skill 100
      * Skill gain: When taking suffocation damage
+     * Note: Runs at NORMAL priority so CombatListener (HIGH) can apply to internal HP
      */
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     fun onSuffocationDamage(event: EntityDamageEvent) {
         val validCauses = setOf(
             DamageCause.SUFFOCATION,  // Inside solid block

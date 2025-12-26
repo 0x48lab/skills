@@ -20,12 +20,14 @@ object StatCalculator {
     }
 
     /**
-     * Calculate DEX-based effects
+     * Calculate DEX-based effects (UO-style)
+     * Attack speed: UO had significant impact, DEX 100 could nearly double attack speed
+     * Movement speed: Minecraft-specific, but made noticeable
      */
     fun getDexEffects(dex: Int): DexEffects {
         return DexEffects(
-            attackSpeedBonus = dex / 10.0,    // +10% at DEX 100
-            movementSpeedBonus = dex / 10.0   // +10% at DEX 100
+            attackSpeedBonus = dex / 2.0,     // +50% at DEX 100 (UO-like significant impact)
+            movementSpeedBonus = dex / 10.0   // +10% at DEX 100 (noticeable speed boost)
         )
     }
 
@@ -42,26 +44,34 @@ object StatCalculator {
     // Unique UUIDs for skill-based attribute modifiers
     private val MOVEMENT_SPEED_MODIFIER_UUID = UUID.fromString("a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d")
     private val ATTACK_SPEED_MODIFIER_UUID = UUID.fromString("b2c3d4e5-f6a7-5b6c-9d0e-1f2a3b4c5d6e")
-    private const val MODIFIER_NAME = "skills.dex_bonus"
+    private val BLOCK_BREAK_SPEED_MODIFIER_UUID = UUID.fromString("c3d4e5f6-a7b8-6c7d-0e1f-2a3b4c5d6e7f")
+    private const val DEX_MODIFIER_NAME = "skills.dex_bonus"
+    private const val STR_MODIFIER_NAME = "skills.str_bonus"
 
     /**
      * Apply stat-based attribute modifiers to a player
+     * @param player The player to apply modifiers to
+     * @param data The player's skill data
+     * @param armorDexPenalty DEX penalty from equipped armor (default 0)
      */
-    fun applyAttributeModifiers(player: Player, data: PlayerData) {
-        val dex = data.getDex()
-        val dexEffects = getDexEffects(dex)
+    fun applyAttributeModifiers(player: Player, data: PlayerData, armorDexPenalty: Int = 0) {
+        // Apply armor DEX penalty to effective DEX
+        val effectiveDex = (data.dex - armorDexPenalty).coerceAtLeast(0)
+        val str = data.str
+        val dexEffects = getDexEffects(effectiveDex)
+        val strEffects = getStrEffects(str)
 
         // Apply movement speed modifier (DEX bonus)
         player.getAttribute(Attribute.MOVEMENT_SPEED)?.let { attr ->
-            // Remove existing modifier first
-            attr.modifiers.filter { it.name == MODIFIER_NAME }.forEach { attr.removeModifier(it) }
+            // Remove existing modifier by UUID first
+            attr.getModifier(MOVEMENT_SPEED_MODIFIER_UUID)?.let { attr.removeModifier(it) }
 
             // Add new modifier (percentage-based)
             val speedBonus = dexEffects.movementSpeedBonus / 100.0  // Convert to decimal
             if (speedBonus > 0) {
                 val modifier = AttributeModifier(
                     MOVEMENT_SPEED_MODIFIER_UUID,
-                    MODIFIER_NAME,
+                    DEX_MODIFIER_NAME,
                     speedBonus,
                     AttributeModifier.Operation.MULTIPLY_SCALAR_1
                 )
@@ -71,16 +81,34 @@ object StatCalculator {
 
         // Apply attack speed modifier (DEX bonus)
         player.getAttribute(Attribute.ATTACK_SPEED)?.let { attr ->
-            // Remove existing modifier first
-            attr.modifiers.filter { it.name == MODIFIER_NAME }.forEach { attr.removeModifier(it) }
+            // Remove existing modifier by UUID first
+            attr.getModifier(ATTACK_SPEED_MODIFIER_UUID)?.let { attr.removeModifier(it) }
 
             // Add new modifier
             val attackSpeedBonus = dexEffects.attackSpeedBonus / 100.0
             if (attackSpeedBonus > 0) {
                 val modifier = AttributeModifier(
                     ATTACK_SPEED_MODIFIER_UUID,
-                    MODIFIER_NAME,
+                    DEX_MODIFIER_NAME,
                     attackSpeedBonus,
+                    AttributeModifier.Operation.MULTIPLY_SCALAR_1
+                )
+                attr.addModifier(modifier)
+            }
+        }
+
+        // Apply block break speed modifier (STR bonus)
+        player.getAttribute(Attribute.BLOCK_BREAK_SPEED)?.let { attr ->
+            // Remove existing modifier by UUID first
+            attr.getModifier(BLOCK_BREAK_SPEED_MODIFIER_UUID)?.let { attr.removeModifier(it) }
+
+            // Add new modifier
+            val miningSpeedBonus = strEffects.miningSpeedBonus / 100.0
+            if (miningSpeedBonus > 0) {
+                val modifier = AttributeModifier(
+                    BLOCK_BREAK_SPEED_MODIFIER_UUID,
+                    STR_MODIFIER_NAME,
+                    miningSpeedBonus,
                     AttributeModifier.Operation.MULTIPLY_SCALAR_1
                 )
                 attr.addModifier(modifier)
@@ -141,7 +169,13 @@ object StatCalculator {
     }
 
     /**
-     * Calculate magic damage with skill bonuses
+     * Calculate magic damage with skill bonuses (UO-style)
+     *
+     * Magery and Evaluating Intelligence are ESSENTIAL skills for magic damage:
+     * - Magery 10, EvalInt 10: ~6% of max damage
+     * - Magery 100, EvalInt 100: 150% of base damage
+     *
+     * This matches the combat system where Tactics and Anatomy are essential.
      */
     fun calculateMagicDamage(
         baseDamage: Double,
@@ -149,19 +183,18 @@ object StatCalculator {
         evalIntSkill: Double,
         targetResistSkill: Double = 0.0
     ): Double {
-        // Magery affects base damage slightly
-        val mageryModifier = 1.0 + (magerySkill / 400.0)  // +25% at skill 100
+        // Magery modifier: Magery / 100 → main damage multiplier (0.1 to 1.0)
+        // Low Magery = very low damage, High Magery = full damage potential
+        val mageryModifier = (magerySkill / 100.0).coerceIn(0.1, 1.0)
 
-        // Eval Int is the main damage modifier
-        val evalIntBonus = evalIntSkill / 2.0  // +50% at skill 100
+        // Eval Int modifier: 0.5 + (EvalInt / 100) → 0.6 to 1.5
+        // Low EvalInt reduces damage, High EvalInt boosts damage
+        val evalIntModifier = 0.5 + (evalIntSkill / 100.0)
 
-        // Target resistance reduces damage
-        val resistReduction = targetResistSkill / 2.0  // -50% at skill 100
+        // Target resistance reduces damage: 0-50% reduction at skill 100
+        val resistReduction = (targetResistSkill / 200.0).coerceIn(0.0, 0.5)
 
-        return baseDamage *
-                mageryModifier *
-                (1.0 + evalIntBonus / 100.0) *
-                (1.0 - resistReduction / 100.0)
+        return baseDamage * mageryModifier * evalIntModifier * (1.0 - resistReduction)
     }
 }
 

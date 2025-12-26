@@ -61,16 +61,6 @@ commands:
     permission: skills.admin
     aliases: [sa]
 
-  spellbook:
-    description: Get a spellbook
-    usage: /spellbook [list|all|spell name]
-    permission: skills.magic
-
-  skillbook:
-    description: Get a skills guide book
-    usage: /skillbook
-    aliases: [skillguide]
-
   arms:
     description: Evaluate a weapon or armor using Arms Lore
     usage: /arms

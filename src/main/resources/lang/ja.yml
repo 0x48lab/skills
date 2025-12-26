@@ -31,6 +31,9 @@ stats:
   dex: "<green>DEX: {value}"
   int: "<blue>INT: {value}"
   total_skills: "<aqua>合計スキル: {current} / {max}"
+  gain: "<green>+1 {stat} <gray>({current})"
+  decrease: "<red>-1 {stat} <gray>({current})"
+  lock_changed: "<yellow>{stat}のロックを{mode}に変更しました"
 
 # 魔法メッセージ
 magic:
@@ -137,6 +140,13 @@ combat:
   parry: "<aqua>パリィ！"
   critical: "<gold>クリティカルヒット！"
   resist: "<blue>ダメージを軽減した。"
+  miss: "<gray>ミス！"
+
+# 防具メッセージ
+armor:
+  cannot_equip_str: "<red>STRが足りません！ (必要: {required}, 現在: {current})"
+  removed_str: "<yellow>STRが下がったため、{item}を装備できなくなりました"
+  dex_penalty_warning: "<gray>この防具はDEXに-{penalty}のペナルティがあります"
 
 # 採集メッセージ
 gathering:
@@ -161,6 +171,13 @@ language:
   changed: "<green>言語を{language}に変更しました。"
   current: "<gray>現在の言語: {language}"
   available: "<gray>利用可能な言語: {languages}"
+  reset: "<green>言語設定をリセットしました。クライアントの言語設定が使用されます。"
+  using_client: "<gray>現在の言語: クライアント言語を使用中 ({language})"
+
+# ガイドブックメッセージ
+guidebook:
+  received: "<green>スキルガイドブックを受け取りました。"
+  dropped: "<yellow>インベントリが満杯のため足元にドロップしました。"
 
 # サバイバルスキルメッセージ
 survival:
