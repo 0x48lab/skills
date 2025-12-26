@@ -70,6 +70,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deprecated `SkillbookCommand.kt`
 - Deprecated `SpellbookCommand.kt`
 
+## [0.2.2] - 2025-12-27
+
+### Added
+- **VengefulMobs: Per-mob attack cooldown**
+  - Added `attack_cooldown` setting for each mob type
+  - Default cooldown: 1000ms (same as vanilla mobs)
+  - Chicken/Rabbit: 1500ms with reduced damage (1.0)
+  - Goat: 800ms (faster, more aggressive)
+
+### Fixed
+- **Armor validation on STR change**
+  - Now validates equipment when player joins (catches existing players after update)
+  - Now validates equipment when STR decreases during gameplay
+  - Players wearing armor they can't equip will have it removed automatically
+
+- **Armor removal item loss in Creative mode**
+  - Fixed items disappearing when armor is removed due to STR requirements
+  - Now clones ItemStack before removing from slot
+
+- **Vanilla critical hit precision**
+  - Changed baseDamage from Int to Double to preserve vanilla jump-attack critical bonus (1.5x)
+  - Previously truncated to integer, losing precision
+
+- **VengefulMobs attack speed**
+  - Fixed hardcoded 500ms attack cooldown that made all mobs attack too fast
+  - Now uses configurable per-mob cooldown (default 1000ms)
+
 ## [1.0.0] - Initial Release
 
 ### Added
