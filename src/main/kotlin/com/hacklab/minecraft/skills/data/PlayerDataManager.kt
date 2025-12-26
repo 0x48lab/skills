@@ -37,6 +37,16 @@ class PlayerDataManager(
         )
 
         data.updateMaxStats()
+
+        // If player HP is 0 or below (died before logout), reset to full
+        if (data.internalHp <= 0) {
+            data.internalHp = data.maxInternalHp
+        }
+        // Same for mana
+        if (data.mana <= 0) {
+            data.mana = data.maxMana
+        }
+
         playerDataCache[uuid] = data
         return data to isNew
     }

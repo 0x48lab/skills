@@ -10,11 +10,12 @@ class PlayerLocaleManager(private val plugin: Skills) {
 
     /**
      * Get the language for a player
-     * Priority: 1. Saved setting, 2. Client locale, 3. Default
+     * Priority: 1. Explicitly saved setting (not null), 2. Client locale, 3. Default
      */
     fun getLanguage(player: Player): Language {
-        // Check saved setting first
-        playerLocales[player.uniqueId]?.let { return it }
+        // Check explicitly saved setting first (from PlayerData, not cache)
+        val playerData = plugin.playerDataManager.getPlayerData(player)
+        playerData.language?.let { return it }
 
         // Check if we should use client locale
         if (plugin.config.getBoolean("language.use_client_locale", true)) {
@@ -34,7 +35,7 @@ class PlayerLocaleManager(private val plugin: Skills) {
     }
 
     /**
-     * Set a player's language preference
+     * Set a player's language preference (explicitly)
      */
     fun setLanguage(player: Player, language: Language) {
         playerLocales[player.uniqueId] = language
@@ -43,10 +44,21 @@ class PlayerLocaleManager(private val plugin: Skills) {
     }
 
     /**
-     * Load a player's language preference from PlayerData
+     * Reset a player's language preference to use client locale
      */
-    fun loadPlayerLocale(uuid: UUID, language: Language) {
-        playerLocales[uuid] = language
+    fun resetLanguage(player: Player) {
+        playerLocales.remove(player.uniqueId)
+        plugin.playerDataManager.getPlayerData(player).language = null
+    }
+
+    /**
+     * Load a player's language preference from PlayerData
+     * Only caches if language is explicitly set (not null)
+     */
+    fun loadPlayerLocale(uuid: UUID, language: Language?) {
+        if (language != null) {
+            playerLocales[uuid] = language
+        }
     }
 
     /**

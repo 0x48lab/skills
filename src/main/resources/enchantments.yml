@@ -1,0 +1,95 @@
+# Enchantment Configuration
+# DI (Damage Increase) - UO-style percentage-based damage bonus
+# di_per_level: DI percentage added per enchantment level
+# applies_to: List of weapon types this enchantment affects
+# target_types: (optional) List of mob types this enchantment is effective against
+
+enchantments:
+  # === Universal Damage Enchantments ===
+  SHARPNESS:
+    di_per_level: 10
+    applies_to:
+      - SWORD
+      - AXE
+
+  # === Type-specific Damage Enchantments ===
+  SMITE:
+    di_per_level: 15
+    applies_to:
+      - SWORD
+      - AXE
+    target_types:
+      - ZOMBIE
+      - ZOMBIE_VILLAGER
+      - DROWNED
+      - HUSK
+      - SKELETON
+      - STRAY
+      - WITHER_SKELETON
+      - PHANTOM
+      - SKELETON_HORSE
+      - ZOMBIE_HORSE
+      - ZOMBIFIED_PIGLIN
+      - ZOGLIN
+      - WITHER
+
+  BANE_OF_ARTHROPODS:
+    di_per_level: 15
+    applies_to:
+      - SWORD
+      - AXE
+    target_types:
+      - SPIDER
+      - CAVE_SPIDER
+      - BEE
+      - SILVERFISH
+      - ENDERMITE
+
+  IMPALING:
+    di_per_level: 12
+    applies_to:
+      - TRIDENT
+    target_types:
+      - GUARDIAN
+      - ELDER_GUARDIAN
+      - SQUID
+      - GLOW_SQUID
+      - DOLPHIN
+      - AXOLOTL
+      - TURTLE
+      - COD
+      - SALMON
+      - PUFFERFISH
+      - TROPICAL_FISH
+      - DROWNED
+
+  # === Ranged Damage Enchantments ===
+  POWER:
+    di_per_level: 10
+    applies_to:
+      - BOW
+
+  # Note: PIERCING for crossbow affects arrow behavior, not damage
+  # So it's not included as a DI enchantment
+
+  # === Mace Enchantments (1.21+) ===
+  DENSITY:
+    di_per_level: 8
+    applies_to:
+      - MACE
+
+  BREACH:
+    di_per_level: 5
+    applies_to:
+      - MACE
+    # Breach ignores armor, so lower DI but bypasses defense
+
+# Maximum enchantment levels (for reference)
+max_levels:
+  SHARPNESS: 5
+  SMITE: 5
+  BANE_OF_ARTHROPODS: 5
+  IMPALING: 5
+  POWER: 5
+  DENSITY: 5
+  BREACH: 4

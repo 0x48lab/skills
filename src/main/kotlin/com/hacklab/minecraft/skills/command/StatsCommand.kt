@@ -3,19 +3,27 @@ package com.hacklab.minecraft.skills.command
 import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.i18n.MessageKey
 import com.hacklab.minecraft.skills.skill.StatCalculator
+import com.hacklab.minecraft.skills.skill.StatLockMode
+import com.hacklab.minecraft.skills.skill.StatType
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
+import org.bukkit.command.TabCompleter
 import org.bukkit.entity.Player
 
-class StatsCommand(private val plugin: Skills) : CommandExecutor {
+class StatsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender !is Player) {
             sender.sendMessage("This command is for players only.")
             return true
+        }
+
+        // Handle lock subcommand
+        if (args.isNotEmpty() && args[0].equals("lock", ignoreCase = true)) {
+            return handleLockCommand(sender, args)
         }
 
         val data = plugin.playerDataManager.getPlayerData(sender)
@@ -36,7 +44,6 @@ class StatsCommand(private val plugin: Skills) : CommandExecutor {
         )
 
         // Mana
-        val manaPercent = (data.mana / data.maxMana * 100).toInt()
         sender.sendMessage(
             Component.text("🍖 Mana: ${data.mana.toInt()} / ${data.maxMana.toInt()}")
                 .color(NamedTextColor.BLUE)
@@ -44,32 +51,45 @@ class StatsCommand(private val plugin: Skills) : CommandExecutor {
 
         sender.sendMessage(Component.text("━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY))
 
-        // STR
-        val str = data.getStr()
+        // Total stat points info
+        val totalStats = data.getTotalStats()
+        sender.sendMessage(
+            Component.text("Stat Total: $totalStats / ${StatType.TOTAL_STAT_CAP}")
+                .color(NamedTextColor.YELLOW)
+        )
+
+        // STR with lock
+        val str = data.str
+        val strLock = data.strLock
         val strEffects = StatCalculator.getStrEffects(str)
         sender.sendMessage(
-            Component.text("STR: $str")
+            Component.text("STR: $str ")
                 .color(NamedTextColor.RED)
-                .append(Component.text("  (+${strEffects.bonusHp} HP, +${strEffects.miningSpeedBonus.toInt()}% mining)")
+                .append(getLockIcon(strLock))
+                .append(Component.text("  (+${strEffects.bonusHp} HP, +${strEffects.miningSpeedBonus.toInt()}% mining, +${strEffects.lumberSpeedBonus.toInt()}% lumber)")
                     .color(NamedTextColor.GRAY))
         )
 
-        // DEX
-        val dex = data.getDex()
+        // DEX with lock
+        val dex = data.dex
+        val dexLock = data.dexLock
         val dexEffects = StatCalculator.getDexEffects(dex)
         sender.sendMessage(
-            Component.text("DEX: $dex")
+            Component.text("DEX: $dex ")
                 .color(NamedTextColor.GREEN)
-                .append(Component.text("  (+${dexEffects.attackSpeedBonus.toInt()}% attack speed)")
+                .append(getLockIcon(dexLock))
+                .append(Component.text("  (+${dexEffects.attackSpeedBonus.toInt()}% attack, +${dexEffects.movementSpeedBonus.toInt()}% move)")
                     .color(NamedTextColor.GRAY))
         )
 
-        // INT
-        val int = data.getInt()
-        val intEffects = StatCalculator.getIntEffects(int)
+        // INT with lock
+        val intVal = data.int
+        val intLock = data.intLock
+        val intEffects = StatCalculator.getIntEffects(intVal)
         sender.sendMessage(
-            Component.text("INT: $int")
+            Component.text("INT: $intVal ")
                 .color(NamedTextColor.BLUE)
+                .append(getLockIcon(intLock))
                 .append(Component.text("  (-${intEffects.manaReduction.toInt()}% mana cost, +${intEffects.castSuccessBonus.toInt()}% cast)")
                     .color(NamedTextColor.GRAY))
         )
@@ -81,6 +101,87 @@ class StatsCommand(private val plugin: Skills) : CommandExecutor {
                 .color(NamedTextColor.AQUA)
         )
 
+        // Lock help
+        sender.sendMessage(Component.text("━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY))
+        sender.sendMessage(
+            Component.text("/stats lock <stat> [up|down|locked]")
+                .color(NamedTextColor.GRAY)
+        )
+        sender.sendMessage(
+            Component.text("  ▲ UP: can increase  ▼ DOWN: can decrease  🔒 LOCKED: cannot change")
+                .color(NamedTextColor.DARK_GRAY)
+        )
+
         return true
+    }
+
+    private fun handleLockCommand(player: Player, args: Array<String>): Boolean {
+        if (args.size < 2) {
+            player.sendMessage(Component.text("Usage: /stats lock <str|dex|int> [up|down|locked]").color(NamedTextColor.RED))
+            return true
+        }
+
+        val statType = when (args[1].lowercase()) {
+            "str", "strength" -> StatType.STR
+            "dex", "dexterity" -> StatType.DEX
+            "int", "intelligence" -> StatType.INT
+            else -> {
+                player.sendMessage(Component.text("Invalid stat: ${args[1]}").color(NamedTextColor.RED))
+                return true
+            }
+        }
+
+        val data = plugin.playerDataManager.getPlayerData(player)
+        val currentLock = data.getStatLock(statType)
+
+        // If no mode specified, cycle through modes
+        val newMode = if (args.size < 3) {
+            when (currentLock) {
+                StatLockMode.UP -> StatLockMode.DOWN
+                StatLockMode.DOWN -> StatLockMode.LOCKED
+                StatLockMode.LOCKED -> StatLockMode.UP
+            }
+        } else {
+            when (args[2].lowercase()) {
+                "up" -> StatLockMode.UP
+                "down" -> StatLockMode.DOWN
+                "locked", "lock" -> StatLockMode.LOCKED
+                else -> {
+                    player.sendMessage(Component.text("Invalid mode: ${args[2]}. Use: up, down, or locked").color(NamedTextColor.RED))
+                    return true
+                }
+            }
+        }
+
+        data.setStatLock(statType, newMode)
+
+        plugin.messageSender.send(
+            player, MessageKey.STAT_LOCK_CHANGED,
+            "stat" to statType.displayName,
+            "mode" to newMode.name
+        )
+
+        return true
+    }
+
+    private fun getLockIcon(mode: StatLockMode): Component {
+        return when (mode) {
+            StatLockMode.UP -> Component.text("▲").color(NamedTextColor.GREEN)
+            StatLockMode.DOWN -> Component.text("▼").color(NamedTextColor.RED)
+            StatLockMode.LOCKED -> Component.text("🔒").color(NamedTextColor.YELLOW)
+        }
+    }
+
+    override fun onTabComplete(sender: CommandSender, command: Command, label: String, args: Array<String>): List<String> {
+        if (sender !is Player) return emptyList()
+
+        return when {
+            args.size == 1 -> listOf("lock").filter { it.startsWith(args[0], ignoreCase = true) }
+            args.size == 2 && args[0].equals("lock", ignoreCase = true) ->
+                listOf("str", "dex", "int").filter { it.startsWith(args[1], ignoreCase = true) }
+            args.size == 3 && args[0].equals("lock", ignoreCase = true) ->
+                listOf("up", "down", "locked").filter { it.startsWith(args[2], ignoreCase = true) }
+            else -> emptyList()
+        }
     }
 }

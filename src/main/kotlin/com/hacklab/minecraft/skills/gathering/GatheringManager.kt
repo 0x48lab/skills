@@ -135,7 +135,7 @@ class GatheringManager(private val plugin: Skills) {
      */
     fun getMiningSpeedBonus(player: Player): Double {
         val data = plugin.playerDataManager.getPlayerData(player)
-        val str = data.getStr()
+        val str = data.str
         val miningSkill = data.getSkillValue(SkillType.MINING)
         return (str / 10.0) + (miningSkill / 10.0)  // Max +20%
     }
@@ -145,7 +145,7 @@ class GatheringManager(private val plugin: Skills) {
      */
     fun getLumberSpeedBonus(player: Player): Double {
         val data = plugin.playerDataManager.getPlayerData(player)
-        val str = data.getStr()
+        val str = data.str
         val lumberSkill = data.getSkillValue(SkillType.LUMBERJACKING)
         return (str / 10.0) + (lumberSkill / 10.0)  // Max +20%
     }

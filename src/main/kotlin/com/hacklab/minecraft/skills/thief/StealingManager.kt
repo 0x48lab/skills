@@ -17,7 +17,7 @@ class StealingManager(private val plugin: Skills) {
         val targetData = plugin.playerDataManager.getPlayerData(target)
 
         val stealingSkill = thiefData.getSkillValue(SkillType.STEALING)
-        val targetDex = targetData.getDex()
+        val targetDex = targetData.dex
 
         // Calculate difficulty based on item weight/value
         val itemDifficulty = calculateItemDifficulty(item)

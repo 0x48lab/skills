@@ -1,0 +1,161 @@
+# Weapon Configuration
+# base_damage: Base damage before any modifiers
+# skill: The skill type used for this weapon (SWORDSMANSHIP, AXE, MACE_FIGHTING, ARCHERY, THROWING, WRESTLING)
+# weapon_type: Weapon category (SWORD, AXE, MACE, BOW, CROSSBOW, TRIDENT, FIST)
+
+weapons:
+  # === Swords ===
+  WOODEN_SWORD:
+    base_damage: 4
+    skill: SWORDSMANSHIP
+    weapon_type: SWORD
+  STONE_SWORD:
+    base_damage: 5
+    skill: SWORDSMANSHIP
+    weapon_type: SWORD
+  IRON_SWORD:
+    base_damage: 6
+    skill: SWORDSMANSHIP
+    weapon_type: SWORD
+  GOLDEN_SWORD:
+    base_damage: 4
+    skill: SWORDSMANSHIP
+    weapon_type: SWORD
+  DIAMOND_SWORD:
+    base_damage: 7
+    skill: SWORDSMANSHIP
+    weapon_type: SWORD
+  NETHERITE_SWORD:
+    base_damage: 8
+    skill: SWORDSMANSHIP
+    weapon_type: SWORD
+
+  # === Axes ===
+  WOODEN_AXE:
+    base_damage: 7
+    skill: AXE
+    weapon_type: AXE
+  STONE_AXE:
+    base_damage: 9
+    skill: AXE
+    weapon_type: AXE
+  IRON_AXE:
+    base_damage: 9
+    skill: AXE
+    weapon_type: AXE
+  GOLDEN_AXE:
+    base_damage: 7
+    skill: AXE
+    weapon_type: AXE
+  DIAMOND_AXE:
+    base_damage: 9
+    skill: AXE
+    weapon_type: AXE
+  NETHERITE_AXE:
+    base_damage: 10
+    skill: AXE
+    weapon_type: AXE
+
+  # === Maces (1.21+) ===
+  MACE:
+    base_damage: 7
+    skill: MACE_FIGHTING
+    weapon_type: MACE
+
+  # === Ranged Weapons ===
+  BOW:
+    base_damage: 6
+    skill: ARCHERY
+    weapon_type: BOW
+  CROSSBOW:
+    base_damage: 9
+    skill: ARCHERY
+    weapon_type: CROSSBOW
+
+  # === Trident ===
+  TRIDENT:
+    base_damage: 9
+    skill: THROWING
+    weapon_type: TRIDENT
+
+  # === Other Melee (treated as wrestling with reduced damage) ===
+  WOODEN_PICKAXE:
+    base_damage: 2
+    skill: WRESTLING
+    weapon_type: FIST
+  STONE_PICKAXE:
+    base_damage: 3
+    skill: WRESTLING
+    weapon_type: FIST
+  IRON_PICKAXE:
+    base_damage: 4
+    skill: WRESTLING
+    weapon_type: FIST
+  GOLDEN_PICKAXE:
+    base_damage: 2
+    skill: WRESTLING
+    weapon_type: FIST
+  DIAMOND_PICKAXE:
+    base_damage: 5
+    skill: WRESTLING
+    weapon_type: FIST
+  NETHERITE_PICKAXE:
+    base_damage: 6
+    skill: WRESTLING
+    weapon_type: FIST
+
+  WOODEN_SHOVEL:
+    base_damage: 2
+    skill: WRESTLING
+    weapon_type: FIST
+  STONE_SHOVEL:
+    base_damage: 3
+    skill: WRESTLING
+    weapon_type: FIST
+  IRON_SHOVEL:
+    base_damage: 4
+    skill: WRESTLING
+    weapon_type: FIST
+  GOLDEN_SHOVEL:
+    base_damage: 2
+    skill: WRESTLING
+    weapon_type: FIST
+  DIAMOND_SHOVEL:
+    base_damage: 5
+    skill: WRESTLING
+    weapon_type: FIST
+  NETHERITE_SHOVEL:
+    base_damage: 6
+    skill: WRESTLING
+    weapon_type: FIST
+
+  WOODEN_HOE:
+    base_damage: 1
+    skill: WRESTLING
+    weapon_type: FIST
+  STONE_HOE:
+    base_damage: 1
+    skill: WRESTLING
+    weapon_type: FIST
+  IRON_HOE:
+    base_damage: 1
+    skill: WRESTLING
+    weapon_type: FIST
+  GOLDEN_HOE:
+    base_damage: 1
+    skill: WRESTLING
+    weapon_type: FIST
+  DIAMOND_HOE:
+    base_damage: 1
+    skill: WRESTLING
+    weapon_type: FIST
+  NETHERITE_HOE:
+    base_damage: 1
+    skill: WRESTLING
+    weapon_type: FIST
+
+# Unarmed combat (fist) base damage
+unarmed:
+  base_damage: 1
+  skill: WRESTLING
+  weapon_type: FIST

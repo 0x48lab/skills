@@ -164,7 +164,7 @@ class SpellManager(private val plugin: Skills) {
 
         // Calculate success chance
         val magerySkill = data.getSkillValue(SkillType.MAGERY)
-        val intBonus = data.getInt() / 5.0  // +20% at INT 100
+        val intBonus = data.int / 5.0  // +20% at INT 100
         val baseSuccess = 50.0 + magerySkill - (spell.circle.number * 10) + intBonus
         val successChance = baseSuccess.coerceIn(5.0, 95.0)
 

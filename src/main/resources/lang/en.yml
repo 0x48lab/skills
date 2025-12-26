@@ -31,6 +31,9 @@ stats:
   dex: "<green>DEX: {value}"
   int: "<blue>INT: {value}"
   total_skills: "<aqua>Total Skills: {current} / {max}"
+  gain: "<green>+1 {stat} <gray>({current})"
+  decrease: "<red>-1 {stat} <gray>({current})"
+  lock_changed: "<yellow>{stat} lock changed to {mode}"
 
 # Magic messages
 magic:
@@ -137,6 +140,13 @@ combat:
   parry: "<aqua>Parried!"
   critical: "<gold>Critical hit!"
   resist: "<blue>Resisted some damage."
+  miss: "<gray>Miss!"
+
+# Armor messages
+armor:
+  cannot_equip_str: "<red>Not enough STR! (Required: {required}, Current: {current})"
+  removed_str: "<yellow>Your STR dropped too low to wear {item}!"
+  dex_penalty_warning: "<gray>This armor has a DEX penalty of -{penalty}"
 
 # Gathering messages
 gathering:
@@ -161,6 +171,13 @@ language:
   changed: "<green>Language changed to {language}."
   current: "<gray>Current language: {language}"
   available: "<gray>Available languages: {languages}"
+  reset: "<green>Language setting reset. Client language will be used."
+  using_client: "<gray>Current language: Using client language ({language})"
+
+# Guidebook messages
+guidebook:
+  received: "<green>You received the Skills Guide book."
+  dropped: "<yellow>Inventory full. Guide book dropped at your feet."
 
 # Survival skill messages
 survival:

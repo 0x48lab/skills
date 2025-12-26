@@ -68,12 +68,6 @@ class SkillManager(private val plugin: Skills) {
         skillData.addValue(gainAmount)
         data.dirty = true
 
-        // Update max stats (STR affects HP, etc.)
-        data.updateMaxStats()
-
-        // Update attribute modifiers (DEX affects movement/attack speed)
-        StatCalculator.applyAttributeModifiers(player, data)
-
         // Notify player
         plugin.messageSender.send(
             player, MessageKey.SKILL_GAIN,
@@ -82,7 +76,60 @@ class SkillManager(private val plugin: Skills) {
             "current" to String.format("%.1f", skillData.value)
         )
 
+        // Try to gain associated stats (UO-style)
+        tryGainStats(player, data, skillType)
+
+        // Update max stats (STR affects HP, etc.)
+        data.updateMaxStats()
+
+        // Update attribute modifiers (DEX affects movement/attack speed, minus armor penalty)
+        val armorDexPenalty = plugin.armorManager.getTotalDexPenalty(player)
+        StatCalculator.applyAttributeModifiers(player, data, armorDexPenalty)
+
         return true
+    }
+
+    /**
+     * Try to gain stats based on skill type (UO-style)
+     * Each skill has associated stats with weights (0.0-1.0)
+     * Higher weight = higher chance to gain that stat
+     */
+    private fun tryGainStats(player: Player, data: PlayerData, skillType: SkillType) {
+        // Base stat gain chance: 10% per skill gain
+        val baseStatGainChance = 0.10
+
+        // Try to gain STR if skill has STR weight
+        if (skillType.strWeight > 0 && Random.nextDouble() < baseStatGainChance * skillType.strWeight) {
+            if (data.tryGainStat(StatType.STR)) {
+                plugin.messageSender.send(
+                    player, MessageKey.STAT_GAIN,
+                    "stat" to StatType.STR.displayName,
+                    "current" to data.str
+                )
+            }
+        }
+
+        // Try to gain DEX if skill has DEX weight
+        if (skillType.dexWeight > 0 && Random.nextDouble() < baseStatGainChance * skillType.dexWeight) {
+            if (data.tryGainStat(StatType.DEX)) {
+                plugin.messageSender.send(
+                    player, MessageKey.STAT_GAIN,
+                    "stat" to StatType.DEX.displayName,
+                    "current" to data.dex
+                )
+            }
+        }
+
+        // Try to gain INT if skill has INT weight
+        if (skillType.intWeight > 0 && Random.nextDouble() < baseStatGainChance * skillType.intWeight) {
+            if (data.tryGainStat(StatType.INT)) {
+                plugin.messageSender.send(
+                    player, MessageKey.STAT_GAIN,
+                    "stat" to StatType.INT.displayName,
+                    "current" to data.int
+                )
+            }
+        }
     }
 
     /**

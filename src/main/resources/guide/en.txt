@@ -115,6 +115,23 @@ Requirements:
 
 ---PAGE---
 
+=== Getting a Spellbook ===
+
+[Crafting]
+At crafting table:
+  Book + Echo Shard
+  = Empty Spellbook
+
+[Learning Spells]
+Right-click a scroll to
+add the spell to your book.
+
+Scroll sources:
+- Magic mobs (Witch, etc)
+- End city treasure chests
+
+---PAGE---
+
 === Reagents ===
 
 Minecraft items used as reagents:
@@ -240,8 +257,7 @@ Gate Travel (7th)
 /tame - Tame animal
 /arms - Evaluate gear
 /scribe - Make scroll
-/spellbook - Get spellbook
-/skillbook - This guide
+/skills guide - This guide
 
 ---PAGE---
 

@@ -40,7 +40,7 @@ INT = INT対象スキル合計 / 対象スキル数（8スキル）× 100 / 100
 | ステータス | 効果 |
 |-----------|------|
 | STR | 最大HP +（STR）、採掘・伐採速度 +（STR / 10）% |
-| DEX | 攻撃速度 +（DEX / 20）%、移動速度 +（DEX / 50）% |
+| DEX | 攻撃速度 +（DEX / 2）%、移動速度 +（DEX / 10）% |
 | INT | マナ消費 -（INT / 2）%、詠唱成功率 +（INT / 5）% |
 
 ### 内部HP/マナシステム
@@ -90,7 +90,7 @@ INT = INT対象スキル合計 / 対象スキル数（8スキル）× 100 / 100
 🍖 Mana: 15 / 20
 ━━━━━━━━━━━━━━━━
 STR: 80  (+80 HP, +8% 採掘速度)
-DEX: 45  (-22% ダッシュ消費, +2% 攻撃速度)
+DEX: 45  (+22% 攻撃速度, +4% 移動速度)
 INT: 60  (-30% マナ消費, +6% 詠唱成功率)
 ```
 
@@ -1040,20 +1040,66 @@ INTボーナス = INT / 5
 
 ## 戦闘システム
 
-### 戦闘ダメージ計算
+### 攻撃フロー（UO準拠）
 ```
-バニラダメージ = 武器の基礎攻撃力（Minecraft標準）
-武器スキル補正 = 1 + (武器スキル値 / 200)  // スキル100で1.5倍
-Tactics補正 = 1 + (Tactics / 500)  // スキル100で+20%
-品質補正 = 武器の品質による補正（-15%〜+25%）
-クリティカル判定 = Anatomy / 200  // スキル100で50%
+1. 攻撃発生
+2. 命中判定（武器スキル vs 対象の防御）
+   ├─ ミス → ダメージなし、武器スキル上昇判定
+   └─ ヒット → 3へ
+3. ダメージ計算
+4. 防御適用（物理/魔法）
+5. 最終ダメージ適用
+6. スキル上昇判定（Tactics、Anatomyなど）
+```
+
+### 命中判定（UO準拠）
+```
+命中率 = 武器スキル - (対象防御値 / 2) + 50
+最小: 5%、最大: 95%
+```
+- **対Mob**: 対象防御値 = Mobのphysical_defense（設定ファイルから）
+- **対プレイヤー**: 対象防御値 = 相手のParryingスキル
+
+#### 命中率の例
+| 武器スキル | 対象防御 | 命中率 |
+|-----------|---------|-------|
+| 50 | 0 | 95%（上限） |
+| 50 | 50 | 75% |
+| 100 | 100 | 95%（上限） |
+| 30 | 80 | 40% |
+
+### 戦闘ダメージ計算（UO準拠）
+```
+基礎ダメージ = 武器の基礎攻撃力（設定ファイルから）
+STR補正 = 1 + (STR / 100)           // STR 100で+100%
+Tactics補正 = 1 + (Tactics / 500)   // Tactics 100で+20%
+品質補正 = 武器品質による（-15%〜+25%）
+DI補正 = 1 + (エンチャントDI合計 / 100)
+クリティカル判定 = Anatomy / 2 %    // Anatomy 100で50%
 クリティカル倍率 = 1.5
 
-通常ダメージ = バニラダメージ × 武器スキル補正 × Tactics補正 × 品質補正
-クリティカル発生時 = 通常ダメージ × クリティカル倍率
+最終ダメージ = 基礎ダメージ × STR補正 × Tactics補正 × 品質補正 × DI補正 × クリティカル倍率
+防御適用後 = 最終ダメージ × (1 - 防御軽減率)
+防御軽減率 = 対象防御値 / (対象防御値 + 50)
 ```
 
-#### 武器スキル対応表
+#### 品質補正
+| 品質 | 補正 |
+|-----|------|
+| Low Quality (LQ) | -15% |
+| Normal Quality (NQ) | ±0% |
+| High Quality (HQ) | +15% |
+| Exceptional (EX) | +25% |
+
+#### DI（Damage Increase）エンチャント
+| エンチャント | DI（レベルあたり） |
+|-------------|------------------|
+| Sharpness | +10% |
+| Smite（アンデッド特効） | +15%（対象時のみ） |
+| Bane of Arthropods（虫特効） | +15%（対象時のみ） |
+| Power（弓） | +10% |
+
+### 武器スキル対応表
 | 武器 | 対応スキル |
 |-----|-----------|
 | 木/石/鉄/金/ダイヤ/ネザライトの剣 | Swordsmanship |
@@ -1063,41 +1109,309 @@ Tactics補正 = 1 + (Tactics / 500)  // スキル100で+20%
 | トライデント | Throwing |
 | 素手 | Wrestling |
 
-### Parrying（受け流し）
+### スキル上昇タイミング
+| スキル | 上昇タイミング |
+|-------|--------------|
+| 武器スキル（Swordsmanship等） | 攻撃を試みた時（命中/ミス問わず） |
+| Tactics | 攻撃が命中した時 |
+| Anatomy | 敵を倒した時 |
 
-#### バニラとの比較
-| 項目 | バニラ | Parryingシステム |
-|-----|-------|-----------------|
-| 盾ブロック成功率 | 100% | 100%（変更なし） |
-| 盾ダメージ軽減率 | 100% | 50% + (スキル値/2)% |
-| 武器パリィ | 不可 | スキル値/2%で発動 |
-| 斧クールダウン | 5秒 | 5秒（変更なし） |
+### 設定ファイル
 
-#### 盾ブロック時
-- ブロック自体は100%成功（バニラ通り）
-- ダメージ軽減率 = 50% + (Parryingスキル / 2)%
-- スキル0: 50%軽減、スキル100: 100%軽減（バニラ同等）
+#### mobs.yml（Mob設定）
+```yaml
+mobs:
+  ZOMBIE:
+    physical_defense: 10
+    magic_defense: 0
+    attack_power: 3
+  SKELETON:
+    physical_defense: 5
+    magic_defense: 0
+    attack_power: 2
+  WITHER_SKELETON:
+    physical_defense: 30
+    magic_defense: 20
+    attack_power: 8
+  BLAZE:
+    physical_defense: 20
+    magic_defense: 40
+    attack_power: 6
+  ENDERMAN:
+    physical_defense: 25
+    magic_defense: 30
+    attack_power: 7
+  WARDEN:
+    physical_defense: 80
+    magic_defense: 60
+    attack_power: 30
+  # 難易度 = physical_defense + attack_power（スキル上昇判定用）
+```
 
-| Parryingスキル | ダメージ軽減率 |
-|---------------|--------------|
-| 0 | 50% |
-| 50 | 75% |
-| 100 | 100% |
+#### weapons.yml（武器設定）
+```yaml
+weapons:
+  WOODEN_SWORD:
+    base_damage: 4
+    skill: SWORDSMANSHIP
+    weapon_type: SWORD
+  STONE_SWORD:
+    base_damage: 5
+    skill: SWORDSMANSHIP
+    weapon_type: SWORD
+  IRON_SWORD:
+    base_damage: 6
+    skill: SWORDSMANSHIP
+    weapon_type: SWORD
+  DIAMOND_SWORD:
+    base_damage: 7
+    skill: SWORDSMANSHIP
+    weapon_type: SWORD
+  NETHERITE_SWORD:
+    base_damage: 8
+    skill: SWORDSMANSHIP
+    weapon_type: SWORD
+  BOW:
+    base_damage: 6
+    skill: ARCHERY
+    weapon_type: BOW
+  CROSSBOW:
+    base_damage: 9
+    skill: ARCHERY
+    weapon_type: CROSSBOW
+  MACE:
+    base_damage: 7
+    skill: MACE_FIGHTING
+    weapon_type: MACE
+  TRIDENT:
+    base_damage: 9
+    skill: THROWING
+    weapon_type: TRIDENT
+```
 
-#### 武器パリィ（盾なし）
-- 武器を持っている時、被ダメージ時に発動判定
-- 発動率 = Parryingスキル / 2%
-- 発動時: 50%ダメージ軽減
+#### enchantments.yml（エンチャント設定）
+```yaml
+enchantments:
+  SHARPNESS:
+    di_per_level: 10
+    applies_to: [SWORD, AXE]
+  SMITE:
+    di_per_level: 15
+    applies_to: [SWORD, AXE]
+    target_types: [ZOMBIE, SKELETON, WITHER_SKELETON, PHANTOM, DROWNED, HUSK, STRAY, SKELETON_HORSE, ZOMBIE_HORSE, ZOMBIFIED_PIGLIN, ZOGLIN, WITHER]
+  BANE_OF_ARTHROPODS:
+    di_per_level: 15
+    applies_to: [SWORD, AXE]
+    target_types: [SPIDER, CAVE_SPIDER, BEE, SILVERFISH, ENDERMITE]
+  POWER:
+    di_per_level: 10
+    applies_to: [BOW]
+```
 
-| Parryingスキル | パリィ発動率 | 発動時軽減 |
-|---------------|-------------|-----------|
-| 0 | 0% | - |
-| 50 | 25% | 50% |
-| 100 | 50% | 50% |
+### ダメージ計算例
+
+#### 例1: 初期プレイヤー vs スケルトン
+```
+武器: 鉄の剣（基礎6）、NQ、エンチャントなし
+STR: 25、Tactics: 10、Anatomy: 5
+
+STR補正 = 1 + 25/100 = 1.25
+Tactics補正 = 1 + 10/500 = 1.02
+品質補正 = 1.0
+DI補正 = 1.0
+クリティカル = 5/2 = 2.5%（なしと仮定）
+
+ダメージ = 6 × 1.25 × 1.02 × 1.0 × 1.0 = 7.65
+スケルトン防御軽減 = 5 / (5 + 50) = 9%
+最終ダメージ = 7.65 × 0.91 = 6.96
+
+スケルトンHP 20 → 約3回で撃破
+```
+
+#### 例2: 最強プレイヤー vs ウィザースケルトン
+```
+武器: ネザライトの剣（基礎8）、EX（+25%）、Sharpness V（DI +50%）
+STR: 100、Tactics: 100、Anatomy: 100
+
+STR補正 = 1 + 100/100 = 2.0
+Tactics補正 = 1 + 100/500 = 1.2
+品質補正 = 1.25
+DI補正 = 1 + 50/100 = 1.5
+クリティカル = 100/2 = 50%（1.5倍、発動と仮定）
+
+ダメージ = 8 × 2.0 × 1.2 × 1.25 × 1.5 × 1.5 = 54
+ウィザースケルトン防御軽減 = 30 / (30 + 50) = 37.5%
+最終ダメージ = 54 × 0.625 = 33.75
+
+ウィザースケルトンHP 20 → 1回で撃破
+```
+
+### Parrying（受け流し）- UO準拠
+
+#### 基本仕様（UOスタイル）
+Parryingは**確率でブロックを発動**する防御スキル。盾と武器で発動率が異なる。
+
+#### パリィ発動率
+| 装備 | 発動率 | 最大発動率 |
+|-----|-------|-----------|
+| 盾装備 | Parrying × 0.5% | 50% |
+| 武器のみ | Parrying × 0.25% | 25% |
+| 素手 | 0% | パリィ不可 |
+
+#### 発動時効果
+- パリィ成功時: **ダメージ50%軽減**
+- パリィ失敗時: ARのみでダメージ軽減
+
+#### 計算例
+| Parryingスキル | 盾発動率 | 武器発動率 |
+|---------------|---------|-----------|
+| 0 | 0% | 0% |
+| 50 | 25% | 12.5% |
+| 100 | 50% | 25% |
+
+#### PvPでのParryingの役割
+1. **命中率低下**: 相手の命中判定における「対象防御値」として使用
+   - 命中率 = 武器スキル - (Parrying/2) + 50
+2. **パリィブロック**: 確率でダメージ50%軽減（盾/武器で発動率が異なる）
+
+※ダメージの常時軽減はARのみ（Parryingは含まない）
+
+#### UOとの整合性
+| 項目 | UO | 現在の実装 |
+|-----|-----|-----------|
+| 盾パリィ | 確率ブロック | ✓ 確率ブロック |
+| 武器パリィ | 確率ブロック（低め） | ✓ 盾の半分 |
+| ダメージ軽減 | ARのみ | ✓ ARのみ |
 
 #### スキル上昇条件
-- 盾ブロック成功時に上昇判定
-- 武器パリィ発動時に上昇判定
+- パリィ成功時に上昇判定
+- PvPで攻撃を受けた時に上昇判定
+
+## 防具システム（UO-style Armor System）
+
+### 基本仕様
+UOスタイルの防具システムを採用。各防具にはAR（Armor Rating）、STR必要値、DEXペナルティが設定される。
+
+### AR（Armor Rating）
+防具の防御力値。ダメージ軽減計算に使用される。
+
+#### 防具別AR値
+| 防具 | AR | STR必要値 | DEXペナルティ |
+|-----|---:|--------:|------------:|
+| ネザライトヘルメット | 8 | 45 | 3 |
+| ネザライトチェストプレート | 18 | 95 | 12 |
+| ネザライトレギンス | 14 | 75 | 8 |
+| ネザライトブーツ | 6 | 35 | 3 |
+| ダイヤヘルメット | 6 | 35 | 2 |
+| ダイヤチェストプレート | 16 | 80 | 10 |
+| ダイヤレギンス | 12 | 60 | 6 |
+| ダイヤブーツ | 5 | 25 | 2 |
+| 鉄ヘルメット | 4 | 20 | 2 |
+| 鉄チェストプレート | 12 | 50 | 8 |
+| 鉄レギンス | 10 | 40 | 5 |
+| 鉄ブーツ | 4 | 15 | 2 |
+| チェーンヘルメット | 4 | 15 | 1 |
+| チェーンチェストプレート | 10 | 40 | 5 |
+| チェーンレギンス | 8 | 30 | 4 |
+| チェーンブーツ | 3 | 10 | 1 |
+| 金ヘルメット | 4 | 20 | 2 |
+| 金チェストプレート | 10 | 45 | 7 |
+| 金レギンス | 6 | 30 | 4 |
+| 金ブーツ | 2 | 10 | 1 |
+| 革の帽子 | 2 | 0 | 0 |
+| 革のジャケット | 5 | 0 | 0 |
+| 革のズボン | 4 | 0 | 0 |
+| 革のブーツ | 2 | 0 | 0 |
+| 盾 | 4 | 10 | 1 |
+| タートルシェルヘルメット | 5 | 25 | 2 |
+| エリトラ | 0 | 0 | 0 |
+
+### STR必要値
+防具を装備するために必要な最低STR値。STRが不足していると装備不可。
+- 装備試行時にSTRをチェック
+- STRが低下した場合、装備解除される
+- メッセージ: 「STRが足りません！(必要: {required}, 現在: {current})」
+
+### DEXペナルティ
+重い防具はDEXを下げる。DEXボーナス（移動速度、攻撃速度）が減少する。
+```
+有効DEX = DEX - 防具DEXペナルティ合計
+```
+- フルネザライト装備: DEXペナルティ合計 = 26
+- フルレザー装備: DEXペナルティ合計 = 0
+
+### エンチャントARボーナス
+保護系エンチャントはARを増加させる。
+| エンチャント | AR増加/レベル |
+|-------------|------------:|
+| Protection | +2 |
+| Fire Protection | +1 |
+| Blast Protection | +1 |
+| Projectile Protection | +1 |
+
+### 品質によるAR補正
+| 品質 | AR補正 |
+|-----|------:|
+| Low Quality (LQ) | ×0.85 |
+| Normal Quality (NQ) | ×1.00 |
+| High Quality (HQ) | ×1.15 |
+| Exceptional (EX) | ×1.30 |
+
+### PvPダメージ計算（防具込み）- UO準拠
+```
+1. 命中判定:
+   命中率 = 武器スキル - (Parrying / 2) + 50
+   ※ARは命中判定に影響しない
+
+2. パリィ判定:
+   盾装備: 発動率 = Parrying × 0.5%（最大50%）
+   武器のみ: 発動率 = Parrying × 0.25%（最大25%）
+   → 成功時ダメージ50%軽減
+
+3. ダメージ計算:
+   対象防御値 = AR（Parryingは含まない）
+   防御軽減率 = AR / (AR + 50)
+   最終ダメージ = 生ダメージ × (1 - 防御軽減率)
+```
+
+例: AR 40、パリィ失敗の場合
+  - 軽減率 = 40 / 90 = 44.4%
+  - ダメージ55.6%に軽減
+
+例: AR 40、パリィ成功の場合
+  - まずパリィで50%軽減
+  - 残りをARで44.4%軽減
+  - 最終ダメージ = 100% × 0.5 × 0.556 = 27.8%
+
+### Minecraft防具特性の連携
+| 特性 | 対応防具 | 効果 |
+|-----|--------|------|
+| ノックバック耐性 | ネザライト防具 | ノックバック軽減 |
+| 水中呼吸 | タートルシェル | 水中呼吸10秒 |
+| 飛行 | エリトラ | 滑空可能 |
+
+### 設定ファイル（armor.yml）
+```yaml
+armor:
+  NETHERITE_CHESTPLATE:
+    ar: 18
+    str_required: 95
+    dex_penalty: 12
+    special:
+      knockback_resistance: 0.1
+
+enchantment_ar_bonus:
+  PROTECTION: 2
+  FIRE_PROTECTION: 1
+  BLAST_PROTECTION: 1
+  PROJECTILE_PROTECTION: 1
+
+quality_modifiers:
+  LOW_QUALITY: 0.85
+  NORMAL_QUALITY: 1.00
+  HIGH_QUALITY: 1.15
+  EXCEPTIONAL: 1.30
+```
 
 ## 隠密システム
 
@@ -2460,3 +2774,10 @@ Skills (メインプラグイン)
                           └── MessageSender
 ```
 
+
+## Active Technologies
+- Kotlin 2.3.0, JVM 21 + Paper API 1.21.11-R0.1-SNAPSHOT (001-spellbook-scroll-acquisition)
+- SQLite (既存の player_skills, player_data テーブル) (001-spellbook-scroll-acquisition)
+
+## Recent Changes
+- 001-spellbook-scroll-acquisition: Added Kotlin 2.3.0, JVM 21 + Paper API 1.21.11-R0.1-SNAPSHOT

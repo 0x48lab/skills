@@ -5,6 +5,8 @@ import com.hacklab.minecraft.skills.data.PlayerData
 import com.hacklab.minecraft.skills.data.SkillData
 import com.hacklab.minecraft.skills.i18n.Language
 import com.hacklab.minecraft.skills.skill.SkillType
+import com.hacklab.minecraft.skills.skill.StatLockMode
+import com.hacklab.minecraft.skills.skill.StatType
 import java.io.File
 import java.sql.Connection
 import java.sql.DriverManager
@@ -46,7 +48,13 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
                     mana REAL DEFAULT 20.0,
                     max_mana REAL DEFAULT 20.0,
                     language TEXT DEFAULT 'en',
-                    last_login INTEGER DEFAULT 0
+                    last_login INTEGER DEFAULT 0,
+                    str INTEGER DEFAULT ${StatType.DEFAULT_STAT_VALUE},
+                    dex INTEGER DEFAULT ${StatType.DEFAULT_STAT_VALUE},
+                    int INTEGER DEFAULT ${StatType.DEFAULT_STAT_VALUE},
+                    str_lock TEXT DEFAULT 'UP',
+                    dex_lock TEXT DEFAULT 'UP',
+                    int_lock TEXT DEFAULT 'UP'
                 )
             """.trimIndent())
 
@@ -68,7 +76,35 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
             """.trimIndent())
         }
 
+        // Migration: Add stat columns if they don't exist (for existing databases)
+        migrateStatColumns()
+
         plugin.logger.info("Database tables created/verified")
+    }
+
+    private fun migrateStatColumns() {
+        val conn = connection ?: return
+
+        // Check if columns exist and add them if not
+        val columnsToAdd = listOf(
+            "str" to "INTEGER DEFAULT ${StatType.DEFAULT_STAT_VALUE}",
+            "dex" to "INTEGER DEFAULT ${StatType.DEFAULT_STAT_VALUE}",
+            "int" to "INTEGER DEFAULT ${StatType.DEFAULT_STAT_VALUE}",
+            "str_lock" to "TEXT DEFAULT 'UP'",
+            "dex_lock" to "TEXT DEFAULT 'UP'",
+            "int_lock" to "TEXT DEFAULT 'UP'"
+        )
+
+        columnsToAdd.forEach { (columnName, columnDef) ->
+            try {
+                conn.createStatement().use { stmt ->
+                    stmt.executeUpdate("ALTER TABLE players ADD COLUMN $columnName $columnDef")
+                }
+                plugin.logger.info("Added column $columnName to players table")
+            } catch (e: Exception) {
+                // Column already exists, ignore
+            }
+        }
     }
 
     override fun loadPlayerData(uuid: UUID): PlayerData? {
@@ -93,7 +129,13 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
             maxInternalHp = playerResult.getDouble("max_internal_hp"),
             mana = playerResult.getDouble("mana"),
             maxMana = playerResult.getDouble("max_mana"),
-            language = Language.fromCode(playerResult.getString("language") ?: "en")
+            language = playerResult.getString("language")?.let { Language.fromCode(it) },
+            str = playerResult.getInt("str").takeIf { it > 0 } ?: StatType.DEFAULT_STAT_VALUE,
+            dex = playerResult.getInt("dex").takeIf { it > 0 } ?: StatType.DEFAULT_STAT_VALUE,
+            int = playerResult.getInt("int").takeIf { it > 0 } ?: StatType.DEFAULT_STAT_VALUE,
+            strLock = playerResult.getString("str_lock")?.let { StatLockMode.valueOf(it) } ?: StatLockMode.UP,
+            dexLock = playerResult.getString("dex_lock")?.let { StatLockMode.valueOf(it) } ?: StatLockMode.UP,
+            intLock = playerResult.getString("int_lock")?.let { StatLockMode.valueOf(it) } ?: StatLockMode.UP
         )
         playerStmt.close()
 
@@ -127,8 +169,8 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
 
         // Save/update player base data
         val playerStmt = conn.prepareStatement("""
-            INSERT OR REPLACE INTO players (uuid, player_name, internal_hp, max_internal_hp, mana, max_mana, language, last_login)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO players (uuid, player_name, internal_hp, max_internal_hp, mana, max_mana, language, last_login, str, dex, int, str_lock, dex_lock, int_lock)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent())
 
         playerStmt.setString(1, data.uuid.toString())
@@ -137,8 +179,14 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
         playerStmt.setDouble(4, data.maxInternalHp)
         playerStmt.setDouble(5, data.mana)
         playerStmt.setDouble(6, data.maxMana)
-        playerStmt.setString(7, data.language.code)
+        playerStmt.setString(7, data.language?.code)
         playerStmt.setLong(8, System.currentTimeMillis())
+        playerStmt.setInt(9, data.str)
+        playerStmt.setInt(10, data.dex)
+        playerStmt.setInt(11, data.int)
+        playerStmt.setString(12, data.strLock.name)
+        playerStmt.setString(13, data.dexLock.name)
+        playerStmt.setString(14, data.intLock.name)
         playerStmt.executeUpdate()
         playerStmt.close()
 

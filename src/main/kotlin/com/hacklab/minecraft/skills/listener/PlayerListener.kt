@@ -28,8 +28,9 @@ class PlayerListener(private val plugin: Skills) : Listener {
         StatCalculator.syncHealthToVanilla(player, data)
         StatCalculator.syncManaToVanilla(player, data)
 
-        // Apply attribute modifiers
-        StatCalculator.applyAttributeModifiers(player, data)
+        // Apply attribute modifiers (including armor DEX penalty)
+        val armorDexPenalty = plugin.armorManager.getTotalDexPenalty(player)
+        StatCalculator.applyAttributeModifiers(player, data, armorDexPenalty)
 
         // Give guide book to new players
         if (isNewPlayer) {
@@ -52,6 +53,7 @@ class PlayerListener(private val plugin: Skills) : Listener {
         plugin.localeManager.removePlayer(player.uniqueId)
         plugin.cooldownManager.clearCooldowns(player.uniqueId)
         plugin.survivalListener.removePlayer(player.uniqueId)
+        plugin.scoreboardManager.cleanup(player.uniqueId)
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -92,11 +94,8 @@ class PlayerListener(private val plugin: Skills) : Listener {
     fun onFoodLevelChange(event: FoodLevelChangeEvent) {
         val player = event.entity as? Player ?: return
         val newFoodLevel = event.foodLevel
-        val oldFoodLevel = player.foodLevel
 
-        // Only sync when food level increases (eating)
-        if (newFoodLevel > oldFoodLevel) {
-            plugin.manaManager.syncFromVanilla(player, newFoodLevel)
-        }
+        // Sync food level changes to internal mana (both increase and decrease)
+        plugin.manaManager.syncFromVanilla(player, newFoodLevel)
     }
 }
