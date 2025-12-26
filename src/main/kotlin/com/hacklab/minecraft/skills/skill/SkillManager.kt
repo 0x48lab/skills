@@ -77,10 +77,18 @@ class SkillManager(private val plugin: Skills) {
         )
 
         // Try to gain associated stats (UO-style)
+        // Track STR before to check if it decreased (for armor validation)
+        val strBefore = data.str
         tryGainStats(player, data, skillType)
+        val strAfter = data.str
 
         // Update max stats (STR affects HP, etc.)
         data.updateMaxStats()
+
+        // If STR decreased, validate equipment (may need to remove armor)
+        if (strAfter < strBefore) {
+            plugin.armorManager.validateEquipment(player)
+        }
 
         // Update attribute modifiers (DEX affects movement/attack speed, minus armor penalty)
         val armorDexPenalty = plugin.armorManager.getTotalDexPenalty(player)

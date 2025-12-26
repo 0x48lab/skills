@@ -28,6 +28,9 @@ class PlayerListener(private val plugin: Skills) : Listener {
         StatCalculator.syncHealthToVanilla(player, data)
         StatCalculator.syncManaToVanilla(player, data)
 
+        // Validate equipment (remove armor player can no longer wear due to STR)
+        plugin.armorManager.validateEquipment(player)
+
         // Apply attribute modifiers (including armor DEX penalty)
         val armorDexPenalty = plugin.armorManager.getTotalDexPenalty(player)
         StatCalculator.applyAttributeModifiers(player, data, armorDexPenalty)
