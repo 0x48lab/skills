@@ -75,24 +75,32 @@ class ArmorManager(private val plugin: Skills) {
     private fun removeArmorPiece(player: Player, item: ItemStack) {
         val equipment = player.inventory
 
-        when (item.type) {
+        // Clone the item BEFORE removing from slot to ensure we have a valid copy
+        // This is important because setting slot to null may invalidate the original reference
+        val itemToGive = item.clone()
+
+        val removed = when (item.type) {
             equipment.helmet?.type -> {
                 equipment.helmet = null
-                giveOrDropItem(player, item)
+                true
             }
             equipment.chestplate?.type -> {
                 equipment.chestplate = null
-                giveOrDropItem(player, item)
+                true
             }
             equipment.leggings?.type -> {
                 equipment.leggings = null
-                giveOrDropItem(player, item)
+                true
             }
             equipment.boots?.type -> {
                 equipment.boots = null
-                giveOrDropItem(player, item)
+                true
             }
-            else -> {}
+            else -> false
+        }
+
+        if (removed) {
+            giveOrDropItem(player, itemToGive)
         }
     }
 
