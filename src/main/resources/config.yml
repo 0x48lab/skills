@@ -115,6 +115,8 @@ vengeful_mobs:
     speed: 1.0
     # Attack range in blocks
     attack_range: 2.0
+    # Attack cooldown in milliseconds (1000 = 1 second, like normal mobs)
+    attack_cooldown: 1000
     # Aggression mode:
     #   RETALIATE - Fight back when attacked (keeps attacking)
     #   RETALIATE_ONCE - Fight back once only (for accidental hits)
@@ -126,12 +128,20 @@ vengeful_mobs:
 
   # Override settings for specific mobs
   overrides:
+    CHICKEN:
+      damage: 1.0
+      attack_cooldown: 1500  # Slower attack (1.5 seconds)
+    RABBIT:
+      damage: 1.0
+      attack_cooldown: 1500
     COW:
       damage: 3.0
+      attack_cooldown: 1200
       mode: RETALIATE
     GOAT:
       damage: 4.0
       speed: 1.3
+      attack_cooldown: 800   # Faster attack
       mode: RETALIATE_WITH_SUPPORT
     LLAMA:
       damage: 2.0
@@ -139,4 +149,5 @@ vengeful_mobs:
     HORSE:
       damage: 3.5
       speed: 1.5
+      attack_cooldown: 1000
       mode: RETALIATE_ONCE

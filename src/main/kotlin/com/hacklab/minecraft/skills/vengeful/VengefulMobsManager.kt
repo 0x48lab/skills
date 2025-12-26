@@ -28,7 +28,8 @@ class VengefulMobsManager(private val plugin: Skills) {
         val targetId: UUID,
         val expireTime: Long,
         val mode: AggressionMode,
-        val damage: Double
+        val damage: Double,
+        val attackCooldown: Long = 1000L
     )
 
     /**
@@ -149,7 +150,7 @@ class VengefulMobsManager(private val plugin: Skills) {
             retaliatedOnce.add(mob.uniqueId)
         }
 
-        // 攻撃クールダウン（0.5秒ごと）
+        // 攻撃クールダウン（設定値に基づく）
         val lastAttackKey = "vengeful_last_attack"
         val lastAttack = mob.getPersistentDataContainer().getOrDefault(
             org.bukkit.NamespacedKey(plugin, lastAttackKey),
@@ -158,7 +159,7 @@ class VengefulMobsManager(private val plugin: Skills) {
         )
 
         val now = System.currentTimeMillis()
-        if (now - lastAttack < 500) return
+        if (now - lastAttack < state.attackCooldown) return
 
         mob.getPersistentDataContainer().set(
             org.bukkit.NamespacedKey(plugin, lastAttackKey),
@@ -201,7 +202,8 @@ class VengefulMobsManager(private val plugin: Skills) {
             targetId = attacker.uniqueId,
             expireTime = expireTime,
             mode = mobConfig.mode,
-            damage = mobConfig.damage
+            damage = mobConfig.damage,
+            attackCooldown = mobConfig.attackCooldown
         )
 
         // RETALIATE_WITH_SUPPORTの場合、周囲のMobも怒らせる
@@ -256,7 +258,8 @@ class VengefulMobsManager(private val plugin: Skills) {
                 targetId = nearestPlayer.uniqueId,
                 expireTime = expireTime,
                 mode = mobConfig.mode,
-                damage = mobConfig.damage
+                damage = mobConfig.damage,
+                attackCooldown = mobConfig.attackCooldown
             )
         }
     }
@@ -280,7 +283,8 @@ class VengefulMobsManager(private val plugin: Skills) {
                 targetId = attacker.uniqueId,
                 expireTime = expireTime,
                 mode = mobConfig.mode,
-                damage = mobConfig.damage
+                damage = mobConfig.damage,
+                attackCooldown = mobConfig.attackCooldown
             )
         }
 

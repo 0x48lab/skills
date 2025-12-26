@@ -10,7 +10,8 @@ data class MobConfig(
     val damage: Double,
     val mode: AggressionMode,
     val speed: Double = 1.0,
-    val attackRange: Double = 2.0
+    val attackRange: Double = 2.0,
+    val attackCooldown: Long = 1000L  // Attack cooldown in milliseconds
 ) {
     companion object {
         fun default(entityType: EntityType): MobConfig {
@@ -19,7 +20,8 @@ data class MobConfig(
                 damage = 2.0,
                 mode = AggressionMode.RETALIATE,
                 speed = 1.0,
-                attackRange = 2.0
+                attackRange = 2.0,
+                attackCooldown = 1000L
             )
         }
     }

@@ -41,7 +41,8 @@ class VengefulMobsConfig(private val plugin: Skills) {
         damage = 2.0,
         mode = AggressionMode.RETALIATE,
         speed = 1.0,
-        attackRange = 2.0
+        attackRange = 2.0,
+        attackCooldown = 1000L
     )
 
     init {
@@ -77,13 +78,15 @@ class VengefulMobsConfig(private val plugin: Skills) {
         val mode = AggressionMode.fromString(modeStr) ?: AggressionMode.RETALIATE
         val speed = section.getDouble("speed", 1.0)
         val attackRange = section.getDouble("attack_range", 2.0)
+        val attackCooldown = section.getLong("attack_cooldown", 1000L)
 
         defaultConfig = MobConfig(
             entityType = EntityType.PIG, // dummy
             damage = damage,
             mode = mode,
             speed = speed,
-            attackRange = attackRange
+            attackRange = attackRange,
+            attackCooldown = attackCooldown
         )
     }
 
@@ -107,13 +110,15 @@ class VengefulMobsConfig(private val plugin: Skills) {
             val mode = AggressionMode.fromString(modeStr) ?: defaultConfig.mode
             val speed = mobSection.getDouble("speed", defaultConfig.speed)
             val attackRange = mobSection.getDouble("attack_range", defaultConfig.attackRange)
+            val attackCooldown = mobSection.getLong("attack_cooldown", defaultConfig.attackCooldown)
 
             overrides[entityType] = MobConfig(
                 entityType = entityType,
                 damage = damage,
                 mode = mode,
                 speed = speed,
-                attackRange = attackRange
+                attackRange = attackRange,
+                attackCooldown = attackCooldown
             )
         }
 
