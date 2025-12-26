@@ -96,7 +96,7 @@ class CombatManager(private val plugin: Skills) {
      * - Tactics 10, Anatomy 10: ~30 hits to kill skeleton
      * - Tactics 100, Anatomy 100: 1 hit to kill skeleton
      *
-     * @param baseDamage Weapon's base damage from config
+     * @param baseDamage Weapon's base damage (vanilla damage including crit bonus)
      * @param str Player's STR stat
      * @param tacticsSkill Player's Tactics skill (main damage multiplier: 0.1 to 1.0)
      * @param anatomySkill Player's Anatomy skill (damage multiplier: 0.6 to 1.5, also affects crit)
@@ -106,7 +106,7 @@ class CombatManager(private val plugin: Skills) {
      * @return DamageResult with final damage and critical info
      */
     fun calculateDamage(
-        baseDamage: Int,
+        baseDamage: Double,
         str: Int,
         tacticsSkill: Double,
         anatomySkill: Double,
@@ -231,8 +231,8 @@ class CombatManager(private val plugin: Skills) {
         // Get DI from enchantments
         val diPercent = plugin.combatConfig.calculateTotalDI(weapon, target.type)
 
-        // Get base damage
-        val baseDamage = baseDamageOverride?.toInt() ?: weaponStats.baseDamage
+        // Get base damage (use vanilla damage if provided to preserve crit bonus)
+        val baseDamage = baseDamageOverride ?: weaponStats.baseDamage.toDouble()
 
         // Calculate damage with defense reduction (uses damageDefense which includes AR)
         val damageResult = calculateDamage(
@@ -305,7 +305,7 @@ class CombatManager(private val plugin: Skills) {
         val diPercent = plugin.combatConfig.calculateTotalDI(weapon, target.type)
 
         // Use projectile damage as base (vanilla arrow damage varies by draw strength)
-        val baseDamage = projectileDamage.toInt().coerceAtLeast(1)
+        val baseDamage = projectileDamage.coerceAtLeast(1.0)
 
         val damageResult = calculateDamage(
             baseDamage = baseDamage,
