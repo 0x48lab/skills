@@ -1,0 +1,255 @@
+# Mob Combat Statistics Configuration
+# physical_defense: Used for hit chance calculation and damage reduction
+# magic_defense: Used for magic damage reduction
+# attack_power: Mob's base attack damage
+# difficulty = physical_defense + attack_power (calculated automatically for skill gain)
+
+mobs:
+  # === Overworld Common Mobs ===
+  ZOMBIE:
+    physical_defense: 10
+    magic_defense: 0
+    attack_power: 3
+  HUSK:
+    physical_defense: 12
+    magic_defense: 0
+    attack_power: 3
+  DROWNED:
+    physical_defense: 10
+    magic_defense: 5
+    attack_power: 3
+  SKELETON:
+    physical_defense: 5
+    magic_defense: 0
+    attack_power: 2
+  STRAY:
+    physical_defense: 7
+    magic_defense: 5
+    attack_power: 2
+  BOGGED:
+    physical_defense: 6
+    magic_defense: 10
+    attack_power: 2
+  SPIDER:
+    physical_defense: 8
+    magic_defense: 0
+    attack_power: 2
+  CAVE_SPIDER:
+    physical_defense: 6
+    magic_defense: 0
+    attack_power: 2
+  CREEPER:
+    physical_defense: 15
+    magic_defense: 0
+    attack_power: 10
+  SLIME:
+    physical_defense: 5
+    magic_defense: 10
+    attack_power: 2
+  PHANTOM:
+    physical_defense: 12
+    magic_defense: 15
+    attack_power: 4
+  SILVERFISH:
+    physical_defense: 3
+    magic_defense: 0
+    attack_power: 1
+  ENDERMITE:
+    physical_defense: 3
+    magic_defense: 5
+    attack_power: 1
+
+  # === Illagers ===
+  PILLAGER:
+    physical_defense: 15
+    magic_defense: 10
+    attack_power: 4
+  VINDICATOR:
+    physical_defense: 25
+    magic_defense: 10
+    attack_power: 8
+  EVOKER:
+    physical_defense: 20
+    magic_defense: 35
+    attack_power: 6
+  RAVAGER:
+    physical_defense: 40
+    magic_defense: 20
+    attack_power: 12
+  VEX:
+    physical_defense: 5
+    magic_defense: 20
+    attack_power: 4
+  WITCH:
+    physical_defense: 15
+    magic_defense: 40
+    attack_power: 5
+
+  # === Nether Mobs ===
+  ZOMBIFIED_PIGLIN:
+    physical_defense: 15
+    magic_defense: 10
+    attack_power: 5
+  PIGLIN:
+    physical_defense: 18
+    magic_defense: 10
+    attack_power: 5
+  PIGLIN_BRUTE:
+    physical_defense: 35
+    magic_defense: 15
+    attack_power: 13
+  WITHER_SKELETON:
+    physical_defense: 30
+    magic_defense: 20
+    attack_power: 8
+  BLAZE:
+    physical_defense: 20
+    magic_defense: 40
+    attack_power: 6
+  GHAST:
+    physical_defense: 15
+    magic_defense: 30
+    attack_power: 8
+  MAGMA_CUBE:
+    physical_defense: 20
+    magic_defense: 25
+    attack_power: 4
+  HOGLIN:
+    physical_defense: 25
+    magic_defense: 10
+    attack_power: 8
+  ZOGLIN:
+    physical_defense: 25
+    magic_defense: 10
+    attack_power: 8
+  STRIDER:
+    physical_defense: 10
+    magic_defense: 15
+    attack_power: 0
+
+  # === End Mobs ===
+  ENDERMAN:
+    physical_defense: 25
+    magic_defense: 30
+    attack_power: 7
+  SHULKER:
+    physical_defense: 40
+    magic_defense: 40
+    attack_power: 4
+  ENDER_DRAGON:
+    physical_defense: 60
+    magic_defense: 50
+    attack_power: 15
+
+  # === Special Mobs ===
+  WARDEN:
+    physical_defense: 80
+    magic_defense: 60
+    attack_power: 30
+  WITHER:
+    physical_defense: 50
+    magic_defense: 50
+    attack_power: 12
+  ELDER_GUARDIAN:
+    physical_defense: 45
+    magic_defense: 40
+    attack_power: 8
+  GUARDIAN:
+    physical_defense: 20
+    magic_defense: 25
+    attack_power: 4
+
+  # === Ocean/River Mobs ===
+  DOLPHIN:
+    physical_defense: 5
+    magic_defense: 5
+    attack_power: 2
+  PUFFERFISH:
+    physical_defense: 3
+    magic_defense: 10
+    attack_power: 2
+
+  # === Wolves/Dogs ===
+  WOLF:
+    physical_defense: 8
+    magic_defense: 5
+    attack_power: 4
+
+  # === Iron/Snow Golems ===
+  IRON_GOLEM:
+    physical_defense: 50
+    magic_defense: 30
+    attack_power: 21
+  SNOW_GOLEM:
+    physical_defense: 5
+    magic_defense: 15
+    attack_power: 0
+
+  # === Misc Hostile ===
+  BEE:
+    physical_defense: 5
+    magic_defense: 5
+    attack_power: 2
+  POLAR_BEAR:
+    physical_defense: 15
+    magic_defense: 5
+    attack_power: 6
+
+  # === Passive Animals (VengefulMobs) ===
+  # These animals can fight back when attacked (see config.yml vengeful_mobs)
+  CHICKEN:
+    physical_defense: 2
+    magic_defense: 0
+    attack_power: 1
+  RABBIT:
+    physical_defense: 2
+    magic_defense: 0
+    attack_power: 1
+  PIG:
+    physical_defense: 5
+    magic_defense: 0
+    attack_power: 2
+  SHEEP:
+    physical_defense: 5
+    magic_defense: 0
+    attack_power: 2
+  COW:
+    physical_defense: 8
+    magic_defense: 0
+    attack_power: 3
+  MOOSHROOM:
+    physical_defense: 8
+    magic_defense: 5
+    attack_power: 3
+  HORSE:
+    physical_defense: 12
+    magic_defense: 5
+    attack_power: 4
+  DONKEY:
+    physical_defense: 10
+    magic_defense: 5
+    attack_power: 3
+  MULE:
+    physical_defense: 11
+    magic_defense: 5
+    attack_power: 3
+  LLAMA:
+    physical_defense: 10
+    magic_defense: 5
+    attack_power: 1
+  GOAT:
+    physical_defense: 10
+    magic_defense: 5
+    attack_power: 4
+
+  # === Breeze (1.21+) ===
+  BREEZE:
+    physical_defense: 25
+    magic_defense: 35
+    attack_power: 5
+
+  # === Default for unlisted mobs ===
+  DEFAULT:
+    physical_defense: 10
+    magic_defense: 10
+    attack_power: 3
