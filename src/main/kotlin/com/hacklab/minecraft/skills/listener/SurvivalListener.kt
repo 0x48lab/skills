@@ -60,7 +60,7 @@ class SurvivalListener(private val plugin: Skills) : Listener {
      * Swimming skill - extends underwater breathing time
      * Effect: Air consumption reduced by (skill / 2)% - max 50% at skill 100
      * Also provides slight speed boost underwater
-     * Skill gain: When losing air bubbles underwater
+     * Note: Skill gain is handled by onDrowningDamage, not here
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun onAirChange(event: EntityAirChangeEvent) {
@@ -73,11 +73,6 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         if (newAir < previousAir) {
             val data = plugin.playerDataManager.getPlayerData(player)
             val swimmingSkill = data.getSkillValue(SkillType.SWIMMING)
-
-            // Try to gain skill when losing air
-            val depth = player.location.block.y
-            val difficulty = calculateSwimmingDifficulty(depth, previousAir - newAir)
-            plugin.skillManager.tryGainSkill(player, SkillType.SWIMMING, difficulty)
 
             // Reduce air consumption: skill / 2 % chance to not lose air
             val saveChance = swimmingSkill / 2.0
@@ -96,6 +91,36 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         }
 
         lastAirLevel[player.uniqueId] = newAir
+    }
+
+    /**
+     * Swimming skill gain - when taking drowning damage
+     * Skill gain: When taking drowning damage (consistent with other survival skills)
+     * Note: Runs at NORMAL priority so CombatListener (HIGH) can apply to internal HP
+     */
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    fun onDrowningDamage(event: EntityDamageEvent) {
+        if (event.cause != DamageCause.DROWNING) return
+        val player = event.entity as? Player ?: return
+
+        val data = plugin.playerDataManager.getPlayerData(player)
+        val swimmingSkill = data.getSkillValue(SkillType.SWIMMING)
+
+        // Calculate difficulty based on depth
+        val depth = player.location.block.y
+        val difficulty = when {
+            depth < 0 -> 50    // Deep ocean / underwater caves
+            depth < 40 -> 35   // Underwater
+            else -> 20         // Near surface
+        }
+
+        // Try to gain skill
+        plugin.skillManager.tryGainSkill(player, SkillType.SWIMMING, difficulty)
+
+        // Apply damage reduction: skill / 2 % (max 50%)
+        val reductionPercent = (swimmingSkill / 2.0).coerceAtMost(50.0)
+        val damageMultiplier = 1.0 - (reductionPercent / 100.0)
+        event.damage = event.damage * damageMultiplier
     }
 
     /**
@@ -197,26 +222,18 @@ class SurvivalListener(private val plugin: Skills) : Listener {
      * Effect: Suffocation damage reduced by (skill / 2)% - max 50% at skill 100
      * Skill gain: When taking suffocation damage
      * Note: Runs at NORMAL priority so CombatListener (HIGH) can apply to internal HP
+     * Note: Drowning is handled by Swimming skill (onDrowningDamage)
      */
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     fun onSuffocationDamage(event: EntityDamageEvent) {
-        val validCauses = setOf(
-            DamageCause.SUFFOCATION,  // Inside solid block
-            DamageCause.DROWNING      // Also helps with drowning as backup
-        )
-
-        if (event.cause !in validCauses) return
+        if (event.cause != DamageCause.SUFFOCATION) return
         val player = event.entity as? Player ?: return
 
         val data = plugin.playerDataManager.getPlayerData(player)
         val enduranceSkill = data.getSkillValue(SkillType.ENDURANCE)
 
-        // Calculate difficulty based on damage source
-        val difficulty = when (event.cause) {
-            DamageCause.SUFFOCATION -> 50  // Being crushed/buried
-            DamageCause.DROWNING -> 30     // Drowning (backup for swimming)
-            else -> 30
-        }
+        // Difficulty for suffocation (being crushed/buried)
+        val difficulty = 50
 
         // Try to gain skill
         plugin.skillManager.tryGainSkill(player, SkillType.ENDURANCE, difficulty)
@@ -249,18 +266,6 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         }
     }
 
-    /**
-     * Calculate swimming difficulty based on depth and air loss rate
-     */
-    private fun calculateSwimmingDifficulty(yLevel: Int, airLost: Int): Int {
-        // Deeper = harder, more air lost = harder
-        val depthBonus = when {
-            yLevel < 0 -> 20    // Deep ocean / caves
-            yLevel < 40 -> 10   // Underwater
-            else -> 0           // Surface
-        }
-        return (15 + depthBonus + airLost).coerceIn(10, 50)
-    }
 
     /**
      * Cleanup when player leaves

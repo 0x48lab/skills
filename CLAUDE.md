@@ -21,12 +21,12 @@ INT = INT対象スキル合計 / 対象スキル数（8スキル）× 100 / 100
 ※ 各対象スキルの平均値がそのままステータス値となる
 ※ 各ステータスの最大値: 100（全対象スキルが100の場合）
 
-#### 対象スキル（全34スキルを分類）
-| ステータス | 対象スキル（11スキル） |
+#### 対象スキル（全39スキルを分類）
+| ステータス | 対象スキル |
 |-----------|----------------------|
-| STR | Swordsmanship, Axe, Mace Fighting, Wrestling, Tactics, Anatomy, Mining, Lumberjacking, Blacksmithy, Craftsmanship, Cooking |
-| DEX | Archery, Throwing, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Tinkering |
-| INT | Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Alchemy, Bowcraft, Animal Lore |
+| STR | Swordsmanship, Axe, Mace Fighting, Wrestling, Tactics, Anatomy, Mining, Lumberjacking, Blacksmithy, Craftsmanship, Cooking, Heat Resistance, Cold Resistance, Endurance（14スキル） |
+| DEX | Archery, Throwing, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Tinkering, Athletics, Swimming（13スキル） |
+| INT | Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Alchemy, Bowcraft, Animal Lore（8スキル） |
 
 #### 複数ステータスに影響するスキル
 | スキル | 影響ステータス |
@@ -102,10 +102,10 @@ INT: 60  (-30% マナ消費, +6% 詠唱成功率)
 - ダッシュ消費: `PlayerMoveEvent` で消費量を調整
 
 ### スキルキャップ
-- **スキル合計上限**: 600ポイント
+- **スキル合計上限**: 700ポイント
 - **各スキル上限**: 100ポイント
-- スキル合計が600に達した場合、新しいスキルが上がると使用頻度の低いスキルが自動的に下がる
-- 6スキルをMAX（100）にできる計算
+- スキル合計が700に達した場合、新しいスキルが上がると使用頻度の低いスキルが自動的に下がる
+- 7スキルをMAX（100）にできる計算
 
 ### スキル上昇システム（UO準拠）
 
@@ -450,6 +450,53 @@ notoriety?.recordCrime(
     detail = "Stealing: ${item.type.name}"
 )
 ```
+
+### サバイバル系スキル
+| スキル名 | 効果 | 上昇条件 |
+|---------|------|---------|
+| Athletics | 落下ダメージ -（スキル値/2）%（最大50%） | 落下ダメージを受けた時 |
+| Swimming | 溺れダメージ -（スキル値/2）%（最大50%）、空気消費軽減 | 溺れダメージを受けた時 |
+| Heat Resistance | 炎/溶岩ダメージ -（スキル値/2）%（最大50%） | 炎/溶岩ダメージを受けた時 |
+| Cold Resistance | 凍結ダメージ -（スキル値/2）%（最大50%） | 凍結ダメージを受けた時 |
+| Endurance | 窒息ダメージ -（スキル値/2）%（最大50%） | 窒息ダメージを受けた時 |
+
+#### Athletics（運動能力）
+- 効果: 落下ダメージを軽減
+- 軽減率: スキル値 / 2 %（最大50%）
+- スキル90以上: 小さな落下（6ブロック以下）を完全回避する確率あり
+- 上昇条件: 落下ダメージを受けた時
+- 難易度: 落下高度に応じて10〜80
+
+#### Swimming（水泳）
+- 効果:
+  - 溺れダメージを軽減（スキル値/2 %、最大50%）
+  - 空気消費を確率で軽減（スキル値/2 %の確率で空気減少をキャンセル）
+  - スキル80以上: 水中呼吸効果が確率で発動
+- 上昇条件: **溺れダメージを受けた時**（空気が減るたびではない）
+- 難易度: 深さに応じて20〜50
+
+#### Heat Resistance（耐熱）
+- 効果:
+  - 炎/溶岩ダメージを軽減（スキル値/2 %、最大50%）
+  - 炎上時間を短縮
+  - スキル95以上: 炎上を消火する確率あり
+- 上昇条件: 炎/溶岩ダメージを受けた時
+- 難易度: 溶岩60、火30、炎上20、マグマブロック25
+
+#### Cold Resistance（耐寒）
+- 効果:
+  - 凍結ダメージを軽減（スキル値/2 %、最大50%）
+  - 凍結蓄積を軽減
+  - スキル95以上: 凍結から脱出する確率あり
+- 上昇条件: 凍結ダメージを受けた時
+- 難易度: 40
+
+#### Endurance（持久力）
+- 効果:
+  - 窒息ダメージを軽減（スキル値/2 %、最大50%）
+  - スキル90以上: ダメージを完全回避する確率あり
+- 上昇条件: 窒息ダメージを受けた時
+- 難易度: 50
 
 ### その他スキル
 | スキル名 | 効果 | 上昇条件 |
@@ -1707,12 +1754,19 @@ enum class SkillType(
     ANIMAL_LORE("Animal Lore", SkillCategory.TAMING, mapOf(StatType.INT to 1.0)),
     VETERINARY("Veterinary", SkillCategory.TAMING, mapOf(StatType.STR to 0.5, StatType.INT to 0.5)),
 
+    // サバイバル系
+    ATHLETICS("Athletics", SkillCategory.SURVIVAL, mapOf(StatType.DEX to 1.0)),
+    SWIMMING("Swimming", SkillCategory.SURVIVAL, mapOf(StatType.DEX to 1.0)),
+    HEAT_RESISTANCE("Heat Resistance", SkillCategory.SURVIVAL, mapOf(StatType.STR to 1.0)),
+    COLD_RESISTANCE("Cold Resistance", SkillCategory.SURVIVAL, mapOf(StatType.STR to 1.0)),
+    ENDURANCE("Endurance", SkillCategory.SURVIVAL, mapOf(StatType.STR to 1.0)),
+
     // その他
     ARMS_LORE("Arms Lore", SkillCategory.OTHER, mapOf(StatType.STR to 0.33, StatType.DEX to 0.33, StatType.INT to 0.34))
 }
 
 enum class SkillCategory {
-    COMBAT, MAGIC, CRAFTING, GATHERING, THIEF, TAMING, OTHER
+    COMBAT, MAGIC, CRAFTING, GATHERING, THIEF, TAMING, SURVIVAL, OTHER
 }
 
 enum class StatType {
