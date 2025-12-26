@@ -265,21 +265,6 @@ class Skills : JavaPlugin() {
         // Scoreboard
         scoreboardManager = ScoreboardManager(this)
 
-        // Register crafting recipes
-        registerRecipes()
-    }
-
-    private fun registerRecipes() {
-        // Empty Spellbook: Book + Echo Shard = Empty Spellbook
-        val spellbookKey = NamespacedKey(this, "empty_spellbook")
-        val spellbookResult = spellbookManager.createSpellbook()
-
-        val spellbookRecipe = org.bukkit.inventory.ShapelessRecipe(spellbookKey, spellbookResult)
-        spellbookRecipe.addIngredient(Material.BOOK)
-        spellbookRecipe.addIngredient(Material.ECHO_SHARD)
-
-        server.addRecipe(spellbookRecipe)
-        logger.info("Registered empty spellbook crafting recipe")
     }
 
     private fun registerListeners() {
@@ -303,6 +288,9 @@ class Skills : JavaPlugin() {
 
         // Scroll loot (mob drops and End chest)
         pm.registerEvents(ScrollLootListener(this), this)
+
+        // Librarian trades (spellbook and scrolls)
+        pm.registerEvents(LibrarianTradeListener(this), this)
     }
 
     private fun registerCommands() {

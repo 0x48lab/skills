@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Librarian Villager Trades**
+  - Librarians now sell spellbooks and scrolls
+  - Level 1: C1 scroll (5-8 emeralds)
+  - Level 2: C1/C2 scroll (8-12 emeralds)
+  - Level 3: Empty spellbook (30-50 emeralds)
+  - Level 4: C2 scroll (12-15 emeralds)
+
+### Removed
+- **Spellbook Crafting Recipe**
+  - Removed Book + Echo Shard = Empty Spellbook recipe
+  - Spellbooks are now obtained from Librarian villagers
+
+### Added
 - **Armor System**
   - ArmorManager: Calculate total AR (Armor Rating) and DEX penalty
   - ArmorConfig: Load armor stats from `armor.yml`

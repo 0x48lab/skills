@@ -117,16 +117,17 @@ Requirements:
 
 === Getting a Spellbook ===
 
-[Crafting]
-At crafting table:
-  Book + Echo Shard
-  = Empty Spellbook
+[Purchase from Librarian]
+Librarian villagers sell:
+- Empty Spellbook (Lv.3)
+- C1/C2 Scrolls (Lv.1-4)
 
 [Learning Spells]
 Right-click a scroll to
 add the spell to your book.
 
 Scroll sources:
+- Librarian villagers
 - Magic mobs (Witch, etc)
 - End city treasure chests
 

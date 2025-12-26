@@ -10,26 +10,9 @@ import org.bukkit.event.inventory.FurnaceExtractEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.inventory.PrepareAnvilEvent
-import org.bukkit.event.inventory.PrepareItemCraftEvent
 import org.bukkit.Material
-import org.bukkit.NamespacedKey
 
 class CraftingListener(private val plugin: Skills) : Listener {
-
-    private val emptySpellbookKey = NamespacedKey(plugin, "empty_spellbook")
-
-    @EventHandler(priority = EventPriority.HIGH)
-    fun onPrepareSpellbookCraft(event: PrepareItemCraftEvent) {
-        val recipe = event.recipe ?: return
-        val player = event.viewers.firstOrNull() as? Player ?: return
-
-        // Check if this is the empty spellbook recipe
-        if (recipe is org.bukkit.inventory.ShapelessRecipe && recipe.key == emptySpellbookKey) {
-            // Replace with player's language version
-            val localizedSpellbook = plugin.spellbookManager.createSpellbook(player)
-            event.inventory.result = localizedSpellbook
-        }
-    }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun onCraftItem(event: CraftItemEvent) {
