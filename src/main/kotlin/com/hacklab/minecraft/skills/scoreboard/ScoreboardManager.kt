@@ -87,7 +87,7 @@ class ScoreboardManager(private val plugin: Skills) {
         // HP/Mana/Stamina/Gold
         val hp = data.internalHp.toInt()
         val maxHp = data.maxInternalHp.toInt()
-        setScore(objective, "❤ $hp/$maxHp", score--)
+        setScore(objective, "❤️ $hp/$maxHp", score--)
 
         val mana = data.mana.toInt()
         val maxMana = data.maxMana.toInt()
