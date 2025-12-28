@@ -101,7 +101,7 @@ class ScoreboardManager(private val plugin: Skills) {
         if (plugin.skillsConfig.economyShowOnScoreboard && plugin.vaultHook.isEnabled()) {
             val balance = plugin.vaultHook.getBalance(player)
             val formatted = plugin.vaultHook.format(balance)
-            setScore(objective, "💰 $formatted", score--)
+            setScore(objective, formatted, score--)
         }
 
         setScore(objective, " ", score--) // Empty line separator (with space to be unique)

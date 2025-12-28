@@ -194,7 +194,7 @@ cooldown:
 
 # エコノミーメッセージ
 economy:
-  mob_reward: "<gold>💰 +{amount}"
+  mob_reward: "<green>+{amount}"
   chunk_limit_reached: "<yellow>このエリアでの報酬上限に達しました。（リセットまで{minutes}分）"
 
 # 共通
