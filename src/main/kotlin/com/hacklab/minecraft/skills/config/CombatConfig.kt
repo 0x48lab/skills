@@ -54,7 +54,10 @@ class CombatConfig(private val plugin: Skills) {
                     defaultMobStats = MobStats(
                         physicalDefense = section.getInt("physical_defense", 10),
                         magicDefense = section.getInt("magic_defense", 10),
-                        attackPower = section.getInt("attack_power", 3)
+                        attackPower = section.getInt("attack_power", 3),
+                        rewardMin = section.getInt("reward_min", 1),
+                        rewardMax = section.getInt("reward_max", 5),
+                        rewardChance = section.getInt("reward_chance", 50)
                     )
                 }
                 continue
@@ -67,7 +70,10 @@ class CombatConfig(private val plugin: Skills) {
                 mobStats[entityType] = MobStats(
                     physicalDefense = section.getInt("physical_defense", 10),
                     magicDefense = section.getInt("magic_defense", 10),
-                    attackPower = section.getInt("attack_power", 3)
+                    attackPower = section.getInt("attack_power", 3),
+                    rewardMin = section.getInt("reward_min", 0),
+                    rewardMax = section.getInt("reward_max", 0),
+                    rewardChance = section.getInt("reward_chance", 0)
                 )
             } catch (e: IllegalArgumentException) {
                 plugin.logger.warning("Unknown entity type in mobs.yml: $key")
@@ -280,7 +286,10 @@ class CombatConfig(private val plugin: Skills) {
 data class MobStats(
     val physicalDefense: Int,
     val magicDefense: Int,
-    val attackPower: Int
+    val attackPower: Int,
+    val rewardMin: Int = 0,
+    val rewardMax: Int = 0,
+    val rewardChance: Int = 0
 )
 
 /**

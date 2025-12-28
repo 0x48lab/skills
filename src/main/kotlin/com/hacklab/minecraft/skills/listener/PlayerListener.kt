@@ -62,6 +62,7 @@ class PlayerListener(private val plugin: Skills) : Listener {
         plugin.survivalListener.removePlayer(player.uniqueId)
         plugin.scoreboardManager.cleanup(player.uniqueId)
         plugin.staminaManager.cleanup(player.uniqueId)
+        plugin.chunkLimitManager.cleanup(player.uniqueId)
     }
 
     @EventHandler(priority = EventPriority.NORMAL)

@@ -192,6 +192,11 @@ survival:
 cooldown:
   active: "<red>You must wait {seconds} seconds before using this ability again."
 
+# Economy messages
+economy:
+  mob_reward: "<green>+{amount} earned!"
+  chunk_limit_reached: "<yellow>Reward limit reached in this area. (Resets in {minutes} minutes)"
+
 # Common words
 common:
   "yes": "Yes"

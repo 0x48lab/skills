@@ -52,6 +52,23 @@ class SkillsConfig(private val plugin: Skills) {
     // Debug
     val debugMode: Boolean get() = config.getBoolean("debug", false)
 
+    // Economy settings
+    val economyEnabled: Boolean get() = config.getBoolean("economy.enabled", true)
+    val economyChunkLimitEnabled: Boolean get() = config.getBoolean("economy.chunk_limit.enabled", true)
+    val economyChunkRadius: Int get() = config.getInt("economy.chunk_limit.chunk_radius", 5)
+    val economyTimeWindowMinutes: Int get() = config.getInt("economy.chunk_limit.time_window_minutes", 60)
+    val economyShowOnScoreboard: Boolean get() = config.getBoolean("economy.show_on_scoreboard", true)
+
+    /**
+     * Get reward limit for a specific world
+     */
+    fun getWorldRewardLimit(worldName: String): Double {
+        val worldLimits = config.getConfigurationSection("economy.chunk_limit.world_limits")
+        return worldLimits?.getDouble(worldName)
+            ?: worldLimits?.getDouble("default")
+            ?: 500.0
+    }
+
     fun reload() {
         plugin.reloadConfig()
     }

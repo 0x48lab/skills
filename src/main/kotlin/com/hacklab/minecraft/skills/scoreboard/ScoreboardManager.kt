@@ -97,6 +97,13 @@ class ScoreboardManager(private val plugin: Skills) {
         val maxStamina = data.maxStamina.toInt()
         setScore(objective, "⚡ $stamina/$maxStamina", score--)
 
+        // Show balance if economy is enabled
+        if (plugin.skillsConfig.economyShowOnScoreboard && plugin.vaultHook.isEnabled()) {
+            val balance = plugin.vaultHook.getBalance(player)
+            val formatted = plugin.vaultHook.format(balance)
+            setScore(objective, "💰 $formatted", score--)
+        }
+
         setScore(objective, " ", score--) // Empty line separator (with space to be unique)
 
         // Stat total

@@ -192,6 +192,11 @@ survival:
 cooldown:
   active: "<red>再使用まであと{seconds}秒お待ちください。"
 
+# エコノミーメッセージ
+economy:
+  mob_reward: "<green>+{amount}を獲得！"
+  chunk_limit_reached: "<yellow>このエリアでの報酬上限に達しました。（リセットまで{minutes}分）"
+
 # 共通
 common:
   "yes": "はい"

@@ -70,6 +70,28 @@ cooldowns:
 # Debug mode
 debug: false
 
+# Economy settings (Vault integration)
+economy:
+  # Enable mob kill rewards
+  enabled: true
+
+  # Chunk-based reward limits (anti-farming)
+  chunk_limit:
+    enabled: true
+    # Chunk radius for grouping (5 = 11x11 chunks)
+    chunk_radius: 5
+    # Time window in minutes
+    time_window_minutes: 60
+    # World-specific reward limits per time window
+    world_limits:
+      world: 500.0          # Overworld
+      world_nether: 800.0   # Nether
+      world_the_end: 1000.0 # End
+      default: 500.0        # Default for other worlds
+
+  # Show balance on scoreboard
+  show_on_scoreboard: true
+
 # VengefulMobs settings - Makes passive mobs fight back when attacked
 # Inspired by VengefulMobs plugin (https://modrinth.com/plugin/vengefulmobs)
 vengeful_mobs:

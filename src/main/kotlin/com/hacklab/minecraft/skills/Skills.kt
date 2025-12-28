@@ -7,6 +7,10 @@ import com.hacklab.minecraft.skills.armor.ArmorManager
 import com.hacklab.minecraft.skills.config.ArmorConfig
 import com.hacklab.minecraft.skills.config.CombatConfig
 import com.hacklab.minecraft.skills.config.SkillsConfig
+import com.hacklab.minecraft.skills.economy.ChunkLimitManager
+import com.hacklab.minecraft.skills.economy.MobRewardListener
+import com.hacklab.minecraft.skills.economy.MobRewardManager
+import com.hacklab.minecraft.skills.economy.VaultHook
 import com.hacklab.minecraft.skills.crafting.CraftingManager
 import com.hacklab.minecraft.skills.crafting.QualityManager
 import com.hacklab.minecraft.skills.data.PlayerDataManager
@@ -146,6 +150,14 @@ class Skills : JavaPlugin() {
     lateinit var staminaManager: StaminaManager
         private set
 
+    // Economy
+    lateinit var vaultHook: VaultHook
+        private set
+    lateinit var chunkLimitManager: ChunkLimitManager
+        private set
+    lateinit var mobRewardManager: MobRewardManager
+        private set
+
     // Listeners
     private lateinit var meditationListener: MeditationListener
     lateinit var survivalListener: SurvivalListener
@@ -277,6 +289,14 @@ class Skills : JavaPlugin() {
 
         // Stamina
         staminaManager = StaminaManager(this)
+
+        // Economy (Vault integration)
+        vaultHook = VaultHook(this)
+        if (vaultHook.setup()) {
+            logger.info("Vault economy integration enabled")
+        }
+        chunkLimitManager = ChunkLimitManager(this)
+        mobRewardManager = MobRewardManager(this)
     }
 
     private fun registerListeners() {
@@ -303,6 +323,9 @@ class Skills : JavaPlugin() {
 
         // Librarian trades (spellbook and scrolls)
         pm.registerEvents(LibrarianTradeListener(this), this)
+
+        // Mob reward (economy)
+        pm.registerEvents(MobRewardListener(this), this)
     }
 
     private fun registerCommands() {
@@ -375,5 +398,12 @@ class Skills : JavaPlugin() {
 
         // Stamina update task
         staminaManager.startUpdateTask()
+
+        // Chunk limit cleanup (every 5 minutes)
+        object : BukkitRunnable() {
+            override fun run() {
+                chunkLimitManager.cleanupExpired()
+            }
+        }.runTaskTimerAsynchronously(this, 6000L, 6000L) // Every 5 minutes
     }
 }

@@ -3,6 +3,8 @@
 # magic_defense: Used for magic damage reduction
 # attack_power: Mob's base attack damage
 # difficulty = physical_defense + attack_power (calculated automatically for skill gain)
+# reward_min/max: Money drop range (random between min and max)
+# reward_chance: Drop rate percentage (0-100)
 
 mobs:
   # === Overworld Common Mobs ===
@@ -10,242 +12,407 @@ mobs:
     physical_defense: 10
     magic_defense: 0
     attack_power: 3
+    reward_min: 3
+    reward_max: 8
+    reward_chance: 80
   HUSK:
     physical_defense: 12
     magic_defense: 0
     attack_power: 3
+    reward_min: 4
+    reward_max: 10
+    reward_chance: 80
   DROWNED:
     physical_defense: 10
     magic_defense: 5
     attack_power: 3
+    reward_min: 5
+    reward_max: 12
+    reward_chance: 75
   SKELETON:
     physical_defense: 5
     magic_defense: 0
     attack_power: 2
+    reward_min: 3
+    reward_max: 7
+    reward_chance: 75
   STRAY:
     physical_defense: 7
     magic_defense: 5
     attack_power: 2
+    reward_min: 5
+    reward_max: 10
+    reward_chance: 75
   BOGGED:
     physical_defense: 6
     magic_defense: 10
     attack_power: 2
+    reward_min: 5
+    reward_max: 12
+    reward_chance: 70
   SPIDER:
     physical_defense: 8
     magic_defense: 0
     attack_power: 2
+    reward_min: 2
+    reward_max: 6
+    reward_chance: 70
   CAVE_SPIDER:
     physical_defense: 6
     magic_defense: 0
     attack_power: 2
+    reward_min: 3
+    reward_max: 8
+    reward_chance: 70
   CREEPER:
     physical_defense: 15
     magic_defense: 0
     attack_power: 10
+    reward_min: 8
+    reward_max: 15
+    reward_chance: 90
   SLIME:
     physical_defense: 5
     magic_defense: 10
     attack_power: 2
+    reward_min: 1
+    reward_max: 4
+    reward_chance: 50
   PHANTOM:
     physical_defense: 12
     magic_defense: 15
     attack_power: 4
+    reward_min: 8
+    reward_max: 15
+    reward_chance: 80
   SILVERFISH:
     physical_defense: 3
     magic_defense: 0
     attack_power: 1
+    reward_min: 1
+    reward_max: 2
+    reward_chance: 30
   ENDERMITE:
     physical_defense: 3
     magic_defense: 5
     attack_power: 1
+    reward_min: 2
+    reward_max: 5
+    reward_chance: 40
 
   # === Illagers ===
   PILLAGER:
     physical_defense: 15
     magic_defense: 10
     attack_power: 4
+    reward_min: 10
+    reward_max: 20
+    reward_chance: 85
   VINDICATOR:
     physical_defense: 25
     magic_defense: 10
     attack_power: 8
+    reward_min: 20
+    reward_max: 35
+    reward_chance: 90
   EVOKER:
     physical_defense: 20
     magic_defense: 35
     attack_power: 6
+    reward_min: 40
+    reward_max: 70
+    reward_chance: 95
   RAVAGER:
     physical_defense: 40
     magic_defense: 20
     attack_power: 12
+    reward_min: 80
+    reward_max: 120
+    reward_chance: 100
   VEX:
     physical_defense: 5
     magic_defense: 20
     attack_power: 4
+    reward_min: 3
+    reward_max: 8
+    reward_chance: 50
   WITCH:
     physical_defense: 15
     magic_defense: 40
     attack_power: 5
+    reward_min: 15
+    reward_max: 30
+    reward_chance: 85
 
   # === Nether Mobs ===
   ZOMBIFIED_PIGLIN:
     physical_defense: 15
     magic_defense: 10
     attack_power: 5
+    reward_min: 5
+    reward_max: 12
+    reward_chance: 60
   PIGLIN:
     physical_defense: 18
     magic_defense: 10
     attack_power: 5
+    reward_min: 8
+    reward_max: 18
+    reward_chance: 70
   PIGLIN_BRUTE:
     physical_defense: 35
     magic_defense: 15
     attack_power: 13
+    reward_min: 30
+    reward_max: 50
+    reward_chance: 90
   WITHER_SKELETON:
     physical_defense: 30
     magic_defense: 20
     attack_power: 8
+    reward_min: 20
+    reward_max: 40
+    reward_chance: 80
   BLAZE:
     physical_defense: 20
     magic_defense: 40
     attack_power: 6
+    reward_min: 12
+    reward_max: 25
+    reward_chance: 75
   GHAST:
     physical_defense: 15
     magic_defense: 30
     attack_power: 8
+    reward_min: 15
+    reward_max: 30
+    reward_chance: 80
   MAGMA_CUBE:
     physical_defense: 20
     magic_defense: 25
     attack_power: 4
+    reward_min: 3
+    reward_max: 10
+    reward_chance: 50
   HOGLIN:
     physical_defense: 25
     magic_defense: 10
     attack_power: 8
+    reward_min: 15
+    reward_max: 30
+    reward_chance: 80
   ZOGLIN:
     physical_defense: 25
     magic_defense: 10
     attack_power: 8
+    reward_min: 10
+    reward_max: 25
+    reward_chance: 70
   STRIDER:
     physical_defense: 10
     magic_defense: 15
     attack_power: 0
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
 
   # === End Mobs ===
   ENDERMAN:
     physical_defense: 25
     magic_defense: 30
     attack_power: 7
+    reward_min: 15
+    reward_max: 30
+    reward_chance: 85
   SHULKER:
     physical_defense: 40
     magic_defense: 40
     attack_power: 4
+    reward_min: 20
+    reward_max: 40
+    reward_chance: 80
   ENDER_DRAGON:
     physical_defense: 60
     magic_defense: 50
     attack_power: 15
+    reward_min: 800
+    reward_max: 1500
+    reward_chance: 100
 
   # === Special Mobs ===
   WARDEN:
     physical_defense: 80
     magic_defense: 60
     attack_power: 30
+    reward_min: 200
+    reward_max: 400
+    reward_chance: 100
   WITHER:
     physical_defense: 50
     magic_defense: 50
     attack_power: 12
+    reward_min: 400
+    reward_max: 800
+    reward_chance: 100
   ELDER_GUARDIAN:
     physical_defense: 45
     magic_defense: 40
     attack_power: 8
+    reward_min: 60
+    reward_max: 100
+    reward_chance: 100
   GUARDIAN:
     physical_defense: 20
     magic_defense: 25
     attack_power: 4
+    reward_min: 8
+    reward_max: 18
+    reward_chance: 70
 
   # === Ocean/River Mobs ===
   DOLPHIN:
     physical_defense: 5
     magic_defense: 5
     attack_power: 2
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
   PUFFERFISH:
     physical_defense: 3
     magic_defense: 10
     attack_power: 2
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
 
   # === Wolves/Dogs ===
   WOLF:
     physical_defense: 8
     magic_defense: 5
     attack_power: 4
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
 
   # === Snow Golem ===
   SNOW_GOLEM:
     physical_defense: 5
     magic_defense: 15
     attack_power: 0
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
 
   # === Misc Hostile ===
   BEE:
     physical_defense: 5
     magic_defense: 5
     attack_power: 2
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
   POLAR_BEAR:
     physical_defense: 15
     magic_defense: 5
     attack_power: 6
+    reward_min: 5
+    reward_max: 15
+    reward_chance: 60
 
-  # === Passive Animals (VengefulMobs) ===
-  # These animals can fight back when attacked (see config.yml vengeful_mobs)
+  # === Passive Animals ===
+  # No rewards for passive animals
   CHICKEN:
     physical_defense: 2
     magic_defense: 0
     attack_power: 1
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
   RABBIT:
     physical_defense: 2
     magic_defense: 0
     attack_power: 1
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
   PIG:
     physical_defense: 5
     magic_defense: 0
     attack_power: 2
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
   SHEEP:
     physical_defense: 5
     magic_defense: 0
     attack_power: 2
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
   COW:
     physical_defense: 8
     magic_defense: 0
     attack_power: 3
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
   MOOSHROOM:
     physical_defense: 8
     magic_defense: 5
     attack_power: 3
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
   HORSE:
     physical_defense: 12
     magic_defense: 5
     attack_power: 4
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
   DONKEY:
     physical_defense: 10
     magic_defense: 5
     attack_power: 3
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
   MULE:
     physical_defense: 11
     magic_defense: 5
     attack_power: 3
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
   LLAMA:
     physical_defense: 10
     magic_defense: 5
     attack_power: 1
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
   GOAT:
     physical_defense: 10
     magic_defense: 5
     attack_power: 4
+    reward_min: 0
+    reward_max: 0
+    reward_chance: 0
 
   # === Breeze (1.21+) ===
   BREEZE:
     physical_defense: 25
     magic_defense: 35
     attack_power: 5
+    reward_min: 15
+    reward_max: 30
+    reward_chance: 80
 
   # === Default for unlisted mobs ===
   DEFAULT:
     physical_defense: 10
     magic_defense: 10
     attack_power: 3
+    reward_min: 1
+    reward_max: 5
+    reward_chance: 50

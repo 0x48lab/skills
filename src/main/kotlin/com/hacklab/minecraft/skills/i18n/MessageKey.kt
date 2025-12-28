@@ -169,6 +169,10 @@ enum class MessageKey(val path: String) {
     // Cooldown
     COOLDOWN_ACTIVE("cooldown.active"),
 
+    // Economy
+    ECONOMY_MOB_REWARD("economy.mob_reward"),
+    ECONOMY_CHUNK_LIMIT_REACHED("economy.chunk_limit_reached"),
+
     // Common
     COMMON_YES("common.yes"),
     COMMON_NO("common.no"),
