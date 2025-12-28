@@ -1,7 +1,7 @@
 # Weapon Configuration
 # base_damage: Base damage before any modifiers
-# skill: The skill type used for this weapon (SWORDSMANSHIP, AXE, MACE_FIGHTING, ARCHERY, THROWING, WRESTLING)
-# weapon_type: Weapon category (SWORD, AXE, MACE, BOW, CROSSBOW, TRIDENT, FIST)
+# skill: The skill type used for this weapon (SWORDSMANSHIP, AXE, MACE_FIGHTING, SPEAR, ARCHERY, THROWING, WRESTLING)
+# weapon_type: Weapon category (SWORD, AXE, MACE, SPEAR, BOW, CROSSBOW, TRIDENT, FIST)
 
 weapons:
   # === Swords ===
@@ -61,6 +61,33 @@ weapons:
     base_damage: 7
     skill: MACE_FIGHTING
     weapon_type: MACE
+
+  # === Spears (1.21.5+) ===
+  # Long reach melee weapon with jab and charge attacks
+  WOODEN_SPEAR:
+    base_damage: 4
+    skill: SPEAR
+    weapon_type: SPEAR
+  STONE_SPEAR:
+    base_damage: 5
+    skill: SPEAR
+    weapon_type: SPEAR
+  IRON_SPEAR:
+    base_damage: 6
+    skill: SPEAR
+    weapon_type: SPEAR
+  GOLDEN_SPEAR:
+    base_damage: 4
+    skill: SPEAR
+    weapon_type: SPEAR
+  DIAMOND_SPEAR:
+    base_damage: 7
+    skill: SPEAR
+    weapon_type: SPEAR
+  NETHERITE_SPEAR:
+    base_damage: 8
+    skill: SPEAR
+    weapon_type: SPEAR
 
   # === Ranged Weapons ===
   # Balanced with penalties: distance falloff, movement penalty, can be blocked by shields
