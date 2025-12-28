@@ -175,11 +175,7 @@ mobs:
     magic_defense: 5
     attack_power: 4
 
-  # === Iron/Snow Golems ===
-  IRON_GOLEM:
-    physical_defense: 50
-    magic_defense: 30
-    attack_power: 21
+  # === Snow Golem ===
   SNOW_GOLEM:
     physical_defense: 5
     magic_defense: 15
