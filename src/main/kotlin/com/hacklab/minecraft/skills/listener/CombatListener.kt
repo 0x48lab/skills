@@ -12,6 +12,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.entity.EntityRegainHealthEvent
+import org.bukkit.event.entity.EntityShootBowEvent
 
 class CombatListener(private val plugin: Skills) : Listener {
 
@@ -30,6 +31,13 @@ class CombatListener(private val plugin: Skills) : Listener {
         // Determine if this is a ranged attack
         val isRangedAttack = damager is Projectile
 
+        // Calculate distance for ranged attacks
+        val distance = if (isRangedAttack && attacker != null) {
+            attacker.location.distance(target.location)
+        } else {
+            0.0
+        }
+
         // Player attacking
         if (attacker != null && target is LivingEntity) {
             // Break hiding on attack
@@ -41,8 +49,10 @@ class CombatListener(private val plugin: Skills) : Listener {
 
             val result = if (isRangedAttack) {
                 // Ranged attack - hit is already determined by vanilla
+                // Pass distance for falloff calculation and movement penalty
+                val wasMoving = plugin.combatManager.wasShooterMoving(damager.uniqueId)
                 plugin.combatManager.processRangedAttack(
-                    attacker, target, weapon, event.damage
+                    attacker, target, weapon, event.damage, distance, wasMoving
                 )
             } else {
                 // Melee attack - use UO hit chance system
@@ -73,8 +83,9 @@ class CombatListener(private val plugin: Skills) : Listener {
             val isMagic = event.cause == EntityDamageEvent.DamageCause.MAGIC ||
                     event.cause == EntityDamageEvent.DamageCause.DRAGON_BREATH
 
+            // Check if this is a projectile attack (arrows can be blocked with shield)
             val defenseResult = plugin.combatManager.processPlayerDefense(
-                target, attacker, event.damage, isMagic
+                target, attacker, event.damage, isMagic, isRangedAttack
             )
 
             // Apply damage to internal HP
@@ -151,6 +162,21 @@ class CombatListener(private val plugin: Skills) : Listener {
         // Process kill for skill gains (Anatomy)
         if (killer != null) {
             plugin.combatManager.processKill(killer, entity)
+        }
+    }
+
+    /**
+     * Track player movement state when shooting bow/crossbow
+     * Used to apply movement penalty to ranged attacks
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    fun onEntityShootBow(event: EntityShootBowEvent) {
+        val shooter = event.entity
+        val projectile = event.projectile
+
+        if (shooter is Player) {
+            val wasMoving = plugin.combatManager.isPlayerMoving(shooter)
+            plugin.combatManager.recordProjectileShot(projectile.uniqueId, wasMoving)
         }
     }
 }

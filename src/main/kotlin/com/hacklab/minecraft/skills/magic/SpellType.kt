@@ -26,61 +26,66 @@ enum class SpellType(
     val displayName: String,
     val circle: SpellCircle,
     val targetType: SpellTargetType,
-    val reagents: List<Material>
+    val reagents: List<Material>,
+    val powerWords: String,      // UO-style incantation
+    val baseDamage: Double = 0.0 // Base damage for attack spells
 ) {
-    // Attack spells
+    // Attack spells - higher damage to compensate for reagent cost
     MAGIC_ARROW("Magic Arrow", SpellCircle.FIRST, SpellTargetType.TARGET_LOCATION,
-        listOf(Material.STRING)),
+        listOf(Material.STRING), "In Por Ylem", 20.0),
     HARM("Harm", SpellCircle.SECOND, SpellTargetType.TARGET_ENTITY,
-        listOf(Material.SPIDER_EYE)),
+        listOf(Material.SPIDER_EYE), "An Mani", 35.0),
     FIREBALL("Fireball", SpellCircle.THIRD, SpellTargetType.TARGET_LOCATION,
-        listOf(Material.GUNPOWDER, Material.SPIDER_EYE)),
+        listOf(Material.GUNPOWDER, Material.SPIDER_EYE), "Vas Flam", 50.0),
     LIGHTNING("Lightning", SpellCircle.FOURTH, SpellTargetType.TARGET_LOCATION,
-        listOf(Material.GUNPOWDER, Material.BLAZE_POWDER)),
+        listOf(Material.GUNPOWDER, Material.BLAZE_POWDER), "Por Ort Grav", 65.0),
     FIRE_WALL("Fire Wall", SpellCircle.FOURTH, SpellTargetType.TARGET_LOCATION,
-        listOf(Material.BLAZE_POWDER, Material.BLAZE_POWDER, Material.SPIDER_EYE)),
+        listOf(Material.BLAZE_POWDER, Material.BLAZE_POWDER, Material.SPIDER_EYE), "Kal Vas Flam", 40.0),
+    ENERGY_BOLT("Energy Bolt", SpellCircle.FIFTH, SpellTargetType.TARGET_ENTITY,
+        listOf(Material.SPIDER_EYE, Material.BLAZE_POWDER), "Corp Por", 80.0),
     MIND_BLAST("Mind Blast", SpellCircle.FIFTH, SpellTargetType.TARGET_ENTITY,
-        listOf(Material.SPIDER_EYE, Material.BLAZE_POWDER)),
+        listOf(Material.SPIDER_EYE, Material.NETHER_WART), "Por Corp Wis", 0.0), // Mana damage, not HP
     EXPLOSION("Explosion", SpellCircle.SIXTH, SpellTargetType.AREA,
-        listOf(Material.GUNPOWDER, Material.BLAZE_POWDER)),
+        listOf(Material.GUNPOWDER, Material.BLAZE_POWDER), "Vas Ort Flam", 90.0),
     METEOR_SWARM("Meteor Swarm", SpellCircle.EIGHTH, SpellTargetType.AREA,
-        listOf(Material.GUNPOWDER, Material.BLAZE_POWDER, Material.BLAZE_POWDER, Material.BLAZE_POWDER)),
+        listOf(Material.GUNPOWDER, Material.BLAZE_POWDER, Material.BLAZE_POWDER, Material.BLAZE_POWDER),
+        "Kal Des Flam Ylem", 130.0),
 
     // Healing spells (can target self or others)
     HEAL("Heal", SpellCircle.FIRST, SpellTargetType.TARGET_ENTITY,
-        listOf(Material.GOLDEN_CARROT)),
+        listOf(Material.GOLDEN_CARROT), "In Mani"),
     CURE("Cure", SpellCircle.SECOND, SpellTargetType.TARGET_ENTITY,
-        listOf(Material.GOLDEN_CARROT, Material.POISONOUS_POTATO)),
+        listOf(Material.GOLDEN_CARROT, Material.POISONOUS_POTATO), "An Nox"),
     GREATER_HEAL("Greater Heal", SpellCircle.FOURTH, SpellTargetType.TARGET_ENTITY,
-        listOf(Material.GOLDEN_CARROT, Material.GOLDEN_CARROT)),
+        listOf(Material.GOLDEN_CARROT, Material.GOLDEN_CARROT), "In Vas Mani"),
 
     // Buff spells (can target self or others)
     BLESS("Bless", SpellCircle.THIRD, SpellTargetType.TARGET_ENTITY,
-        listOf(Material.NETHER_WART)),
+        listOf(Material.NETHER_WART), "Rel Sanct"),
     PROTECTION("Protection", SpellCircle.FIFTH, SpellTargetType.TARGET_ENTITY,
-        listOf(Material.NETHER_WART, Material.STRING)),
+        listOf(Material.NETHER_WART, Material.STRING), "Uus Sanct"),
     INVISIBILITY("Invisibility", SpellCircle.SIXTH, SpellTargetType.TARGET_ENTITY,
-        listOf(Material.NETHER_WART, Material.BLAZE_POWDER)),
+        listOf(Material.NETHER_WART, Material.BLAZE_POWDER), "An Lor Xen"),
 
     // Utility spells
     CREATE_FOOD("Create Food", SpellCircle.FIRST, SpellTargetType.SELF,
-        listOf(Material.WHEAT)),
+        listOf(Material.WHEAT), "In Mani Ylem"),
     NIGHT_SIGHT("Night Sight", SpellCircle.FIRST, SpellTargetType.SELF,
-        listOf(Material.GLOWSTONE_DUST)),
+        listOf(Material.GLOWSTONE_DUST), "In Lor"),
     FEATHER_FALL("Feather Fall", SpellCircle.SECOND, SpellTargetType.TARGET_ENTITY,
-        listOf(Material.FEATHER)),
+        listOf(Material.FEATHER), "Rel Des Por"),
     WATER_BREATHING("Water Breathing", SpellCircle.THIRD, SpellTargetType.TARGET_ENTITY,
-        listOf(Material.PUFFERFISH)),
+        listOf(Material.PUFFERFISH), "Vas An Ort"),
     TELEPORT("Teleport", SpellCircle.THIRD, SpellTargetType.TARGET_LOCATION,
-        listOf(Material.ENDER_PEARL)),
+        listOf(Material.ENDER_PEARL), "Rel Por"),
     MARK("Mark", SpellCircle.FIFTH, SpellTargetType.TARGET_ITEM,
-        listOf(Material.ENDER_PEARL, Material.BLAZE_POWDER)),
+        listOf(Material.ENDER_PEARL, Material.BLAZE_POWDER), "Kal Por Ylem"),
     RECALL("Recall", SpellCircle.FIFTH, SpellTargetType.TARGET_ITEM,
-        listOf(Material.ENDER_PEARL)),
+        listOf(Material.ENDER_PEARL), "Kal Ort Por"),
     PARALYZE("Paralyze", SpellCircle.FIFTH, SpellTargetType.TARGET_ENTITY,
-        listOf(Material.SPIDER_EYE, Material.STRING)),
+        listOf(Material.SPIDER_EYE, Material.STRING), "An Ex Por"),
     GATE_TRAVEL("Gate Travel", SpellCircle.SEVENTH, SpellTargetType.TARGET_ITEM,
-        listOf(Material.ENDER_PEARL, Material.ENDER_PEARL, Material.BLAZE_POWDER));
+        listOf(Material.ENDER_PEARL, Material.ENDER_PEARL, Material.BLAZE_POWDER), "Vas Rel Por");
 
     val baseMana: Int get() = circle.baseMana
     val difficulty: Int get() = circle.number * 10

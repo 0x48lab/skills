@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Bow/Crossbow Balance System**
+  - Distance falloff: 100% at 0-15 blocks, linear to 50% at 15-30 blocks, 50% at 30+
+  - Movement penalty: -30% damage when shooting while moving
+  - Projectile shield parrying: Parrying × 0.6 (max 60%), 50% damage reduction
+  - Crossbow base damage increased to 10 (from 9), bow stays at 6
+
+- **Energy Bolt Spell** (5th Circle)
+  - Single-target direct damage spell
+  - Base damage: 80 (highest single-target spell)
+  - Reagents: Spider Eye + Blaze Powder
+  - Power Words: "Corp Por"
+
+- **Power Words System**
+  - UO-style incantations broadcast to nearby players when casting
+  - Each spell has unique power words (e.g., "Vas Flam" for Fireball)
+
 - **Librarian Villager Trades**
   - Librarians now sell spellbooks and scrolls
   - Level 1: C1 scroll (5-8 emeralds)
@@ -63,6 +79,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added BOGGED (1.21 swamp skeleton variant)
 
 ### Changed
+- **Magic Spell Base Damage Rebalance**
+  - Increased base damage for all attack spells to compensate for reagent costs
+  - Magic Arrow: 2 → 20, Harm: 4 → 35, Fireball: 6 → 50
+  - Lightning: 8 → 65, Fire Wall: 40, Energy Bolt: 80
+  - Explosion: 10 → 90, Meteor Swarm: 15 → 130
+  - Magic now stronger than bow/crossbow to justify reagent consumption
+
+- **Targeting Time Reverted**
+  - Targeting time back to 5 seconds (was briefly 2 seconds)
+  - Since spells fire immediately on click, shorter timeout just made players rushed
+
+- **CLAUDE.md Specification Updates**
+  - Updated combat damage formula to match implementation
+  - Updated armor table (STR requirements, DEX penalties) to match armor.yml
+  - Added bow/crossbow balance section with penalties
+  - Fixed outdated magic base damage table
+
 - **Swimming Skill Balance**
   - Swimming skill now only gains on drowning damage (not every air tick)
   - Previously gained too fast due to air change events firing every tick

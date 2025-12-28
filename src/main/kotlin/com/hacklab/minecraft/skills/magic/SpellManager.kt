@@ -221,8 +221,7 @@ class SpellManager(private val plugin: Skills) {
                 val direction = targetLoc.clone().subtract(eyeLoc).toVector().normalize()
                 val maxDistance = 30.0
                 val speed = 1.0  // blocks per tick
-                val baseDamage = 2.0
-                val calculatedDamage = StatCalculator.calculateMagicDamage(baseDamage, magerySkill, evalIntSkill)
+                val calculatedDamage = StatCalculator.calculateMagicDamage(spell.baseDamage, magerySkill, evalIntSkill)
 
                 // Play launch sound
                 world.playSound(eyeLoc, Sound.ENTITY_ARROW_SHOOT, 1.0f, 1.5f)
@@ -289,13 +288,27 @@ class SpellManager(private val plugin: Skills) {
 
             SpellType.HARM -> {
                 entityTarget?.let { target ->
-                    val baseDamage = 4.0
-                    val damage = StatCalculator.calculateMagicDamage(baseDamage, magerySkill, evalIntSkill)
+                    val damage = StatCalculator.calculateMagicDamage(spell.baseDamage, magerySkill, evalIntSkill)
                     applyMagicDamage(caster, target, damage)
                     // Visual: Dark damage effect
                     target.world.spawnParticle(Particle.DAMAGE_INDICATOR, target.location.add(0.0, 1.0, 0.0), 15, 0.3, 0.5, 0.3, 0.1)
                     target.world.spawnParticle(Particle.SMOKE, target.location.add(0.0, 1.0, 0.0), 10, 0.3, 0.5, 0.3, 0.05)
                     target.world.playSound(target.location, Sound.ENTITY_PLAYER_HURT, 1.0f, 0.8f)
+                }
+            }
+
+            SpellType.ENERGY_BOLT -> {
+                entityTarget?.let { target ->
+                    val damage = StatCalculator.calculateMagicDamage(spell.baseDamage, magerySkill, evalIntSkill)
+                    applyMagicDamage(caster, target, damage)
+                    // Visual: Purple energy bolt effect
+                    val world = target.world
+                    val targetLoc = target.location.add(0.0, 1.0, 0.0)
+                    world.spawnParticle(Particle.DRAGON_BREATH, targetLoc, 30, 0.3, 0.5, 0.3, 0.1)
+                    world.spawnParticle(Particle.END_ROD, targetLoc, 20, 0.4, 0.6, 0.4, 0.05)
+                    world.spawnParticle(Particle.PORTAL, targetLoc, 25, 0.3, 0.5, 0.3, 0.2)
+                    world.playSound(target.location, Sound.ENTITY_ENDERMAN_HURT, 1.0f, 1.5f)
+                    world.playSound(target.location, Sound.ENTITY_ELDER_GUARDIAN_CURSE, 0.5f, 2.0f)
                 }
             }
 
@@ -309,8 +322,7 @@ class SpellManager(private val plugin: Skills) {
                 val direction = targetLoc.clone().subtract(eyeLoc).toVector().normalize()
                 val maxDistance = 40.0
                 val speed = 0.8  // blocks per tick (slower than magic arrow)
-                val baseDamage = 6.0
-                val calculatedDamage = StatCalculator.calculateMagicDamage(baseDamage, magerySkill, evalIntSkill)
+                val calculatedDamage = StatCalculator.calculateMagicDamage(spell.baseDamage, magerySkill, evalIntSkill)
 
                 // Play launch sound
                 world.playSound(eyeLoc, Sound.ENTITY_BLAZE_SHOOT, 1.0f, 1.0f)
@@ -383,8 +395,7 @@ class SpellManager(private val plugin: Skills) {
                 // Strike lightning at target location or entity
                 val targetLoc = entityTarget?.location ?: locationTarget ?: return
                 val world = targetLoc.world ?: return
-                val baseDamage = 8.0
-                val damage = StatCalculator.calculateMagicDamage(baseDamage, magerySkill, evalIntSkill)
+                val damage = StatCalculator.calculateMagicDamage(spell.baseDamage, magerySkill, evalIntSkill)
 
                 // Strike lightning effect
                 world.strikeLightningEffect(targetLoc)
@@ -411,8 +422,8 @@ class SpellManager(private val plugin: Skills) {
                 val wallLength = 4  // 4 blocks wide
                 val durationSeconds = 10 + (magerySkill / 10).toInt()  // 10-20 seconds
                 val durationTicks = durationSeconds * 20
-                val baseDamage = 2.0
-                val calculatedDamage = StatCalculator.calculateMagicDamage(baseDamage, magerySkill, evalIntSkill)
+                // Fire Wall does damage per tick, so use lower per-tick damage
+                val perTickDamage = StatCalculator.calculateMagicDamage(spell.baseDamage / 10.0, magerySkill, evalIntSkill)
 
                 // Calculate wall positions (capture as primitive values)
                 val wallPositions = mutableListOf<Triple<Double, Double, Double>>()
@@ -471,9 +482,9 @@ class SpellManager(private val plugin: Skills) {
                                 world.getNearbyEntities(pos, 1.0, 2.0, 1.0).forEach { entity ->
                                     if (entity is LivingEntity) {
                                         if (entity is Player) {
-                                            applyMagicDamage(casterRef, entity, calculatedDamage)
+                                            applyMagicDamage(casterRef, entity, perTickDamage)
                                         } else {
-                                            entity.damage(calculatedDamage, casterRef)
+                                            entity.damage(perTickDamage, casterRef)
                                         }
                                         entity.fireTicks = 60  // Set on fire
                                     }
@@ -505,10 +516,9 @@ class SpellManager(private val plugin: Skills) {
                 val radius = 5.0
                 targetLoc.world?.getNearbyEntities(targetLoc, radius, radius, radius)?.forEach { entity ->
                     if (entity is LivingEntity && entity != caster) {
-                        val baseDamage = 6.0
                         val distance = entity.location.distance(targetLoc)
                         val falloff = 1.0 - (distance / radius)
-                        val damage = StatCalculator.calculateMagicDamage(baseDamage * falloff, magerySkill, evalIntSkill)
+                        val damage = StatCalculator.calculateMagicDamage(spell.baseDamage * falloff, magerySkill, evalIntSkill)
                         applyMagicDamage(caster, entity, damage)
                     }
                 }
@@ -521,10 +531,9 @@ class SpellManager(private val plugin: Skills) {
                 val radius = 8.0
                 targetLoc.world?.getNearbyEntities(targetLoc, radius, radius, radius)?.forEach { entity ->
                     if (entity is LivingEntity && entity != caster) {
-                        val baseDamage = 10.0
                         val distance = entity.location.distance(targetLoc)
                         val falloff = 1.0 - (distance / radius)
-                        val damage = StatCalculator.calculateMagicDamage(baseDamage * falloff, magerySkill, evalIntSkill)
+                        val damage = StatCalculator.calculateMagicDamage(spell.baseDamage * falloff, magerySkill, evalIntSkill)
                         applyMagicDamage(caster, entity, damage)
                         entity.fireTicks = 100
                     }

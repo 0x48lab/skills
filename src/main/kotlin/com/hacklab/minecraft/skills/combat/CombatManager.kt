@@ -29,6 +29,38 @@ class CombatManager(private val plugin: Skills) {
         const val MIN_HIT_CHANCE = 5.0
         const val MAX_HIT_CHANCE = 95.0
         const val CRITICAL_MULTIPLIER = 2.0  // UO-style: crits deal double damage
+        const val MOVEMENT_PENALTY = 0.7  // 30% damage reduction when moving while shooting
+        const val MOVEMENT_THRESHOLD = 0.1  // Velocity threshold to consider "moving"
+    }
+
+    // Track shooter movement state for projectiles (projectile UUID -> was moving)
+    private val projectileMovementState = java.util.concurrent.ConcurrentHashMap<java.util.UUID, Boolean>()
+
+    /**
+     * Record if player was moving when shooting a projectile
+     */
+    fun recordProjectileShot(projectileId: java.util.UUID, wasMoving: Boolean) {
+        projectileMovementState[projectileId] = wasMoving
+        // Clean up after 30 seconds to prevent memory leak
+        plugin.server.scheduler.runTaskLater(plugin, Runnable {
+            projectileMovementState.remove(projectileId)
+        }, 600L)
+    }
+
+    /**
+     * Check if shooter was moving when the projectile was shot
+     */
+    fun wasShooterMoving(projectileId: java.util.UUID): Boolean {
+        return projectileMovementState.remove(projectileId) ?: false
+    }
+
+    /**
+     * Check if player is currently moving (for shooting penalty)
+     */
+    fun isPlayerMoving(player: Player): Boolean {
+        val velocity = player.velocity
+        val horizontalSpeed = kotlin.math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z)
+        return horizontalSpeed > MOVEMENT_THRESHOLD
     }
 
     /**
@@ -82,6 +114,25 @@ class CombatManager(private val plugin: Skills) {
                 // Unarmed: cannot parry
                 0.0
             }
+        }
+    }
+
+    /**
+     * Calculate parry chance for projectiles (arrows/bolts)
+     * Only shields can block projectiles - weapons cannot parry arrows
+     * - Shield: Parrying * 0.6 (max 60%) - slightly higher than melee
+     * - No shield: 0%
+     */
+    fun calculateProjectileParryChance(player: Player, parryingSkill: Double): Double {
+        val offHand = player.inventory.itemInOffHand
+
+        // Only shields can block projectiles
+        return if (offHand.type == org.bukkit.Material.SHIELD) {
+            // Shield block: skill * 0.6, max 60%
+            (parryingSkill * 0.6).coerceAtMost(60.0)
+        } else {
+            // Cannot block projectiles without shield
+            0.0
         }
     }
 
@@ -264,12 +315,15 @@ class CombatManager(private val plugin: Skills) {
 
     /**
      * Process ranged attack (bow/crossbow) from player to entity
+     * Includes distance falloff and movement penalty for balance
      */
     fun processRangedAttack(
         attacker: Player,
         target: LivingEntity,
         weapon: ItemStack?,
-        projectileDamage: Double
+        projectileDamage: Double,
+        distance: Double = 0.0,
+        wasMoving: Boolean = false
     ): AttackResult {
         // For ranged, we use the projectile damage as base but still apply our modifiers
         // Hit is already determined by vanilla projectile hit detection
@@ -307,6 +361,9 @@ class CombatManager(private val plugin: Skills) {
         // Use projectile damage as base (vanilla arrow damage varies by draw strength)
         val baseDamage = projectileDamage.coerceAtLeast(1.0)
 
+        // Apply distance falloff (damage reduction beyond 15 blocks)
+        val distanceFalloff = calculateDistanceFalloff(distance)
+
         val damageResult = calculateDamage(
             baseDamage = baseDamage,
             str = str,
@@ -317,6 +374,12 @@ class CombatManager(private val plugin: Skills) {
             targetDefense = targetDefense
         )
 
+        // Apply movement penalty (30% damage reduction when shooting while moving)
+        val movementMod = if (wasMoving) MOVEMENT_PENALTY else 1.0
+
+        // Apply distance falloff and movement penalty to final damage
+        val finalDamage = damageResult.damage * distanceFalloff * movementMod
+
         // Skill gains for ranged (hit is confirmed by vanilla)
         plugin.skillManager.tryGainSkill(attacker, weaponSkillType, difficulty)
         plugin.skillManager.tryGainSkill(attacker, SkillType.TACTICS, difficulty)
@@ -326,7 +389,7 @@ class CombatManager(private val plugin: Skills) {
         }
 
         return AttackResult(
-            damage = damageResult.damage,
+            damage = finalDamage,
             isCritical = damageResult.isCritical,
             isHit = true,
             hitChance = 100.0, // Already hit via vanilla
@@ -335,23 +398,45 @@ class CombatManager(private val plugin: Skills) {
     }
 
     /**
+     * Calculate distance falloff for ranged attacks
+     * - 0-15 blocks: 100% damage
+     * - 15-30 blocks: Linear falloff to 50%
+     * - 30+ blocks: 50% damage (minimum)
+     */
+    fun calculateDistanceFalloff(distance: Double): Double {
+        return when {
+            distance <= 15.0 -> 1.0
+            distance <= 30.0 -> 1.0 - ((distance - 15.0) / 30.0)  // 100% to 50%
+            else -> 0.5
+        }
+    }
+
+    /**
      * Process damage received by player
+     * @param isProjectile true if damage is from arrow/bolt (can be parried with shield)
      */
     fun processPlayerDefense(
         defender: Player,
         attacker: Entity?,
         baseDamage: Double,
-        isMagicDamage: Boolean = false
+        isMagicDamage: Boolean = false,
+        isProjectile: Boolean = false
     ): DefenseResult {
         val defenderData = plugin.playerDataManager.getPlayerData(defender)
         var finalDamage = baseDamage
 
         // Check parrying (only for physical damage - UO style)
+        // Projectiles can be parried with shield only
         if (!isMagicDamage) {
             val parryingSkill = defenderData.getSkillValue(SkillType.PARRYING)
 
             // UO-style parry chance depends on equipment
-            val parryChance = calculateParryChance(defender, parryingSkill)
+            // For projectiles, only shields work (weapons cannot parry arrows)
+            val parryChance = if (isProjectile) {
+                calculateProjectileParryChance(defender, parryingSkill)
+            } else {
+                calculateParryChance(defender, parryingSkill)
+            }
 
             if (parryChance > 0 && Random.nextDouble() * 100 < parryChance) {
                 // Successful parry - reduce damage by 50%

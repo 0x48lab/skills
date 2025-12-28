@@ -63,12 +63,13 @@ weapons:
     weapon_type: MACE
 
   # === Ranged Weapons ===
+  # Balanced with penalties: distance falloff, movement penalty, can be blocked by shields
   BOW:
     base_damage: 6
     skill: ARCHERY
     weapon_type: BOW
   CROSSBOW:
-    base_damage: 9
+    base_damage: 10
     skill: ARCHERY
     weapon_type: CROSSBOW
 

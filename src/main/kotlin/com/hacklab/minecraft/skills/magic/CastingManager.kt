@@ -73,6 +73,9 @@ class CastingManager(private val plugin: Skills) {
         // Start casting progress task
         startCastingProgress(player, state)
 
+        // Announce Power Words (UO-style incantation)
+        broadcastPowerWords(player, spell)
+
         // Play casting start sound
         player.world.playSound(player.location, Sound.BLOCK_ENCHANTMENT_TABLE_USE, 0.5f, 1.2f)
 
@@ -282,6 +285,30 @@ class CastingManager(private val plugin: Skills) {
     fun cleanup() {
         castingStates.keys.forEach { playerId ->
             cancelCasting(playerId, silent = true)
+        }
+    }
+
+    /**
+     * Broadcast Power Words to nearby players (UO-style)
+     * The caster speaks the incantation aloud
+     */
+    private fun broadcastPowerWords(caster: Player, spell: SpellType) {
+        val powerWords = spell.powerWords
+        val message = Component.text("* ${caster.name}: ").color(NamedTextColor.GRAY)
+            .append(Component.text(powerWords).color(NamedTextColor.LIGHT_PURPLE).decorate(net.kyori.adventure.text.format.TextDecoration.ITALIC))
+            .append(Component.text(" *").color(NamedTextColor.GRAY))
+
+        // Broadcast to nearby players (within 20 blocks)
+        val nearbyPlayers = caster.world.getNearbyEntities(caster.location, 20.0, 20.0, 20.0)
+            .filterIsInstance<Player>()
+
+        nearbyPlayers.forEach { player ->
+            player.sendMessage(message)
+        }
+
+        // Also show to the caster themselves if not in the list
+        if (caster !in nearbyPlayers) {
+            caster.sendMessage(message)
         }
     }
 }
