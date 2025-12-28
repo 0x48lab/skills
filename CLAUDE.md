@@ -732,6 +732,9 @@ INTボーナス = INT / 5
 | Nightshade | スパイダーアイ | 攻撃・毒系 |
 | Spider's Silk | 糸 | 束縛・防御 |
 | Sulphurous Ash | ガンパウダー | 火・爆発系 |
+| - | 小麦 | 食料生成 |
+| - | 羽 | 浮遊系 |
+| - | フグ | 水中系 |
 
 #### 魔法ごとの必要触媒
 | 魔法 | 触媒 |
@@ -755,16 +758,21 @@ INTボーナス = INT / 5
 | Recall | エンダーパール |
 | Paralyze | スパイダーアイ + 糸 |
 | Gate Travel | エンダーパール ×2 + ブレイズパウダー |
+| Create Food | 小麦 |
+| Feather Fall | 羽 |
+| Water Breathing | フグ |
+| Fire Wall | ブレイズパウダー ×2 + スパイダーアイ |
 
 ### 魔法一覧
 
 #### 攻撃魔法
 | 魔法 | サークル | 効果 | マナ消費 |
 |-----|---------|------|---------|
-| Magic Arrow | 1st | 単体小ダメージ | 1 |
+| Magic Arrow | 1st | 地点指定小ダメージ | 1 |
 | Harm | 2nd | 単体中ダメージ | 2 |
-| Fireball | 3rd | 単体火炎ダメージ + 炎上 | 3 |
-| Lightning | 4th | 単体大ダメージ | 4 |
+| Fireball | 3rd | 地点指定火炎ダメージ + 炎上 | 3 |
+| Lightning | 4th | 地点指定大ダメージ | 4 |
+| Fire Wall | 4th | 地点指定火の壁（範囲炎上） | 4 |
 | Mind Blast | 5th | 対象のマナ（空腹）を減少 | 5 |
 | Explosion | 6th | 範囲ダメージ | 6 |
 | Meteor Swarm | 8th | 大範囲ダメージ | 8 |
@@ -782,8 +790,11 @@ INTボーナス = INT / 5
 #### 移動・ユーティリティ魔法
 | 魔法 | サークル | 効果 | マナ消費 |
 |-----|---------|------|---------|
+| Create Food | 1st | 食料を生成 | 1 |
 | Night Sight | 1st | 暗視（一定時間） | 1 |
+| Feather Fall | 2nd | 落下ダメージ軽減（一定時間） | 2 |
 | Teleport | 3rd | クリック地点へ短距離TP（射程15ブロック） | 3 |
+| Water Breathing | 3rd | 水中呼吸（一定時間） | 3 |
 | Mark | 5th | 現在地をルーンに記憶 | 5 |
 | Recall | 5th | ルーンの地点へTP | 5 |
 | Paralyze | 5th | 対象を移動不可（数秒） | 5 |
@@ -791,12 +802,9 @@ INTボーナス = INT / 5
 
 ### 魔法の書（スペルブック）
 
-#### コマンド
-```
-/spellbook [魔法名]    - 指定した魔法の書を取得
-/spellbook all         - 全魔法の書を取得
-/spellbook list        - 魔法一覧を表示
-```
+#### 入手方法
+- **司書の村人から購入**（Lv.3で販売、30〜50エメラルド）
+- 空の状態で入手し、スクロールで魔法を習得する
 
 #### 魔法の書の内容（Lore表示）
 ```
@@ -951,6 +959,46 @@ INTボーナス = INT / 5
 - 詠唱開始: ENCHANTMENT_TABLE パーティクル（術者周囲）
 - 詠唱開始サウンド: BLOCK_BEACON_ACTIVATE
 - ターゲット待機中: SPELL_WITCH パーティクル（術者の手）
+
+### 司書取引システム
+
+司書の村人がスペルブックとスクロールを販売する。
+
+#### 取引一覧
+| レベル | 販売アイテム | 価格 | 在庫 |
+|-------|-------------|------|------|
+| 1 (新米) | C1スクロール（ランダム1種） | 5〜8エメラルド | 3個 |
+| 2 (見習い) | C1またはC2スクロール（ランダム） | 8〜12エメラルド | 3個 |
+| 3 (職人) | 空のスペルブック | 30〜50エメラルド | 1個 |
+| 4 (熟練者) | C2スクロール（ランダム） | 12〜15エメラルド | 3個 |
+
+#### 対象スクロール
+- **C1（1st Circle）**: Magic Arrow, Heal, Create Food, Night Sight
+- **C2（2nd Circle）**: Harm, Cure, Feather Fall
+
+#### 特徴
+- 司書ごとに販売するスクロールはランダム
+- バニラの取引（本・紙など）は維持される
+- 在庫は村人の補充サイクルで回復
+
+### スクロールドロップシステム
+
+魔法系Mobの撃破やEnd City宝箱からスクロールを入手できる。
+
+#### Mobドロップ
+| Mob | ドロップ確率 | スクロール |
+|-----|-------------|-----------|
+| ウィッチ | 10% | C1〜C3 |
+| エヴォーカー | 20% | C3〜C5 |
+| イリュージョナー | 25% | C4〜C6 |
+| エンダーマン | 5% | C3〜C5 |
+| ブレイズ | 8% | C2〜C4 |
+| ファントム | 5% | C1〜C3 |
+| ウィザースケルトン | 10% | C4〜C6 |
+
+#### End City宝箱
+- 高サークル（C5〜C8）のスクロールが出現
+- チェスト1つにつき1〜2枚
 
 ### スクロールシステム
 
@@ -1477,6 +1525,39 @@ quality_modifiers:
 - 失敗すると相手に通知される
 - Stealingの前提スキル
 
+## VengefulMobs機能
+
+受動的なMob（羊、牛、豚など）が攻撃されると反撃する機能。
+
+### 基本仕様
+- プレイヤーが受動的Mobを攻撃すると、そのMobが一定時間プレイヤーを追跡・攻撃
+- 怒り状態の持続時間、追跡距離、攻撃力などをカスタマイズ可能
+- config.ymlで有効/無効を切り替え可能
+
+### 対象Mob
+| Mob | 攻撃力 | 攻撃間隔 | 備考 |
+|-----|--------|---------|------|
+| ニワトリ | 1.0 | 1500ms | 弱いが素早い |
+| ウサギ | 1.0 | 1500ms | 弱いが素早い |
+| 豚 | 2.0 | 1000ms | 標準 |
+| 羊 | 2.0 | 1000ms | 標準 |
+| 牛 | 3.0 | 1000ms | やや強い |
+| ムーシュルーム | 3.0 | 1000ms | やや強い |
+| 馬 | 4.0 | 1000ms | 強い |
+| ロバ | 3.0 | 1000ms | やや強い |
+| ラバ | 3.5 | 1000ms | やや強い |
+| ラマ | 3.0 | 1000ms | やや強い（唾攻撃） |
+| ヤギ | 4.0 | 800ms | 攻撃的、素早い |
+
+### 設定項目（config.yml）
+```yaml
+vengeful_mobs:
+  enabled: true
+  anger_duration: 100        # 怒り持続時間（tick）
+  chase_distance: 16.0       # 追跡距離（ブロック）
+  default_attack_cooldown: 1000  # デフォルト攻撃間隔（ms）
+```
+
 ## 技術仕様
 
 ### データ保存
@@ -1539,6 +1620,7 @@ integrations:
 | `/skills` | 自分のスキル一覧表示 | skills.use |
 | `/stats` | 自分のSTR/DEX/INT表示 | skills.use |
 | `/arms` | 手持ち武器・防具の詳細表示 | skills.use |
+| `/language [言語]` | 表示言語を変更（en/ja） | skills.use |
 
 #### 魔法コマンド
 | コマンド | 説明 | 権限 |
@@ -1726,7 +1808,7 @@ enum class SkillType(
     EVALUATING_INTELLIGENCE("Evaluating Intelligence", SkillCategory.MAGIC, mapOf(StatType.INT to 1.0)),
     MEDITATION("Meditation", SkillCategory.MAGIC, mapOf(StatType.INT to 1.0)),
     RESISTING_SPELLS("Resisting Spells", SkillCategory.MAGIC, mapOf(StatType.INT to 1.0)),
-    INSCRIPTION("Inscription", SkillCategory.MAGIC, mapOf(StatType.INT to 1.0)),
+    INSCRIPTION("Inscription", SkillCategory.CRAFTING, mapOf(StatType.INT to 1.0)),
 
     // 生産系
     ALCHEMY("Alchemy", SkillCategory.CRAFTING, mapOf(StatType.INT to 1.0)),
