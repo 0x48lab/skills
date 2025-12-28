@@ -71,7 +71,7 @@ class ScoreboardManager(private val plugin: Skills) {
         }
 
         // Add stats (scores are displayed in descending order, higher = top)
-        var score = 11
+        var score = 14
 
         // Player title (UO-style, always English, split into 2 lines)
         val titleParts = plugin.skillTitleManager.getPlayerTitleParts(player, useJapanese = false)
@@ -82,7 +82,22 @@ class ScoreboardManager(private val plugin: Skills) {
             setScore(objective, "Adventurer", score--)
             score-- // Skip a line
         }
-        setScore(objective, "", score--) // Empty line
+        setScore(objective, "", score--) // Empty line separator
+
+        // HP/Mana/Stamina bars
+        val hp = data.internalHp.toInt()
+        val maxHp = data.maxInternalHp.toInt()
+        setScore(objective, "❤ $hp/$maxHp", score--)
+
+        val mana = data.mana.toInt()
+        val maxMana = data.maxMana.toInt()
+        setScore(objective, "🍖 $mana/$maxMana", score--)
+
+        val stamina = data.stamina.toInt()
+        val maxStamina = data.maxStamina.toInt()
+        setScore(objective, "⚡ $stamina/$maxStamina", score--)
+
+        setScore(objective, " ", score--) // Empty line separator (with space to be unique)
 
         // Stat total
         val totalStats = data.getTotalStats()

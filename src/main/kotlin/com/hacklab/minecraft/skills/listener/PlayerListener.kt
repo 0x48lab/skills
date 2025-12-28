@@ -11,6 +11,7 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerRespawnEvent
 import org.bukkit.event.player.PlayerMoveEvent
+import org.bukkit.event.player.PlayerToggleSprintEvent
 
 class PlayerListener(private val plugin: Skills) : Listener {
 
@@ -35,6 +36,9 @@ class PlayerListener(private val plugin: Skills) : Listener {
         val armorDexPenalty = plugin.armorManager.getTotalDexPenalty(player)
         StatCalculator.applyAttributeModifiers(player, data, armorDexPenalty)
 
+        // Initialize stamina
+        plugin.staminaManager.initializePlayer(player)
+
         // Give guide book to new players
         if (isNewPlayer) {
             plugin.guideManager.giveGuideBook(player)
@@ -57,6 +61,7 @@ class PlayerListener(private val plugin: Skills) : Listener {
         plugin.cooldownManager.clearCooldowns(player.uniqueId)
         plugin.survivalListener.removePlayer(player.uniqueId)
         plugin.scoreboardManager.cleanup(player.uniqueId)
+        plugin.staminaManager.cleanup(player.uniqueId)
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -100,5 +105,18 @@ class PlayerListener(private val plugin: Skills) : Listener {
 
         // Sync food level changes to internal mana (both increase and decrease)
         plugin.manaManager.syncFromVanilla(player, newFoodLevel)
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    fun onPlayerToggleSprint(event: PlayerToggleSprintEvent) {
+        // Only check when player is trying to start sprinting
+        if (!event.isSprinting) return
+
+        val player = event.player
+
+        // Prevent sprinting if stamina is too low
+        if (!plugin.staminaManager.canSprint(player)) {
+            event.isCancelled = true
+        }
     }
 }

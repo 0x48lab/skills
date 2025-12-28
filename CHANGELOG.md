@@ -8,6 +8,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Internal Stamina System (Monster Hunter Style)**
+  - New internal stat: Stamina (100 + DEX + Focus/2)
+  - Consumed while sprinting (20/sec base)
+  - Regenerates when not sprinting (40/sec base, boosted by Focus)
+  - When stamina depleted: exhausted state
+    - Walk speed reduced to 50% (setWalkSpeed)
+    - Jumping disabled (Jump Boost -200)
+    - Panting effect: breath particles + wolf pant sound
+    - Focus bonus ignored during exhaustion (fixed 40/sec recovery)
+  - Must recover to 50 stamina before normal movement returns
+  - Implementation based on SurvivalMethod plugin approach
+
+- **Focus Skill Effects**
+  - Max stamina bonus: +Focus/2
+  - Stamina consumption reduction: -(Focus/2)% (max 50%)
+  - Stamina regeneration bonus: +Focus% (max 100%) - only when not exhausted
+  - Skill gain: Every 5 seconds of sprinting
+
+- **Scoreboard HP/Mana/Stamina Display**
+  - Sidebar now shows ❤ HP, 🍖 Mana, ⚡ Stamina
+  - Real-time updates alongside STR/DEX/INT
+
+- **Farming Skill**
+  - New gathering skill for agriculture activities
+  - Skill gains from: harvesting mature crops, tilling soil, planting seeds, using bone meal
+  - Bonus harvest chance: skill/2 % (max 50%)
+  - Extra seed drop chance: skill/4 % (max 25%)
+  - Bone meal effectiveness bonus: +skill/5 % (max 20%)
+  - Crop difficulty range: 10-45 (wheat=10, pitcher plant=45)
+  - DEX-weighted skill (affects DEX stat calculation)
+
 - **Bow/Crossbow Balance System**
   - Distance falloff: 100% at 0-15 blocks, linear to 50% at 15-30 blocks, 50% at 30+
   - Movement penalty: -30% damage when shooting while moving

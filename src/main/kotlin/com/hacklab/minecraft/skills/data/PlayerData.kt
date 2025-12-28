@@ -15,6 +15,8 @@ data class PlayerData(
     var maxInternalHp: Double = 100.0,
     var mana: Double = 20.0,
     var maxMana: Double = 20.0,
+    var stamina: Double = 100.0,
+    var maxStamina: Double = 100.0,
     var language: Language? = null,
     var dirty: Boolean = false,
     // UO-style independent stats
@@ -146,16 +148,22 @@ data class PlayerData(
         return false
     }
 
-    // HP/Mana operations
+    // HP/Mana/Stamina operations
     fun calculateMaxHp(): Double = 100.0 + str
     fun calculateMaxMana(): Double = 20.0
+    fun calculateMaxStamina(): Double {
+        val focusSkill = getSkillValue(SkillType.FOCUS)
+        return 100.0 + dex + (focusSkill / 2.0)
+    }
 
     fun updateMaxStats() {
         maxInternalHp = calculateMaxHp()
         maxMana = calculateMaxMana()
+        maxStamina = calculateMaxStamina()
         // Clamp current values
         internalHp = internalHp.coerceIn(0.0, maxInternalHp)
         mana = mana.coerceIn(0.0, maxMana)
+        stamina = stamina.coerceIn(0.0, maxStamina)
     }
 
     fun damage(amount: Double): Double {
@@ -190,8 +198,43 @@ data class PlayerData(
         return actualRestore
     }
 
+    /**
+     * Consume stamina (for sprinting)
+     * @param amount Base stamina cost
+     * @return true if stamina was consumed, false if not enough
+     */
+    fun consumeStamina(amount: Double): Boolean {
+        val focusSkill = getSkillValue(SkillType.FOCUS)
+        val reduction = focusSkill / 200.0  // Focus 100 = 50% reduction
+        val actualCost = amount * (1 - reduction)
+        if (stamina >= actualCost) {
+            stamina -= actualCost
+            dirty = true
+            return true
+        }
+        return false
+    }
+
+    /**
+     * Restore stamina (when not sprinting)
+     * @param amount Base restore amount
+     * @return actual amount restored
+     */
+    fun restoreStamina(amount: Double): Double {
+        val focusSkill = getSkillValue(SkillType.FOCUS)
+        val bonus = 1.0 + (focusSkill / 100.0)  // Focus 100 = +100% regen
+        val boostedAmount = amount * bonus
+        val actualRestore = boostedAmount.coerceAtMost(maxStamina - stamina)
+        stamina = (stamina + actualRestore).coerceAtMost(maxStamina)
+        dirty = true
+        return actualRestore
+    }
+
+    fun hasStamina(): Boolean = stamina > 0
+
     fun getHpPercentage(): Double = if (maxInternalHp > 0) internalHp / maxInternalHp else 0.0
     fun getManaPercentage(): Double = if (maxMana > 0) mana / maxMana else 0.0
+    fun getStaminaPercentage(): Double = if (maxStamina > 0) stamina / maxStamina else 0.0
 
     fun markClean() {
         dirty = false

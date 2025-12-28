@@ -40,6 +40,7 @@ enum class SkillType(
     MINING("Mining", SkillCategory.GATHERING, strWeight = 1.0),
     LUMBERJACKING("Lumberjacking", SkillCategory.GATHERING, strWeight = 1.0),
     FISHING("Fishing", SkillCategory.GATHERING, dexWeight = 1.0),
+    FARMING("Farming", SkillCategory.GATHERING, dexWeight = 1.0),
 
     // Thief
     HIDING("Hiding", SkillCategory.THIEF, dexWeight = 1.0),

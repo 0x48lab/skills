@@ -163,6 +163,97 @@ class GatheringManager(private val plugin: Skills) {
             else -> null
         }
     }
+
+    /**
+     * Process farming harvest event (mature crop broken)
+     */
+    fun processFarmingHarvest(player: Player, block: Block, drops: MutableList<ItemStack>) {
+        val data = plugin.playerDataManager.getPlayerData(player)
+        val farmingSkill = data.getSkillValue(SkillType.FARMING)
+        val difficulty = GatheringDifficulty.getFarmingDifficulty(block.type)
+
+        // Try skill gain
+        plugin.skillManager.tryGainSkill(player, SkillType.FARMING, difficulty)
+
+        // Bonus harvest chance based on skill (max 50%)
+        val bonusChance = farmingSkill / 2.0
+        if (Random.nextDouble() * 100 < bonusChance) {
+            // Add bonus drop (duplicate first drop)
+            drops.firstOrNull()?.let { firstDrop ->
+                drops.add(firstDrop.clone())
+                plugin.messageSender.send(player, MessageKey.GATHERING_BONUS_DROP)
+            }
+        }
+
+        // Extra seed drop chance (max 25%)
+        val seedChance = farmingSkill / 4.0
+        val seedType = getSeedForCrop(block.type)
+        if (seedType != null && Random.nextDouble() * 100 < seedChance) {
+            drops.add(ItemStack(seedType))
+        }
+    }
+
+    /**
+     * Process tilling soil with hoe
+     */
+    fun processTilling(player: Player) {
+        plugin.skillManager.tryGainSkill(
+            player,
+            SkillType.FARMING,
+            GatheringDifficulty.FARMING_TILL_DIFFICULTY
+        )
+    }
+
+    /**
+     * Process planting seeds
+     */
+    fun processPlanting(player: Player, seedType: Material) {
+        val difficulty = when (seedType) {
+            Material.WHEAT_SEEDS -> 10
+            Material.CARROT -> 15
+            Material.POTATO -> 15
+            Material.BEETROOT_SEEDS -> 20
+            Material.NETHER_WART -> 35
+            Material.MELON_SEEDS -> 25
+            Material.PUMPKIN_SEEDS -> 25
+            Material.TORCHFLOWER_SEEDS -> 40
+            Material.PITCHER_POD -> 45
+            else -> GatheringDifficulty.FARMING_PLANT_DIFFICULTY
+        }
+        plugin.skillManager.tryGainSkill(player, SkillType.FARMING, difficulty)
+    }
+
+    /**
+     * Process bone meal usage on crops
+     */
+    fun processBoneMeal(player: Player) {
+        plugin.skillManager.tryGainSkill(
+            player,
+            SkillType.FARMING,
+            GatheringDifficulty.FARMING_BONEMEAL_DIFFICULTY
+        )
+    }
+
+    /**
+     * Get bonus bone meal effectiveness based on farming skill
+     */
+    fun getBoneMealBonus(player: Player): Double {
+        val data = plugin.playerDataManager.getPlayerData(player)
+        val farmingSkill = data.getSkillValue(SkillType.FARMING)
+        return farmingSkill / 5.0  // Max +20% effectiveness
+    }
+
+    private fun getSeedForCrop(cropType: Material): Material? {
+        return when (cropType) {
+            Material.WHEAT -> Material.WHEAT_SEEDS
+            Material.BEETROOTS -> Material.BEETROOT_SEEDS
+            Material.MELON_STEM, Material.MELON -> Material.MELON_SEEDS
+            Material.PUMPKIN_STEM, Material.PUMPKIN -> Material.PUMPKIN_SEEDS
+            Material.TORCHFLOWER -> Material.TORCHFLOWER_SEEDS
+            Material.PITCHER_PLANT -> Material.PITCHER_POD
+            else -> null
+        }
+    }
 }
 
 data class FishingResult(

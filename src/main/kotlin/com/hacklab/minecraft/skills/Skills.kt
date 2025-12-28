@@ -27,6 +27,7 @@ import com.hacklab.minecraft.skills.taming.TamingManager
 import com.hacklab.minecraft.skills.taming.VeterinaryManager
 import com.hacklab.minecraft.skills.thief.*
 import com.hacklab.minecraft.skills.scoreboard.ScoreboardManager
+import com.hacklab.minecraft.skills.stamina.StaminaManager
 import com.hacklab.minecraft.skills.util.CooldownManager
 import com.hacklab.minecraft.skills.vengeful.VengefulMobsListener
 import com.hacklab.minecraft.skills.vengeful.VengefulMobsManager
@@ -141,6 +142,10 @@ class Skills : JavaPlugin() {
     lateinit var scoreboardManager: ScoreboardManager
         private set
 
+    // Stamina
+    lateinit var staminaManager: StaminaManager
+        private set
+
     // Listeners
     private lateinit var meditationListener: MeditationListener
     lateinit var survivalListener: SurvivalListener
@@ -204,6 +209,11 @@ class Skills : JavaPlugin() {
             scoreboardManager.stopUpdateTask()
         }
 
+        // Cleanup stamina
+        if (::staminaManager.isInitialized) {
+            staminaManager.stopUpdateTask()
+        }
+
         // Disconnect database
         database.disconnect()
 
@@ -265,6 +275,8 @@ class Skills : JavaPlugin() {
         // Scoreboard
         scoreboardManager = ScoreboardManager(this)
 
+        // Stamina
+        staminaManager = StaminaManager(this)
     }
 
     private fun registerListeners() {
@@ -360,5 +372,8 @@ class Skills : JavaPlugin() {
 
         // Scoreboard update task
         scoreboardManager.startUpdateTask()
+
+        // Stamina update task
+        staminaManager.startUpdateTask()
     }
 }
