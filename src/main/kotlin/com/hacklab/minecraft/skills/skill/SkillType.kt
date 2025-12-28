@@ -11,6 +11,7 @@ enum class SkillType(
     SWORDSMANSHIP("Swordsmanship", SkillCategory.COMBAT, strWeight = 1.0),
     AXE("Axe", SkillCategory.COMBAT, strWeight = 1.0),
     MACE_FIGHTING("Mace Fighting", SkillCategory.COMBAT, strWeight = 1.0),
+    SPEAR("Spear", SkillCategory.COMBAT, dexWeight = 1.0),
     ARCHERY("Archery", SkillCategory.COMBAT, dexWeight = 1.0),
     THROWING("Throwing", SkillCategory.COMBAT, dexWeight = 1.0),
     WRESTLING("Wrestling", SkillCategory.COMBAT, strWeight = 1.0),

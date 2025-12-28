@@ -32,6 +32,14 @@ object WeaponUtil {
             // Mace
             Material.MACE -> WeaponType.MACE
 
+            // Spears
+            Material.WOODEN_SPEAR,
+            Material.STONE_SPEAR,
+            Material.IRON_SPEAR,
+            Material.GOLDEN_SPEAR,
+            Material.DIAMOND_SPEAR,
+            Material.NETHERITE_SPEAR -> WeaponType.SPEAR
+
             // Bows
             Material.BOW -> WeaponType.BOW
             Material.CROSSBOW -> WeaponType.CROSSBOW
@@ -48,6 +56,7 @@ object WeaponUtil {
             WeaponType.SWORD -> SkillType.SWORDSMANSHIP
             WeaponType.AXE -> SkillType.AXE
             WeaponType.MACE -> SkillType.MACE_FIGHTING
+            WeaponType.SPEAR -> SkillType.SPEAR
             WeaponType.BOW, WeaponType.CROSSBOW -> SkillType.ARCHERY
             WeaponType.TRIDENT -> SkillType.THROWING
             WeaponType.FIST -> SkillType.WRESTLING
@@ -57,6 +66,7 @@ object WeaponUtil {
     fun isWeapon(material: Material): Boolean {
         return material.name.endsWith("_SWORD") ||
                 material.name.endsWith("_AXE") ||
+                material.name.endsWith("_SPEAR") ||
                 material == Material.MACE ||
                 material == Material.BOW ||
                 material == Material.CROSSBOW ||

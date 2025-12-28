@@ -204,6 +204,7 @@ class SkillManager(private val plugin: Skills) {
             WeaponType.SWORD -> SkillType.SWORDSMANSHIP
             WeaponType.AXE -> SkillType.AXE
             WeaponType.MACE -> SkillType.MACE_FIGHTING
+            WeaponType.SPEAR -> SkillType.SPEAR
             WeaponType.BOW, WeaponType.CROSSBOW -> SkillType.ARCHERY
             WeaponType.TRIDENT -> SkillType.THROWING
             WeaponType.FIST -> SkillType.WRESTLING
@@ -212,5 +213,5 @@ class SkillManager(private val plugin: Skills) {
 }
 
 enum class WeaponType {
-    SWORD, AXE, MACE, BOW, CROSSBOW, TRIDENT, FIST
+    SWORD, AXE, MACE, SPEAR, BOW, CROSSBOW, TRIDENT, FIST
 }
