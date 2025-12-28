@@ -161,6 +161,10 @@ class StaminaManager(private val plugin: Skills) {
         // Reduce walking speed
         player.walkSpeed = EXHAUSTED_WALK_SPEED
 
+        // Stop sprinting and sneaking
+        player.isSprinting = false
+        player.isSneaking = false
+
         // Disable jumping with Jump Boost -200
         player.addPotionEffect(
             PotionEffect(
