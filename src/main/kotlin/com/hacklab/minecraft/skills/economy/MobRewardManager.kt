@@ -65,13 +65,7 @@ class MobRewardManager(private val plugin: Skills) {
 
         // If chunk limit is enabled and reached
         if (remaining != null && remaining <= 0) {
-            // Send limit reached message (only once per time window)
-            val timeUntilReset = chunkLimitManager.getTimeUntilReset(player.uniqueId, player.location)
-            plugin.messageSender.send(
-                player,
-                MessageKey.ECONOMY_CHUNK_LIMIT_REACHED,
-                "minutes" to timeUntilReset
-            )
+            // Silently return without message (to avoid macro detection)
             return 0.0
         }
 
