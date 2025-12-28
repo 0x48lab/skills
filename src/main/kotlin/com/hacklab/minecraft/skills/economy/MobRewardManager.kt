@@ -88,9 +88,9 @@ class MobRewardManager(private val plugin: Skills) {
 
         // Deposit to player's account
         if (plugin.vaultHook.deposit(player, actualAmount)) {
-            // Send reward message via ActionBar (more visible)
+            // Send reward message to chat
             val formatted = plugin.vaultHook.format(actualAmount)
-            plugin.messageSender.sendActionBar(
+            plugin.messageSender.send(
                 player,
                 MessageKey.ECONOMY_MOB_REWARD,
                 "amount" to formatted
