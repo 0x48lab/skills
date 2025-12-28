@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Spear Skill** (1.21.5+)
+  - New combat skill for spear weapons
+  - DEX-weighted skill (affects DEX stat calculation)
+  - Supports all spear tiers: wooden, stone, iron, golden, diamond, netherite
+  - Skill gain on dealing damage with spears
+
 - **Internal Stamina System (Monster Hunter Style)**
   - New internal stat: Stamina (100 + DEX + Focus/2)
   - Consumed while sprinting (20/sec base)

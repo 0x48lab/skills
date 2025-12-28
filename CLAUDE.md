@@ -21,11 +21,11 @@ INT = INT対象スキル合計 / 対象スキル数（8スキル）× 100 / 100
 ※ 各対象スキルの平均値がそのままステータス値となる
 ※ 各ステータスの最大値: 100（全対象スキルが100の場合）
 
-#### 対象スキル（全39スキルを分類）
+#### 対象スキル（全40スキルを分類）
 | ステータス | 対象スキル |
 |-----------|----------------------|
 | STR | Swordsmanship, Axe, Mace Fighting, Wrestling, Tactics, Anatomy, Mining, Lumberjacking, Blacksmithy, Craftsmanship, Cooking, Heat Resistance, Cold Resistance, Endurance（14スキル） |
-| DEX | Archery, Throwing, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Tinkering, Athletics, Swimming（13スキル） |
+| DEX | Archery, Throwing, Spear, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Tinkering, Athletics, Swimming（14スキル） |
 | INT | Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Alchemy, Bowcraft, Animal Lore（8スキル） |
 
 #### 複数ステータスに影響するスキル
@@ -286,6 +286,7 @@ data class SkillData(
 | Swordsmanship | 剣 | 剣の扱い。ダメージに影響 | 剣でダメージを与えた時 |
 | Axe | 斧 | 斧の扱い。ダメージに影響 | 斧でダメージを与えた時 |
 | Mace Fighting | メイス | メイスの扱い。ダメージに影響（1.21+） | メイスでダメージを与えた時 |
+| Spear | 槍 | 槍の扱い。突き・突撃攻撃に影響（1.21.5+） | 槍でダメージを与えた時 |
 | Archery | 弓、クロスボウ | 弓術。ダメージに影響 | 射撃でダメージを与えた時 |
 | Throwing | トライデント | 投擲。投擲ダメージに影響 | トライデントでダメージを与えた時 |
 | Wrestling | 素手 | 素手戦闘。素手時のダメージ | 素手でダメージを与えた時 |
@@ -1315,6 +1316,7 @@ DI補正 = 1 + (エンチャントDI合計 / 100)
 | 木/石/鉄/金/ダイヤ/ネザライトの剣 | Swordsmanship |
 | 木/石/鉄/金/ダイヤ/ネザライトの斧 | Axe |
 | メイス（1.21+） | Mace Fighting |
+| 木/石/鉄/金/ダイヤ/ネザライトの槍（1.21.5+） | Spear |
 | 弓、クロスボウ | Archery |
 | トライデント | Throwing |
 | 素手 | Wrestling |
@@ -1967,6 +1969,7 @@ enum class SkillType(
     SWORDSMANSHIP("Swordsmanship", SkillCategory.COMBAT, mapOf(StatType.STR to 1.0)),
     AXE("Axe", SkillCategory.COMBAT, mapOf(StatType.STR to 1.0)),
     MACE_FIGHTING("Mace Fighting", SkillCategory.COMBAT, mapOf(StatType.STR to 1.0)),
+    SPEAR("Spear", SkillCategory.COMBAT, mapOf(StatType.DEX to 1.0)),
     ARCHERY("Archery", SkillCategory.COMBAT, mapOf(StatType.DEX to 1.0)),
     THROWING("Throwing", SkillCategory.COMBAT, mapOf(StatType.DEX to 1.0)),
     WRESTLING("Wrestling", SkillCategory.COMBAT, mapOf(StatType.STR to 1.0)),
@@ -2074,6 +2077,10 @@ enum class WeaponType(val skill: SkillType, val materials: List<Material>) {
         Material.GOLDEN_AXE, Material.DIAMOND_AXE, Material.NETHERITE_AXE
     )),
     MACE(SkillType.MACE_FIGHTING, listOf(Material.MACE)),
+    SPEAR(SkillType.SPEAR, listOf(
+        Material.WOODEN_SPEAR, Material.STONE_SPEAR, Material.IRON_SPEAR,
+        Material.GOLDEN_SPEAR, Material.DIAMOND_SPEAR, Material.NETHERITE_SPEAR
+    )),
     BOW(SkillType.ARCHERY, listOf(Material.BOW, Material.CROSSBOW)),
     TRIDENT(SkillType.THROWING, listOf(Material.TRIDENT)),
     FIST(SkillType.WRESTLING, emptyList())
