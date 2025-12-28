@@ -3,6 +3,7 @@ package com.hacklab.minecraft.skills.skill
 import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.data.PlayerData
 import com.hacklab.minecraft.skills.i18n.MessageKey
+import org.bukkit.GameMode
 import org.bukkit.entity.Player
 import kotlin.random.Random
 
@@ -13,6 +14,11 @@ class SkillManager(private val plugin: Skills) {
      * @return true if skill was gained
      */
     fun tryGainSkill(player: Player, skillType: SkillType, difficulty: Int): Boolean {
+        // No skill gain in Creative mode
+        if (player.gameMode == GameMode.CREATIVE) {
+            return false
+        }
+
         val data = plugin.playerDataManager.getPlayerData(player)
         val skillData = data.getSkill(skillType)
         val currentValue = skillData.value
