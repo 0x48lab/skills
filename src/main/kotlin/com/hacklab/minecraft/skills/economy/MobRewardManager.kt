@@ -38,6 +38,9 @@ class MobRewardManager(private val plugin: Skills) {
 
         // Roll for drop
         val roll = ThreadLocalRandom.current().nextInt(100)
+        if (plugin.skillsConfig.debugMode) {
+            plugin.logger.info("[Economy] ${entityType.name}: roll=$roll, chance=${mobStats.rewardChance}, success=${roll < mobStats.rewardChance}")
+        }
         if (roll >= mobStats.rewardChance) {
             return 0.0
         }
