@@ -91,11 +91,11 @@ class ScoreboardManager(private val plugin: Skills) {
 
         val mana = data.mana.toInt()
         val maxMana = data.maxMana.toInt()
-        setScore(objective, "🍖 $mana/$maxMana", score--)
+        setScore(objective, "💎 $mana/$maxMana", score--)
 
         val stamina = data.stamina.toInt()
         val maxStamina = data.maxStamina.toInt()
-        setScore(objective, "⚡ $stamina/$maxStamina", score--)
+        setScore(objective, "💪 $stamina/$maxStamina", score--)
 
         // Show balance if economy is enabled
         if (plugin.skillsConfig.economyShowOnScoreboard && plugin.vaultHook.isEnabled()) {
