@@ -83,9 +83,26 @@ class CombatListener(private val plugin: Skills) : Listener {
             val isMagic = event.cause == EntityDamageEvent.DamageCause.MAGIC ||
                     event.cause == EntityDamageEvent.DamageCause.DRAGON_BREATH
 
+            // Calculate damage based on attacker type
+            // For mobs: use attack_power from mobs.yml (melee only)
+            // For projectiles: use vanilla damage (arrow damage varies by draw strength)
+            // For players: use event.damage (handled by player combat system)
+            val baseDamage = when {
+                // Projectile damage uses vanilla (arrow power varies)
+                isRangedAttack -> event.damage
+                // Player attacker uses vanilla (handled separately)
+                damager is Player -> event.damage
+                // Mob melee attack uses config attack_power
+                damager is LivingEntity -> {
+                    plugin.combatConfig.getAttackPower(damager.type).toDouble()
+                }
+                // Default to vanilla damage
+                else -> event.damage
+            }
+
             // Check if this is a projectile attack (arrows can be blocked with shield)
             val defenseResult = plugin.combatManager.processPlayerDefense(
-                target, attacker, event.damage, isMagic, isRangedAttack
+                target, attacker, baseDamage, isMagic, isRangedAttack
             )
 
             // Apply damage to internal HP

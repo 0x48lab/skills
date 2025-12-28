@@ -148,6 +148,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed damage division bug where mobs took 10x less damage than intended
 - Fixed Parrying skill gain only triggering on successful parry (UO-style behavior)
+- **Mob attack_power now applied** - mobs.yml attack_power was defined but never used
+  - Mob melee attacks now use configured attack_power instead of vanilla damage
+  - Projectile attacks (arrows, fireballs) still use vanilla damage
+  - Example: Iron Golem now deals 21 base damage (config) instead of 7.5-21.75 (vanilla)
 
 ### Removed
 - Deprecated `SkillbookCommand.kt`
