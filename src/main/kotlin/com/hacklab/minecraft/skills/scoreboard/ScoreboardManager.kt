@@ -84,24 +84,24 @@ class ScoreboardManager(private val plugin: Skills) {
         }
         setScore(objective, "", score--) // Empty line separator
 
-        // H/M/S/G (Health, Mana, Stamina, Gold)
+        // HP/Mana/Stamina/Gold
         val hp = data.internalHp.toInt()
         val maxHp = data.maxInternalHp.toInt()
-        setScore(objective, "H: $hp/$maxHp", score--)
+        setScore(objective, "❤ $hp/$maxHp", score--)
 
         val mana = data.mana.toInt()
         val maxMana = data.maxMana.toInt()
-        setScore(objective, "M: $mana/$maxMana", score--)
+        setScore(objective, "🍖 $mana/$maxMana", score--)
 
         val stamina = data.stamina.toInt()
         val maxStamina = data.maxStamina.toInt()
-        setScore(objective, "S: $stamina/$maxStamina", score--)
+        setScore(objective, "⚡ $stamina/$maxStamina", score--)
 
         // Show balance if economy is enabled
         if (plugin.skillsConfig.economyShowOnScoreboard && plugin.vaultHook.isEnabled()) {
             val balance = plugin.vaultHook.getBalance(player)
             val formatted = plugin.vaultHook.format(balance)
-            setScore(objective, "G: $formatted", score--)
+            setScore(objective, "💰 $formatted", score--)
         }
 
         setScore(objective, " ", score--) // Empty line separator (with space to be unique)
@@ -135,9 +135,9 @@ class ScoreboardManager(private val plugin: Skills) {
 
     private fun getLockIcon(mode: StatLockMode): String {
         return when (mode) {
-            StatLockMode.UP -> "+"
-            StatLockMode.DOWN -> "-"
-            StatLockMode.LOCKED -> "X"
+            StatLockMode.UP -> "▲"
+            StatLockMode.DOWN -> "▼"
+            StatLockMode.LOCKED -> "🔒"
         }
     }
 
