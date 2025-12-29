@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skills Plugin - Documentation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Skills Plugin</h1>
+        <p>Ultima Online-inspired skill system for Minecraft</p>
+        <div class="lang-switch">
+            <a href="index.html" class="active">English</a>
+            <a href="index_ja.html">日本語</a>
+        </div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#stats">Stats</a></li>
+            <li><a href="#skills">Skills</a></li>
+            <li><a href="#combat">Combat</a></li>
+            <li><a href="#magic">Magic</a></li>
+            <li><a href="#crafting">Crafting</a></li>
+            <li><a href="#repair">Repair System</a></li>
+            <li><a href="#commands">Commands</a></li>
+            <li><a href="#changelog">Changelog</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <!-- Overview -->
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>The Skills plugin brings an Ultima Online-inspired skill system to Minecraft. Players improve skills through use, with a total skill cap that forces specialization choices.</p>
+
+            <h3>Key Features</h3>
+            <ul>
+                <li><strong>40 Skills</strong> across combat, magic, crafting, gathering, thief, taming, and survival categories</li>
+                <li><strong>Skill Cap System</strong> - Total cap of 700 points, individual cap of 100 per skill</li>
+                <li><strong>Use-Based Progression</strong> - Skills improve when used, with difficulty affecting gain rate</li>
+                <li><strong>Stat System</strong> - STR, DEX, INT calculated from related skills</li>
+                <li><strong>Quality Crafting</strong> - Item quality depends on crafting skill</li>
+                <li><strong>UO-Style Magic</strong> - Reagent-based spellcasting with 8 circles of magic</li>
+            </ul>
+        </section>
+
+        <!-- Stats -->
+        <section id="stats">
+            <h2>Stats System</h2>
+            <p>Three internal stats are calculated from related skills:</p>
+
+            <table>
+                <tr>
+                    <th>Stat</th>
+                    <th>Effect</th>
+                    <th>Related Skills</th>
+                </tr>
+                <tr>
+                    <td class="str"><strong>STR</strong></td>
+                    <td>+HP, +Mining/Lumber speed</td>
+                    <td>Swordsmanship, Axe, Mace Fighting, Wrestling, Tactics, Anatomy, Mining, Lumberjacking, Blacksmithy, Craftsmanship, Cooking, Heat/Cold Resistance, Endurance</td>
+                </tr>
+                <tr>
+                    <td class="dex"><strong>DEX</strong></td>
+                    <td>+Attack speed, +Movement speed</td>
+                    <td>Archery, Throwing, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Tinkering, Athletics, Swimming</td>
+                </tr>
+                <tr>
+                    <td class="int"><strong>INT</strong></td>
+                    <td>-Mana cost, +Cast success</td>
+                    <td>Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Alchemy, Bowcraft, Animal Lore</td>
+                </tr>
+            </table>
+
+            <h3>Stat Calculation</h3>
+            <div class="formula">
+                <code>Stat = (Sum of related skills) / (Number of related skills)</code>
+                <p>Each stat ranges from 0 to 100 based on the average of its related skills.</p>
+            </div>
+
+            <h3>Stat Effects</h3>
+            <table>
+                <tr>
+                    <th>Stat</th>
+                    <th>Effect Formula</th>
+                </tr>
+                <tr>
+                    <td class="str">STR</td>
+                    <td>Max HP = 100 + STR, Mining/Lumber speed +STR/10%</td>
+                </tr>
+                <tr>
+                    <td class="dex">DEX</td>
+                    <td>Attack speed +DEX/2%, Movement speed +DEX/10%</td>
+                </tr>
+                <tr>
+                    <td class="int">INT</td>
+                    <td>Mana cost -INT/2%, Cast success +INT/5%</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Skills -->
+        <section id="skills">
+            <h2>Skills</h2>
+
+            <h3>Skill Gain System</h3>
+            <div class="formula">
+                <code>Gain Chance = (100 - Skill) / 10 * Difficulty Modifier</code>
+                <p>Gain Amount: 0.1 per successful check</p>
+            </div>
+
+            <h4>Difficulty Modifiers</h4>
+            <table>
+                <tr>
+                    <th>Condition</th>
+                    <th>Modifier</th>
+                </tr>
+                <tr>
+                    <td>Difficulty > Skill + 20</td>
+                    <td>x0.5 (too hard)</td>
+                </tr>
+                <tr>
+                    <td>Difficulty within ±20 of Skill</td>
+                    <td>x1.0 (optimal)</td>
+                </tr>
+                <tr>
+                    <td>Difficulty < Skill - 20</td>
+                    <td>x0.2 (too easy)</td>
+                </tr>
+            </table>
+
+            <h3>Combat Skills</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Swordsmanship <span class="badge badge-str">STR</span></h4>
+                    <p>Sword proficiency. Affects damage with swords.</p>
+                    <p class="skill-effect">Gain: Deal damage with swords</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Axe <span class="badge badge-str">STR</span></h4>
+                    <p>Axe proficiency. Affects damage with axes.</p>
+                    <p class="skill-effect">Gain: Deal damage with axes</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Mace Fighting <span class="badge badge-str">STR</span></h4>
+                    <p>Mace proficiency. Affects damage with maces (1.21+).</p>
+                    <p class="skill-effect">Gain: Deal damage with maces</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Spear <span class="badge badge-dex">DEX</span></h4>
+                    <p>Spear proficiency. Affects damage with spears (1.21.5+).</p>
+                    <p class="skill-effect">Gain: Deal damage with spears</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Archery <span class="badge badge-dex">DEX</span></h4>
+                    <p>Bow and crossbow proficiency.</p>
+                    <p class="skill-effect">Gain: Deal damage with bows/crossbows</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Throwing <span class="badge badge-dex">DEX</span></h4>
+                    <p>Trident proficiency.</p>
+                    <p class="skill-effect">Gain: Deal damage with tridents</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Wrestling <span class="badge badge-str">STR</span></h4>
+                    <p>Unarmed combat.</p>
+                    <p class="skill-effect">Gain: Deal damage with fists</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Tactics <span class="badge badge-str">STR</span></h4>
+                    <p>Damage bonus: +Skill/5%</p>
+                    <p class="skill-effect">Gain: Hit an enemy</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Anatomy <span class="badge badge-str">STR</span></h4>
+                    <p>Critical rate: +Skill/2%</p>
+                    <p class="skill-effect">Gain: Kill an enemy</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Parrying <span class="badge badge-dex">DEX</span></h4>
+                    <p>Block chance with shield/weapon.</p>
+                    <p class="skill-effect">Gain: Successfully parry</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Focus <span class="badge badge-dex">DEX</span></h4>
+                    <p>Stamina regen: +Skill%</p>
+                    <p class="skill-effect">Gain: Sprint for 5 seconds</p>
+                </div>
+            </div>
+
+            <h3>Magic Skills</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Magery <span class="badge badge-int">INT</span></h4>
+                    <p>Spellcasting ability. Affects cast success and damage.</p>
+                    <p class="skill-effect">Gain: Cast spells</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Evaluating Intelligence <span class="badge badge-int">INT</span></h4>
+                    <p>Magic damage: +Skill/2%</p>
+                    <p class="skill-effect">Gain: Deal magic damage</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Meditation <span class="badge badge-int">INT</span></h4>
+                    <p>Mana regen when sneaking: +Skill%</p>
+                    <p class="skill-effect">Gain: Recover mana while meditating</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Resisting Spells <span class="badge badge-int">INT</span></h4>
+                    <p>Magic damage reduction: -Skill/2%</p>
+                    <p class="skill-effect">Gain: Take magic damage</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Inscription <span class="badge badge-int">INT</span></h4>
+                    <p>Create magic scrolls.</p>
+                    <p class="skill-effect">Gain: Create scrolls</p>
+                </div>
+            </div>
+
+            <h3>Crafting Skills</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Blacksmithy <span class="badge badge-str">STR</span></h4>
+                    <p>Metal weapons, armor, tools. Anvil repairs.</p>
+                    <p class="skill-effect">Gain: Craft metal items, repair on anvil</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Bowcraft <span class="badge badge-int">INT</span></h4>
+                    <p>Bows, crossbows, arrows.</p>
+                    <p class="skill-effect">Gain: Craft bows/arrows</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Craftsmanship <span class="badge badge-str">STR</span></h4>
+                    <p>Wood and leather items, shields.</p>
+                    <p class="skill-effect">Gain: Craft wood/leather items</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Alchemy <span class="badge badge-int">INT</span></h4>
+                    <p>Potions and brewing.</p>
+                    <p class="skill-effect">Gain: Brew potions</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Cooking <span class="badge badge-str">STR</span></h4>
+                    <p>Food preparation.</p>
+                    <p class="skill-effect">Gain: Cook food</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Tinkering <span class="badge badge-dex">DEX</span></h4>
+                    <p>Small tools and gadgets.</p>
+                    <p class="skill-effect">Gain: Craft tools</p>
+                </div>
+            </div>
+
+            <h3>Gathering Skills</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Mining <span class="badge badge-str">STR</span></h4>
+                    <p>Mining speed +Skill/10%, Bonus ore chance: Skill/2%</p>
+                    <p class="skill-effect">Gain: Mine ores</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Lumberjacking <span class="badge badge-str">STR</span></h4>
+                    <p>Chopping speed +Skill/10%, Bonus drop: Skill/2%</p>
+                    <p class="skill-effect">Gain: Chop logs</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Fishing <span class="badge badge-dex">DEX</span></h4>
+                    <p>Faster catches, better loot.</p>
+                    <p class="skill-effect">Gain: Catch fish</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Farming <span class="badge badge-dex">DEX</span></h4>
+                    <p>Bonus harvest: Skill/2%, Extra seeds: Skill/4%</p>
+                    <p class="skill-effect">Gain: Harvest crops, till soil</p>
+                </div>
+            </div>
+
+            <h3>Survival Skills</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Athletics <span class="badge badge-dex">DEX</span></h4>
+                    <p>Fall damage reduction: -Skill/2%</p>
+                    <p class="skill-effect">Gain: Take fall damage</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Swimming <span class="badge badge-dex">DEX</span></h4>
+                    <p>Drowning damage reduction: -Skill/2%</p>
+                    <p class="skill-effect">Gain: Take drowning damage</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Heat Resistance <span class="badge badge-str">STR</span></h4>
+                    <p>Fire/lava damage reduction: -Skill/2%</p>
+                    <p class="skill-effect">Gain: Take fire damage</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Cold Resistance <span class="badge badge-str">STR</span></h4>
+                    <p>Freeze damage reduction: -Skill/2%</p>
+                    <p class="skill-effect">Gain: Take freeze damage</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Endurance <span class="badge badge-str">STR</span></h4>
+                    <p>Suffocation damage reduction: -Skill/2%</p>
+                    <p class="skill-effect">Gain: Take suffocation damage</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Combat -->
+        <section id="combat">
+            <h2>Combat System</h2>
+
+            <h3>Damage Formula</h3>
+            <div class="formula">
+                <pre>Base Damage = Weapon base damage (from config)
+STR Bonus = 1 + (STR / 200)     // Max +50%
+Tactics Bonus = Tactics / 100    // 0.1 to 1.0
+Anatomy Bonus = 0.5 + (Anatomy / 100)  // 0.6 to 1.5
+Critical = Anatomy / 2 % chance for 2x damage
+
+Final = Base × STR × Tactics × Anatomy × Quality × Enchant</pre>
+            </div>
+
+            <h3>Hit Chance</h3>
+            <div class="formula">
+                <code>Hit Rate = Weapon Skill - (Target Defense / 2) + 50</code>
+                <p>Min: 5%, Max: 95%</p>
+            </div>
+
+            <h3>Parrying</h3>
+            <table>
+                <tr>
+                    <th>Equipment</th>
+                    <th>Block Chance</th>
+                    <th>Damage Reduction</th>
+                </tr>
+                <tr>
+                    <td>Shield</td>
+                    <td>Parrying × 0.5% (max 50%)</td>
+                    <td>50%</td>
+                </tr>
+                <tr>
+                    <td>Weapon Only</td>
+                    <td>Parrying × 0.25% (max 25%)</td>
+                    <td>50%</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Magic -->
+        <section id="magic">
+            <h2>Magic System</h2>
+
+            <h3>Spellcasting</h3>
+            <ul>
+                <li><strong>Spellbook Required</strong> - Must hold a spellbook with the spell</li>
+                <li><strong>Reagents</strong> - Spells consume Minecraft items as reagents</li>
+                <li><strong>Mana</strong> - Uses the hunger bar</li>
+                <li><strong>Targeting</strong> - Most spells enter target mode after casting</li>
+            </ul>
+
+            <h3>Cast Success Rate</h3>
+            <div class="formula">
+                <code>Success = (Magery - Circle × 10) + 50 + (INT / 5)</code>
+                <p>Min: 5%, Max: 100%</p>
+            </div>
+
+            <h3>Spell Circles</h3>
+            <table>
+                <tr>
+                    <th>Circle</th>
+                    <th>Mana Cost</th>
+                    <th>Example Spells</th>
+                </tr>
+                <tr><td>1st</td><td>1</td><td>Magic Arrow, Heal, Night Sight</td></tr>
+                <tr><td>2nd</td><td>2</td><td>Harm, Cure, Feather Fall</td></tr>
+                <tr><td>3rd</td><td>3</td><td>Fireball, Teleport, Bless</td></tr>
+                <tr><td>4th</td><td>4</td><td>Lightning, Greater Heal, Fire Wall</td></tr>
+                <tr><td>5th</td><td>5</td><td>Energy Bolt, Mark, Recall, Paralyze</td></tr>
+                <tr><td>6th</td><td>6</td><td>Explosion, Invisibility</td></tr>
+                <tr><td>7th</td><td>7</td><td>Gate Travel</td></tr>
+                <tr><td>8th</td><td>8</td><td>Meteor Swarm</td></tr>
+            </table>
+        </section>
+
+        <!-- Repair System -->
+        <section id="repair">
+            <h2>Repair & Mending System</h2>
+
+            <h3>Anvil Repair (UO-Style)</h3>
+            <p>Repairing items on an anvil reduces their maximum durability, similar to Ultima Online.</p>
+
+            <div class="formula">
+                <code>Max Durability Reduction = (110 - Blacksmithy Skill) / 10</code>
+            </div>
+
+            <table>
+                <tr>
+                    <th>Blacksmithy Skill</th>
+                    <th>Durability Lost</th>
+                </tr>
+                <tr><td>100 (GM)</td><td>1 per repair</td></tr>
+                <tr><td>50</td><td>6 per repair</td></tr>
+                <tr><td>0</td><td>11 per repair</td></tr>
+            </table>
+
+            <h3>Mending Enchantment</h3>
+            <p>Mending success rate depends on the appropriate crafting skill for the item type.</p>
+
+            <div class="formula">
+                <code>Mending Success Rate = min(100, Skill × 100 / 60)</code>
+            </div>
+
+            <h4>Required Skills by Item Type</h4>
+            <table>
+                <tr>
+                    <th>Item Type</th>
+                    <th>Required Skill</th>
+                </tr>
+                <tr><td>Iron/Gold/Diamond/Netherite/Chain/Stone items</td><td>Blacksmithy</td></tr>
+                <tr><td>Trident, Mace, Spears</td><td>Blacksmithy</td></tr>
+                <tr><td>Bow, Crossbow</td><td>Bowcraft</td></tr>
+                <tr><td>Leather armor, Wood items, Shield</td><td>Craftsmanship</td></tr>
+                <tr><td>Fishing Rod, Shears, Flint and Steel</td><td>Tinkering</td></tr>
+                <tr><td>Elytra, Turtle Helmet</td><td>None (always 100%)</td></tr>
+            </table>
+
+            <h4>Success Rate by Skill</h4>
+            <table>
+                <tr>
+                    <th>Skill Level</th>
+                    <th>Mending Success Rate</th>
+                </tr>
+                <tr><td>0</td><td>0%</td></tr>
+                <tr><td>20</td><td>33%</td></tr>
+                <tr><td>30</td><td>50%</td></tr>
+                <tr><td>40</td><td>67%</td></tr>
+                <tr><td>50</td><td>83%</td></tr>
+                <tr><td>60+</td><td>100%</td></tr>
+            </table>
+        </section>
+
+        <!-- Commands -->
+        <section id="commands">
+            <h2>Commands</h2>
+
+            <h3>Player Commands</h3>
+            <table>
+                <tr>
+                    <th>Command</th>
+                    <th>Description</th>
+                </tr>
+                <tr><td><code>/skills</code></td><td>View your skills</td></tr>
+                <tr><td><code>/stats</code></td><td>View your STR/DEX/INT</td></tr>
+                <tr><td><code>/cast &lt;spell&gt;</code></td><td>Cast a spell</td></tr>
+                <tr><td><code>/language &lt;en|ja&gt;</code></td><td>Change display language</td></tr>
+                <tr><td><code>/arms</code></td><td>Examine held weapon/armor</td></tr>
+            </table>
+
+            <h3>Thief Commands</h3>
+            <table>
+                <tr>
+                    <th>Command</th>
+                    <th>Description</th>
+                </tr>
+                <tr><td><code>/hide</code></td><td>Attempt to hide</td></tr>
+                <tr><td><code>/detect</code></td><td>Detect hidden players</td></tr>
+                <tr><td><code>/snoop</code></td><td>Peek at player inventory</td></tr>
+                <tr><td><code>/poison</code></td><td>Apply poison to weapon</td></tr>
+            </table>
+
+            <h3>Taming Commands</h3>
+            <table>
+                <tr>
+                    <th>Command</th>
+                    <th>Description</th>
+                </tr>
+                <tr><td><code>/tame</code></td><td>Attempt to tame a creature</td></tr>
+                <tr><td><code>/lore</code></td><td>View creature information</td></tr>
+                <tr><td><code>/evaluate</code></td><td>Check target's mana</td></tr>
+            </table>
+
+            <h3>Admin Commands</h3>
+            <table>
+                <tr>
+                    <th>Command</th>
+                    <th>Description</th>
+                </tr>
+                <tr><td><code>/skilladmin check &lt;player&gt;</code></td><td>View player's skills</td></tr>
+                <tr><td><code>/skilladmin setstat &lt;player&gt; &lt;stat&gt; &lt;value&gt;</code></td><td>Set player stat</td></tr>
+            </table>
+        </section>
+
+        <!-- Changelog -->
+        <section id="changelog">
+            <h2>Changelog</h2>
+
+            <div class="changelog-entry">
+                <h4>Unreleased</h4>
+                <ul>
+                    <li><strong>Spear Skill</strong> - New combat skill for spear weapons (1.21.5+)</li>
+                    <li><strong>UO-Style Repair System</strong> - Anvil repairs reduce max durability</li>
+                    <li><strong>Mending + Skill Integration</strong> - Mending success depends on crafting skills</li>
+                    <li><strong>Stamina System</strong> - Monster Hunter-style stamina for sprinting</li>
+                    <li><strong>Farming Skill</strong> - New gathering skill for agriculture</li>
+                    <li><strong>Bow/Crossbow Balance</strong> - Distance falloff and movement penalties</li>
+                    <li><strong>Energy Bolt Spell</strong> - New 5th circle damage spell</li>
+                    <li><strong>Power Words</strong> - UO-style incantations when casting</li>
+                    <li><strong>Librarian Trades</strong> - Spellbooks and scrolls from villagers</li>
+                </ul>
+            </div>
+
+            <div class="changelog-entry">
+                <h4>v0.2.2</h4>
+                <span class="date">2025-12-27</span>
+                <ul>
+                    <li>Per-mob attack cooldown for VengefulMobs</li>
+                    <li>Armor validation on STR change</li>
+                    <li>Fixed vanilla critical hit precision</li>
+                </ul>
+            </div>
+
+            <div class="changelog-entry">
+                <h4>v1.0.0 - Initial Release</h4>
+                <ul>
+                    <li>34 skills inspired by Ultima Online</li>
+                    <li>STR/DEX/INT stat system</li>
+                    <li>Internal HP/Mana system</li>
+                    <li>Skill cap system (700 total, 100 per skill)</li>
+                    <li>20+ spells across 8 circles</li>
+                    <li>Crafting quality system</li>
+                    <li>Thief system (hiding, stealing, poisoning)</li>
+                    <li>Taming system</li>
+                    <li>English and Japanese language support</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Skills Plugin Documentation</p>
+        <p>Inspired by Ultima Online | Built for Minecraft</p>
+    </footer>
+</body>
+</html>

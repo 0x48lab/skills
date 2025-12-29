@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skills プラグイン - ドキュメント</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Skills プラグイン</h1>
+        <p>Ultima Onlineにインスパイアされたスキルシステム</p>
+        <div class="lang-switch">
+            <a href="index.html">English</a>
+            <a href="index_ja.html" class="active">日本語</a>
+        </div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview">概要</a></li>
+            <li><a href="#stats">ステータス</a></li>
+            <li><a href="#skills">スキル</a></li>
+            <li><a href="#combat">戦闘</a></li>
+            <li><a href="#magic">魔法</a></li>
+            <li><a href="#crafting">生産</a></li>
+            <li><a href="#repair">修理システム</a></li>
+            <li><a href="#commands">コマンド</a></li>
+            <li><a href="#changelog">変更履歴</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <!-- 概要 -->
+        <section id="overview">
+            <h2>概要</h2>
+            <p>SkillsプラグインはUltima Onlineにインスパイアされたスキルシステムをマインクラフトに導入します。プレイヤーは行動によってスキルを向上させ、スキル合計上限により特化か万能かの選択を迫られます。</p>
+
+            <h3>主な機能</h3>
+            <ul>
+                <li><strong>40スキル</strong> - 戦闘、魔法、生産、採集、シーフ、テイム、サバイバルの各カテゴリ</li>
+                <li><strong>スキルキャップ</strong> - 合計700ポイント、各スキル最大100ポイント</li>
+                <li><strong>使用による成長</strong> - スキルは使用することで上昇、難易度が成長率に影響</li>
+                <li><strong>ステータスシステム</strong> - 関連スキルからSTR、DEX、INTを計算</li>
+                <li><strong>品質クラフト</strong> - 生産スキルによりアイテム品質が変動</li>
+                <li><strong>UO風魔法</strong> - 触媒を消費する8サークルの魔法システム</li>
+            </ul>
+        </section>
+
+        <!-- ステータス -->
+        <section id="stats">
+            <h2>ステータスシステム</h2>
+            <p>3つの内部ステータスが関連スキルから計算されます：</p>
+
+            <table>
+                <tr>
+                    <th>ステータス</th>
+                    <th>効果</th>
+                    <th>関連スキル</th>
+                </tr>
+                <tr>
+                    <td class="str"><strong>STR</strong></td>
+                    <td>+HP、+採掘・伐採速度</td>
+                    <td>Swordsmanship, Axe, Mace Fighting, Wrestling, Tactics, Anatomy, Mining, Lumberjacking, Blacksmithy, Craftsmanship, Cooking, Heat/Cold Resistance, Endurance</td>
+                </tr>
+                <tr>
+                    <td class="dex"><strong>DEX</strong></td>
+                    <td>+攻撃速度、+移動速度</td>
+                    <td>Archery, Throwing, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Tinkering, Athletics, Swimming</td>
+                </tr>
+                <tr>
+                    <td class="int"><strong>INT</strong></td>
+                    <td>-マナ消費、+詠唱成功率</td>
+                    <td>Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Alchemy, Bowcraft, Animal Lore</td>
+                </tr>
+            </table>
+
+            <h3>ステータス計算</h3>
+            <div class="formula">
+                <code>ステータス = 関連スキル合計 / 関連スキル数</code>
+                <p>各ステータスは0〜100で、関連スキルの平均値となります。</p>
+            </div>
+
+            <h3>ステータス効果</h3>
+            <table>
+                <tr>
+                    <th>ステータス</th>
+                    <th>効果計算式</th>
+                </tr>
+                <tr>
+                    <td class="str">STR</td>
+                    <td>最大HP = 100 + STR、採掘・伐採速度 +STR/10%</td>
+                </tr>
+                <tr>
+                    <td class="dex">DEX</td>
+                    <td>攻撃速度 +DEX/2%、移動速度 +DEX/10%</td>
+                </tr>
+                <tr>
+                    <td class="int">INT</td>
+                    <td>マナ消費 -INT/2%、詠唱成功率 +INT/5%</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- スキル -->
+        <section id="skills">
+            <h2>スキル</h2>
+
+            <h3>スキル上昇システム</h3>
+            <div class="formula">
+                <code>上昇確率 = (100 - スキル値) / 10 × 難易度補正</code>
+                <p>上昇量：判定成功時 0.1ポイント</p>
+            </div>
+
+            <h4>難易度補正</h4>
+            <table>
+                <tr>
+                    <th>条件</th>
+                    <th>補正</th>
+                </tr>
+                <tr>
+                    <td>難易度 > スキル + 20</td>
+                    <td>×0.5（難しすぎる）</td>
+                </tr>
+                <tr>
+                    <td>難易度がスキル±20以内</td>
+                    <td>×1.0（最適）</td>
+                </tr>
+                <tr>
+                    <td>難易度 < スキル - 20</td>
+                    <td>×0.2（簡単すぎる）</td>
+                </tr>
+            </table>
+
+            <h3>戦闘系スキル</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Swordsmanship <span class="badge badge-str">STR</span></h4>
+                    <p>剣の扱い。剣でのダメージに影響。</p>
+                    <p class="skill-effect">上昇条件：剣でダメージを与える</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Axe <span class="badge badge-str">STR</span></h4>
+                    <p>斧の扱い。斧でのダメージに影響。</p>
+                    <p class="skill-effect">上昇条件：斧でダメージを与える</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Mace Fighting <span class="badge badge-str">STR</span></h4>
+                    <p>メイスの扱い（1.21+）。</p>
+                    <p class="skill-effect">上昇条件：メイスでダメージを与える</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Spear <span class="badge badge-dex">DEX</span></h4>
+                    <p>槍の扱い（1.21.5+）。</p>
+                    <p class="skill-effect">上昇条件：槍でダメージを与える</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Archery <span class="badge badge-dex">DEX</span></h4>
+                    <p>弓とクロスボウの扱い。</p>
+                    <p class="skill-effect">上昇条件：弓/クロスボウでダメージを与える</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Throwing <span class="badge badge-dex">DEX</span></h4>
+                    <p>トライデントの扱い。</p>
+                    <p class="skill-effect">上昇条件：トライデントでダメージを与える</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Wrestling <span class="badge badge-str">STR</span></h4>
+                    <p>素手戦闘。</p>
+                    <p class="skill-effect">上昇条件：素手でダメージを与える</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Tactics <span class="badge badge-str">STR</span></h4>
+                    <p>ダメージボーナス：+スキル/5%</p>
+                    <p class="skill-effect">上昇条件：敵に攻撃を当てる</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Anatomy <span class="badge badge-str">STR</span></h4>
+                    <p>クリティカル率：+スキル/2%</p>
+                    <p class="skill-effect">上昇条件：敵を倒す</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Parrying <span class="badge badge-dex">DEX</span></h4>
+                    <p>盾・武器での受け流し。</p>
+                    <p class="skill-effect">上昇条件：パリィ成功時</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Focus <span class="badge badge-dex">DEX</span></h4>
+                    <p>スタミナ回復：+スキル%</p>
+                    <p class="skill-effect">上昇条件：5秒間ダッシュする</p>
+                </div>
+            </div>
+
+            <h3>魔法系スキル</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Magery <span class="badge badge-int">INT</span></h4>
+                    <p>魔法詠唱能力。成功率とダメージに影響。</p>
+                    <p class="skill-effect">上昇条件：魔法を詠唱する</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Evaluating Intelligence <span class="badge badge-int">INT</span></h4>
+                    <p>魔法ダメージ：+スキル/2%</p>
+                    <p class="skill-effect">上昇条件：魔法ダメージを与える</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Meditation <span class="badge badge-int">INT</span></h4>
+                    <p>スニーク時のマナ回復：+スキル%</p>
+                    <p class="skill-effect">上昇条件：瞑想中にマナ回復</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Resisting Spells <span class="badge badge-int">INT</span></h4>
+                    <p>魔法ダメージ軽減：-スキル/2%</p>
+                    <p class="skill-effect">上昇条件：魔法ダメージを受ける</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Inscription <span class="badge badge-int">INT</span></h4>
+                    <p>魔法スクロールの作成。</p>
+                    <p class="skill-effect">上昇条件：スクロールを作成する</p>
+                </div>
+            </div>
+
+            <h3>生産系スキル</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Blacksmithy <span class="badge badge-str">STR</span></h4>
+                    <p>金属武器・防具・ツール。金床修理。</p>
+                    <p class="skill-effect">上昇条件：金属製品をクラフト、金床で修理</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Bowcraft <span class="badge badge-int">INT</span></h4>
+                    <p>弓、クロスボウ、矢の作成。</p>
+                    <p class="skill-effect">上昇条件：弓・矢をクラフト</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Craftsmanship <span class="badge badge-str">STR</span></h4>
+                    <p>木製品、革製品、盾。</p>
+                    <p class="skill-effect">上昇条件：木・革製品をクラフト</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Alchemy <span class="badge badge-int">INT</span></h4>
+                    <p>ポーションの醸造。</p>
+                    <p class="skill-effect">上昇条件：ポーションを作成</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Cooking <span class="badge badge-str">STR</span></h4>
+                    <p>食料の調理。</p>
+                    <p class="skill-effect">上昇条件：食料を調理</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Tinkering <span class="badge badge-dex">DEX</span></h4>
+                    <p>小物やツールの作成。</p>
+                    <p class="skill-effect">上昇条件：ツールをクラフト</p>
+                </div>
+            </div>
+
+            <h3>採集系スキル</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Mining <span class="badge badge-str">STR</span></h4>
+                    <p>採掘速度 +スキル/10%、ボーナス鉱石確率：スキル/2%</p>
+                    <p class="skill-effect">上昇条件：鉱石を採掘</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Lumberjacking <span class="badge badge-str">STR</span></h4>
+                    <p>伐採速度 +スキル/10%、ボーナスドロップ：スキル/2%</p>
+                    <p class="skill-effect">上昇条件：原木を伐採</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Fishing <span class="badge badge-dex">DEX</span></h4>
+                    <p>釣り時間短縮、宝物確率向上。</p>
+                    <p class="skill-effect">上昇条件：魚を釣る</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Farming <span class="badge badge-dex">DEX</span></h4>
+                    <p>ボーナス収穫：スキル/2%、追加種：スキル/4%</p>
+                    <p class="skill-effect">上昇条件：作物を収穫、土を耕す</p>
+                </div>
+            </div>
+
+            <h3>サバイバル系スキル</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Athletics <span class="badge badge-dex">DEX</span></h4>
+                    <p>落下ダメージ軽減：-スキル/2%</p>
+                    <p class="skill-effect">上昇条件：落下ダメージを受ける</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Swimming <span class="badge badge-dex">DEX</span></h4>
+                    <p>溺れダメージ軽減：-スキル/2%</p>
+                    <p class="skill-effect">上昇条件：溺れダメージを受ける</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Heat Resistance <span class="badge badge-str">STR</span></h4>
+                    <p>炎・溶岩ダメージ軽減：-スキル/2%</p>
+                    <p class="skill-effect">上昇条件：炎ダメージを受ける</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Cold Resistance <span class="badge badge-str">STR</span></h4>
+                    <p>凍結ダメージ軽減：-スキル/2%</p>
+                    <p class="skill-effect">上昇条件：凍結ダメージを受ける</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Endurance <span class="badge badge-str">STR</span></h4>
+                    <p>窒息ダメージ軽減：-スキル/2%</p>
+                    <p class="skill-effect">上昇条件：窒息ダメージを受ける</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 戦闘 -->
+        <section id="combat">
+            <h2>戦闘システム</h2>
+
+            <h3>ダメージ計算式</h3>
+            <div class="formula">
+                <pre>基礎ダメージ = 武器の基礎攻撃力（設定ファイルから）
+STRボーナス = 1 + (STR / 200)     // 最大 +50%
+Tacticsボーナス = Tactics / 100    // 0.1 〜 1.0
+Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
+クリティカル = Anatomy / 2 % の確率で2倍ダメージ
+
+最終 = 基礎 × STR × Tactics × Anatomy × 品質 × エンチャント</pre>
+            </div>
+
+            <h3>命中率</h3>
+            <div class="formula">
+                <code>命中率 = 武器スキル - (対象防御値 / 2) + 50</code>
+                <p>最小：5%、最大：95%</p>
+            </div>
+
+            <h3>パリィ</h3>
+            <table>
+                <tr>
+                    <th>装備</th>
+                    <th>ブロック確率</th>
+                    <th>ダメージ軽減</th>
+                </tr>
+                <tr>
+                    <td>盾</td>
+                    <td>Parrying × 0.5%（最大50%）</td>
+                    <td>50%</td>
+                </tr>
+                <tr>
+                    <td>武器のみ</td>
+                    <td>Parrying × 0.25%（最大25%）</td>
+                    <td>50%</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- 魔法 -->
+        <section id="magic">
+            <h2>魔法システム</h2>
+
+            <h3>詠唱条件</h3>
+            <ul>
+                <li><strong>スペルブック必須</strong> - その魔法が記されたスペルブックを所持</li>
+                <li><strong>触媒</strong> - 魔法ごとに指定のマインクラフトアイテムを消費</li>
+                <li><strong>マナ</strong> - 空腹ゲージを使用</li>
+                <li><strong>ターゲット</strong> - 多くの魔法は詠唱後にターゲットモードに入る</li>
+            </ul>
+
+            <h3>詠唱成功率</h3>
+            <div class="formula">
+                <code>成功率 = (Magery - サークル × 10) + 50 + (INT / 5)</code>
+                <p>最小：5%、最大：100%</p>
+            </div>
+
+            <h3>魔法サークル</h3>
+            <table>
+                <tr>
+                    <th>サークル</th>
+                    <th>マナ消費</th>
+                    <th>代表的な魔法</th>
+                </tr>
+                <tr><td>1st</td><td>1</td><td>Magic Arrow, Heal, Night Sight</td></tr>
+                <tr><td>2nd</td><td>2</td><td>Harm, Cure, Feather Fall</td></tr>
+                <tr><td>3rd</td><td>3</td><td>Fireball, Teleport, Bless</td></tr>
+                <tr><td>4th</td><td>4</td><td>Lightning, Greater Heal, Fire Wall</td></tr>
+                <tr><td>5th</td><td>5</td><td>Energy Bolt, Mark, Recall, Paralyze</td></tr>
+                <tr><td>6th</td><td>6</td><td>Explosion, Invisibility</td></tr>
+                <tr><td>7th</td><td>7</td><td>Gate Travel</td></tr>
+                <tr><td>8th</td><td>8</td><td>Meteor Swarm</td></tr>
+            </table>
+        </section>
+
+        <!-- 修理システム -->
+        <section id="repair">
+            <h2>修理・修繕システム</h2>
+
+            <h3>金床修理（UOスタイル）</h3>
+            <p>金床でアイテムを修理すると、Ultima Onlineと同様に最大耐久度が減少します。</p>
+
+            <div class="formula">
+                <code>最大耐久度減少 = (110 - Blacksmithyスキル) / 10</code>
+            </div>
+
+            <table>
+                <tr>
+                    <th>Blacksmithyスキル</th>
+                    <th>減少量</th>
+                </tr>
+                <tr><td>100（GM）</td><td>修理ごとに1</td></tr>
+                <tr><td>50</td><td>修理ごとに6</td></tr>
+                <tr><td>0</td><td>修理ごとに11</td></tr>
+            </table>
+
+            <h3>修繕エンチャント</h3>
+            <p>修繕の成功率はアイテム種別に応じた生産スキルに依存します。</p>
+
+            <div class="formula">
+                <code>修繕成功率 = min(100, スキル × 100 / 60)</code>
+            </div>
+
+            <h4>アイテム種別ごとの必要スキル</h4>
+            <table>
+                <tr>
+                    <th>アイテム種別</th>
+                    <th>必要スキル</th>
+                </tr>
+                <tr><td>鉄/金/ダイヤ/ネザライト/チェーン/石の装備</td><td>Blacksmithy</td></tr>
+                <tr><td>トライデント、メイス、槍</td><td>Blacksmithy</td></tr>
+                <tr><td>弓、クロスボウ</td><td>Bowcraft</td></tr>
+                <tr><td>革の防具、木製品、盾</td><td>Craftsmanship</td></tr>
+                <tr><td>釣り竿、ハサミ、火打石と打ち金</td><td>Tinkering</td></tr>
+                <tr><td>エリトラ、タートルヘルメット</td><td>不要（常に100%）</td></tr>
+            </table>
+
+            <h4>スキル別成功率</h4>
+            <table>
+                <tr>
+                    <th>スキルレベル</th>
+                    <th>修繕成功率</th>
+                </tr>
+                <tr><td>0</td><td>0%</td></tr>
+                <tr><td>20</td><td>33%</td></tr>
+                <tr><td>30</td><td>50%</td></tr>
+                <tr><td>40</td><td>67%</td></tr>
+                <tr><td>50</td><td>83%</td></tr>
+                <tr><td>60+</td><td>100%</td></tr>
+            </table>
+        </section>
+
+        <!-- コマンド -->
+        <section id="commands">
+            <h2>コマンド</h2>
+
+            <h3>プレイヤーコマンド</h3>
+            <table>
+                <tr>
+                    <th>コマンド</th>
+                    <th>説明</th>
+                </tr>
+                <tr><td><code>/skills</code></td><td>スキル一覧を表示</td></tr>
+                <tr><td><code>/stats</code></td><td>STR/DEX/INTを表示</td></tr>
+                <tr><td><code>/cast &lt;魔法名&gt;</code></td><td>魔法を詠唱</td></tr>
+                <tr><td><code>/language &lt;en|ja&gt;</code></td><td>表示言語を変更</td></tr>
+                <tr><td><code>/arms</code></td><td>手持ちの武器・防具を鑑定</td></tr>
+            </table>
+
+            <h3>シーフコマンド</h3>
+            <table>
+                <tr>
+                    <th>コマンド</th>
+                    <th>説明</th>
+                </tr>
+                <tr><td><code>/hide</code></td><td>隠れる</td></tr>
+                <tr><td><code>/detect</code></td><td>隠れているプレイヤーを発見</td></tr>
+                <tr><td><code>/snoop</code></td><td>プレイヤーのインベントリを覗く</td></tr>
+                <tr><td><code>/poison</code></td><td>武器に毒を塗る</td></tr>
+            </table>
+
+            <h3>テイムコマンド</h3>
+            <table>
+                <tr>
+                    <th>コマンド</th>
+                    <th>説明</th>
+                </tr>
+                <tr><td><code>/tame</code></td><td>生物をテイム</td></tr>
+                <tr><td><code>/lore</code></td><td>生物の情報を表示</td></tr>
+                <tr><td><code>/evaluate</code></td><td>対象のマナを確認</td></tr>
+            </table>
+
+            <h3>管理者コマンド</h3>
+            <table>
+                <tr>
+                    <th>コマンド</th>
+                    <th>説明</th>
+                </tr>
+                <tr><td><code>/skilladmin check &lt;プレイヤー&gt;</code></td><td>プレイヤーのスキルを確認</td></tr>
+                <tr><td><code>/skilladmin setstat &lt;プレイヤー&gt; &lt;ステータス&gt; &lt;値&gt;</code></td><td>ステータスを設定</td></tr>
+            </table>
+        </section>
+
+        <!-- 変更履歴 -->
+        <section id="changelog">
+            <h2>変更履歴</h2>
+
+            <div class="changelog-entry">
+                <h4>未リリース</h4>
+                <ul>
+                    <li><strong>Spearスキル</strong> - 槍武器用の新しい戦闘スキル（1.21.5+）</li>
+                    <li><strong>UOスタイル修理システム</strong> - 金床修理で最大耐久度が減少</li>
+                    <li><strong>修繕＋スキル連携</strong> - 修繕の成功率が生産スキルに依存</li>
+                    <li><strong>スタミナシステム</strong> - モンスターハンター風のスタミナ管理</li>
+                    <li><strong>Farmingスキル</strong> - 農業用の新しい採集スキル</li>
+                    <li><strong>弓/クロスボウバランス</strong> - 距離減衰と移動ペナルティ</li>
+                    <li><strong>Energy Bolt魔法</strong> - 新しい5thサークルの攻撃魔法</li>
+                    <li><strong>パワーワード</strong> - 詠唱時のUO風詠唱文</li>
+                    <li><strong>司書取引</strong> - 村人からスペルブックとスクロールを購入可能</li>
+                </ul>
+            </div>
+
+            <div class="changelog-entry">
+                <h4>v0.2.2</h4>
+                <span class="date">2025-12-27</span>
+                <ul>
+                    <li>VengefulMobsのMob別攻撃クールダウン</li>
+                    <li>STR変更時の防具バリデーション</li>
+                    <li>バニラクリティカルヒットの精度修正</li>
+                </ul>
+            </div>
+
+            <div class="changelog-entry">
+                <h4>v1.0.0 - 初回リリース</h4>
+                <ul>
+                    <li>Ultima Onlineにインスパイアされた34スキル</li>
+                    <li>STR/DEX/INTステータスシステム</li>
+                    <li>内部HP/マナシステム</li>
+                    <li>スキルキャップシステム（合計700、各スキル100）</li>
+                    <li>8サークルの20以上の魔法</li>
+                    <li>クラフト品質システム</li>
+                    <li>シーフシステム（隠れる、窃盗、毒）</li>
+                    <li>テイムシステム</li>
+                    <li>英語・日本語対応</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Skills プラグイン ドキュメント</p>
+        <p>Ultima Onlineにインスパイア | Minecraft用に開発</p>
+    </footer>
+</body>
+</html>
