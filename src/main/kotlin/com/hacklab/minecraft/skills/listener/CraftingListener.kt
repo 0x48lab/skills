@@ -1,6 +1,8 @@
 package com.hacklab.minecraft.skills.listener
 
 import com.hacklab.minecraft.skills.Skills
+import com.hacklab.minecraft.skills.i18n.MessageKey
+import com.hacklab.minecraft.skills.skill.SkillType
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -10,6 +12,7 @@ import org.bukkit.event.inventory.FurnaceExtractEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.inventory.PrepareAnvilEvent
+import org.bukkit.inventory.AnvilInventory
 import org.bukkit.Material
 
 class CraftingListener(private val plugin: Skills) : Listener {
@@ -43,8 +46,63 @@ class CraftingListener(private val plugin: Skills) : Listener {
         val player = event.viewers.firstOrNull() as? Player ?: return
         val result = event.result ?: return
 
-        // Process anvil repair with Blacksmithy
-        plugin.craftingManager.processAnvilRepair(player, result)
+        // Check if this is a repair (not just renaming)
+        val anvil = event.inventory
+        val firstItem = anvil.getItem(0)
+        val secondItem = anvil.getItem(1)
+
+        // If repairing with material or combining items
+        if (firstItem != null && plugin.durabilityManager.isRepairable(firstItem)) {
+            // Apply max durability cap to the result
+            val customMax = plugin.durabilityManager.getCustomMaxDurability(firstItem)
+            if (customMax != null) {
+                // Copy custom max to result and cap durability
+                plugin.durabilityManager.setCustomMaxDurability(result, customMax)
+                plugin.durabilityManager.capDurabilityToMax(result)
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    fun onAnvilTakeResult(event: InventoryClickEvent) {
+        val player = event.whoClicked as? Player ?: return
+
+        // Check if this is an anvil
+        if (event.inventory.type != InventoryType.ANVIL) return
+
+        // Check if clicking on result slot (slot 2)
+        if (event.rawSlot != 2) return
+
+        val result = event.currentItem
+        if (result == null || result.type == Material.AIR) return
+
+        val anvil = event.inventory as? AnvilInventory ?: return
+        val firstItem = anvil.getItem(0) ?: return
+
+        // Check if this is a repair operation (item has durability)
+        if (!plugin.durabilityManager.isRepairable(firstItem)) return
+
+        // Get player's Blacksmithy skill
+        val data = plugin.playerDataManager.getPlayerData(player)
+        val blacksmithySkill = data.getSkillValue(SkillType.BLACKSMITHY)
+
+        // Get repair difficulty
+        val difficulty = plugin.durabilityManager.getRepairDifficulty(firstItem)
+
+        // Try skill gain
+        plugin.skillManager.tryGainSkill(player, SkillType.BLACKSMITHY, difficulty)
+
+        // Process repair - reduce max durability (UO-style)
+        val repairResult = plugin.durabilityManager.processRepair(result, blacksmithySkill)
+
+        if (repairResult.success) {
+            // Send message about durability reduction
+            plugin.messageSender.send(
+                player, MessageKey.REPAIR_SUCCESS,
+                "reduction" to repairResult.reduction,
+                "max" to repairResult.newMax
+            )
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

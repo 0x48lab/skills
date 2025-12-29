@@ -118,6 +118,10 @@ crafting:
   success: "<green>{item}を作成しました！"
   quality: "<gray>品質: {quality}"
 
+# 修理メッセージ
+repair:
+  success: "<yellow>修理完了！最大耐久度が{reduction}減少しました（最大: {max}）"
+
 # スクロールメッセージ
 scroll:
   created: "<green>{spell}のスクロールを作成しました。"

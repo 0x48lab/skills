@@ -12,6 +12,7 @@ import com.hacklab.minecraft.skills.economy.MobRewardListener
 import com.hacklab.minecraft.skills.economy.MobRewardManager
 import com.hacklab.minecraft.skills.economy.VaultHook
 import com.hacklab.minecraft.skills.crafting.CraftingManager
+import com.hacklab.minecraft.skills.crafting.DurabilityManager
 import com.hacklab.minecraft.skills.crafting.QualityManager
 import com.hacklab.minecraft.skills.data.PlayerDataManager
 import com.hacklab.minecraft.skills.database.Database
@@ -104,6 +105,8 @@ class Skills : JavaPlugin() {
     lateinit var craftingManager: CraftingManager
         private set
     lateinit var qualityManager: QualityManager
+        private set
+    lateinit var durabilityManager: DurabilityManager
         private set
 
     // Gathering
@@ -261,6 +264,7 @@ class Skills : JavaPlugin() {
         // Crafting
         qualityManager = QualityManager(this)
         craftingManager = CraftingManager(this)
+        durabilityManager = DurabilityManager(this)
 
         // Gathering
         gatheringManager = GatheringManager(this)
@@ -326,6 +330,9 @@ class Skills : JavaPlugin() {
 
         // Mob reward (economy)
         pm.registerEvents(MobRewardListener(this), this)
+
+        // Mending integration with Blacksmithy
+        pm.registerEvents(MendingListener(this), this)
     }
 
     private fun registerCommands() {

@@ -107,6 +107,9 @@ enum class MessageKey(val path: String) {
     CRAFTING_SUCCESS("crafting.success"),
     CRAFTING_QUALITY("crafting.quality"),
 
+    // Repair
+    REPAIR_SUCCESS("repair.success"),
+
     // Scroll
     SCROLL_CREATED("scroll.created"),
     SCROLL_FAILED("scroll.failed"),

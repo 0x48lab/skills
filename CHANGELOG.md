@@ -14,6 +14,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Supports all spear tiers: wooden, stone, iron, golden, diamond, netherite
   - Skill gain on dealing damage with spears
 
+- **UO-Style Repair Degradation System**
+  - Repairing items on anvil now reduces max durability (like Ultima Online)
+  - Higher Blacksmithy skill = less max durability lost per repair
+  - Formula: reduction = (110 - Blacksmithy skill) / 10
+    - GM Blacksmith (skill 100): loses 1 max durability per repair
+    - Skill 0: loses 11 max durability per repair
+  - Custom max durability stored via PersistentDataContainer
+  - Durability shown in item lore: "耐久度: current/max (percentage%)"
+  - Color-coded percentage: green (>75%), yellow (>50%), orange (>25%), red (<=25%)
+  - Blacksmithy skill gain on anvil repair (based on item difficulty)
+
+- **Mending Enchantment + Crafting Skill Integration**
+  - Mending enchantment success rate now depends on appropriate crafting skill
+  - Item type determines required skill:
+    - Metal items (iron/gold/diamond/netherite/chain/stone), trident, mace, spears → Blacksmithy
+    - Bow, crossbow → Bowcraft
+    - Leather armor, wooden items, shield → Craftsmanship
+    - Fishing rod, shears, flint and steel → Tinkering
+    - Elytra, turtle helmet → No skill required (always 100%)
+  - Formula: success rate = min(100, skill × 100 / 60)
+    - Skill 0: 0% success rate
+    - Skill 30: 50% success rate
+    - Skill 40: 67% success rate
+    - Skill 60+: 100% success rate (full vanilla behavior)
+  - When mending fails, XP goes to player instead of repairing the item
+  - Encourages players to level appropriate crafting skills for equipment maintenance
+
 - **Internal Stamina System (Monster Hunter Style)**
   - New internal stat: Stamina (100 + DEX + Focus/2)
   - Consumed while sprinting (20/sec base)

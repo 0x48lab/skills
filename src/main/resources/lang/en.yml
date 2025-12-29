@@ -118,6 +118,10 @@ crafting:
   success: "<green>Crafted {item}!"
   quality: "<gray>Quality: {quality}"
 
+# Repair messages
+repair:
+  success: "<yellow>Repaired! Max durability reduced by {reduction} (Max: {max})"
+
 # Scroll messages
 scroll:
   created: "<green>Created scroll of {spell}."
