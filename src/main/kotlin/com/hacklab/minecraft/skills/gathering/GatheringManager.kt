@@ -3,6 +3,7 @@ package com.hacklab.minecraft.skills.gathering
 import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.i18n.MessageKey
 import com.hacklab.minecraft.skills.skill.SkillType
+import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.block.Block
 import org.bukkit.entity.Item
@@ -16,6 +17,7 @@ class GatheringManager(private val plugin: Skills) {
      * Process mining event
      */
     fun processMining(player: Player, block: Block, drops: MutableList<ItemStack>) {
+        if (player.gameMode == GameMode.CREATIVE) return
         if (!GatheringDifficulty.isOre(block.type)) return
 
         val data = plugin.playerDataManager.getPlayerData(player)
@@ -44,6 +46,7 @@ class GatheringManager(private val plugin: Skills) {
      * Process lumberjacking event
      */
     fun processLumberjacking(player: Player, block: Block, drops: MutableList<ItemStack>) {
+        if (player.gameMode == GameMode.CREATIVE) return
         if (!GatheringDifficulty.isLog(block.type)) return
 
         val data = plugin.playerDataManager.getPlayerData(player)
@@ -71,7 +74,8 @@ class GatheringManager(private val plugin: Skills) {
     /**
      * Process fishing event
      */
-    fun processFishing(player: Player, caught: Item): FishingResult {
+    fun processFishing(player: Player, caught: Item): FishingResult? {
+        if (player.gameMode == GameMode.CREATIVE) return null
         val data = plugin.playerDataManager.getPlayerData(player)
         val fishingSkill = data.getSkillValue(SkillType.FISHING)
 
@@ -168,6 +172,7 @@ class GatheringManager(private val plugin: Skills) {
      * Process farming harvest event (mature crop broken)
      */
     fun processFarmingHarvest(player: Player, block: Block, drops: MutableList<ItemStack>) {
+        if (player.gameMode == GameMode.CREATIVE) return
         val data = plugin.playerDataManager.getPlayerData(player)
         val farmingSkill = data.getSkillValue(SkillType.FARMING)
         val difficulty = GatheringDifficulty.getFarmingDifficulty(block.type)
@@ -197,6 +202,7 @@ class GatheringManager(private val plugin: Skills) {
      * Process tilling soil with hoe
      */
     fun processTilling(player: Player) {
+        if (player.gameMode == GameMode.CREATIVE) return
         plugin.skillManager.tryGainSkill(
             player,
             SkillType.FARMING,
@@ -208,6 +214,7 @@ class GatheringManager(private val plugin: Skills) {
      * Process planting seeds
      */
     fun processPlanting(player: Player, seedType: Material) {
+        if (player.gameMode == GameMode.CREATIVE) return
         val difficulty = when (seedType) {
             Material.WHEAT_SEEDS -> 10
             Material.CARROT -> 15
@@ -227,6 +234,7 @@ class GatheringManager(private val plugin: Skills) {
      * Process bone meal usage on crops
      */
     fun processBoneMeal(player: Player) {
+        if (player.gameMode == GameMode.CREATIVE) return
         plugin.skillManager.tryGainSkill(
             player,
             SkillType.FARMING,

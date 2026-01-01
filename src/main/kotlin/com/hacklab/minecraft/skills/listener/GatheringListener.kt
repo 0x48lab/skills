@@ -2,6 +2,7 @@ package com.hacklab.minecraft.skills.listener
 
 import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.gathering.GatheringDifficulty
+import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.entity.Item
 import org.bukkit.entity.Player
@@ -56,6 +57,10 @@ class GatheringListener(private val plugin: Skills) : Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun onBlockBreak(event: BlockBreakEvent) {
         val player = event.player
+
+        // Skip skill processing in Creative mode
+        if (player.gameMode == GameMode.CREATIVE) return
+
         val block = event.block
         val drops = event.block.getDrops(player.inventory.itemInMainHand).toMutableList()
 
@@ -97,6 +102,10 @@ class GatheringListener(private val plugin: Skills) : Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onPlayerInteract(event: PlayerInteractEvent) {
         val player = event.player
+
+        // Skip skill processing in Creative mode
+        if (player.gameMode == GameMode.CREATIVE) return
+
         val item = event.item ?: return
         val block = event.clickedBlock ?: return
 
@@ -131,6 +140,9 @@ class GatheringListener(private val plugin: Skills) : Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onPlayerFish(event: PlayerFishEvent) {
         val player = event.player
+
+        // Skip skill processing in Creative mode
+        if (player.gameMode == GameMode.CREATIVE) return
 
         // Only process when actually catching something
         if (event.state != PlayerFishEvent.State.CAUGHT_FISH &&
