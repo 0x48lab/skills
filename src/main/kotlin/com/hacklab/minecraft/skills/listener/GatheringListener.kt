@@ -30,6 +30,9 @@ class GatheringListener(private val plugin: Skills) : Listener {
     // Track players who just caught fish for durability reduction
     private val recentFishing: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
 
+    // Track players who just tilled soil for durability reduction
+    private val recentTilling: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
+
     // Crop block types for farming
     private val cropBlocks = setOf(
         Material.WHEAT,
@@ -128,6 +131,8 @@ class GatheringListener(private val plugin: Skills) : Listener {
         if (item.type.name.endsWith("_HOE") &&
             (block.type == Material.DIRT || block.type == Material.GRASS_BLOCK ||
              block.type == Material.COARSE_DIRT || block.type == Material.ROOTED_DIRT)) {
+            // Mark player for durability reduction
+            recentTilling.add(player.uniqueId)
             plugin.gatheringManager.processTilling(player)
         }
         // Planting seeds
@@ -221,6 +226,15 @@ class GatheringListener(private val plugin: Skills) : Listener {
             if (Random.nextDouble() < reductionChance) {
                 event.isCancelled = true
             }
+            return
+        }
+
+        // Check if player just tilled soil with a hoe
+        if (recentTilling.remove(player.uniqueId) && isHoe(item.type)) {
+            val reductionChance = plugin.gatheringManager.getHoeDurabilityReduction(player)
+            if (Random.nextDouble() < reductionChance) {
+                event.isCancelled = true
+            }
         }
     }
 
@@ -244,5 +258,14 @@ class GatheringListener(private val plugin: Skills) : Listener {
 
     private fun isFishingRod(material: Material): Boolean {
         return material == Material.FISHING_ROD
+    }
+
+    private fun isHoe(material: Material): Boolean {
+        return material == Material.WOODEN_HOE ||
+               material == Material.STONE_HOE ||
+               material == Material.IRON_HOE ||
+               material == Material.GOLDEN_HOE ||
+               material == Material.DIAMOND_HOE ||
+               material == Material.NETHERITE_HOE
     }
 }

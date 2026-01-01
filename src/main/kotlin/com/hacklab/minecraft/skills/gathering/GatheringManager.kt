@@ -258,6 +258,22 @@ class GatheringManager(private val plugin: Skills) {
         val farmingSkill = data.getSkillValue(SkillType.FARMING)
         return farmingSkill / 5.0  // Max +20% effectiveness
     }
+
+    /**
+     * Get hoe durability reduction chance for farming
+     * @return chance to cancel durability damage (0.0 to 1.0)
+     */
+    fun getHoeDurabilityReduction(player: Player): Double {
+        val data = plugin.playerDataManager.getPlayerData(player)
+        val farmingSkill = data.getSkillValue(SkillType.FARMING)
+
+        // GM (skill 100) gets 100% reduction, otherwise skill * 0.9%
+        return if (farmingSkill >= 100.0) {
+            1.0  // 100% chance to cancel durability damage
+        } else {
+            farmingSkill * 0.9 / 100.0  // 0-89% chance
+        }
+    }
 }
 
 data class FishingResult(
