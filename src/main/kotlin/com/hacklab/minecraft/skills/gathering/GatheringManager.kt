@@ -15,31 +15,38 @@ class GatheringManager(private val plugin: Skills) {
 
     /**
      * Process mining event
+     * @return true if plugin should handle drops (item drops), false if vanilla should handle (block drops)
      */
-    fun processMining(player: Player, block: Block, drops: MutableList<ItemStack>) {
-        if (player.gameMode == GameMode.CREATIVE) return
-        if (!GatheringDifficulty.isOre(block.type)) return
+    fun processMining(player: Player, block: Block, drops: MutableList<ItemStack>): Boolean {
+        if (player.gameMode == GameMode.CREATIVE) return false
+        if (!GatheringDifficulty.isOre(block.type)) return false
 
         val data = plugin.playerDataManager.getPlayerData(player)
         val miningSkill = data.getSkillValue(SkillType.MINING)
         val difficulty = GatheringDifficulty.getMiningDifficulty(block.type)
 
-        // Try skill gain
+        // Try skill gain (always, regardless of drop type)
         plugin.skillManager.tryGainSkill(player, SkillType.MINING, difficulty)
 
-        // Bonus drop chance based on skill
+        // Check if drops are blocks (silk touch or ancient debris)
+        // If all drops are blocks, let vanilla handle it - no bonus for block drops
+        val hasItemDrops = drops.any { !it.type.isBlock }
+        if (!hasItemDrops) {
+            // Block drops (silk touch, ancient debris) - let vanilla handle
+            return false
+        }
+
+        // Item drops - apply bonus chance based on skill
         val bonusChance = miningSkill / 2.0  // Max 50%
         if (Random.nextDouble() * 100 < bonusChance) {
-            // Add bonus drop (duplicate first drop)
-            drops.firstOrNull()?.let { firstDrop ->
-                drops.add(firstDrop.clone())
+            // Add bonus drop (duplicate first non-block drop)
+            drops.firstOrNull { !it.type.isBlock }?.let { itemDrop ->
+                drops.add(itemDrop.clone())
                 plugin.messageSender.send(player, MessageKey.GATHERING_BONUS_DROP)
             }
         }
 
-        // Bonus experience orb chance
-        val expBonus = miningSkill / 5.0  // Max +20%
-        // Experience bonus would be applied through event modification
+        return true
     }
 
     /**
@@ -142,6 +149,22 @@ class GatheringManager(private val plugin: Skills) {
         val str = data.str
         val miningSkill = data.getSkillValue(SkillType.MINING)
         return (str / 10.0) + (miningSkill / 10.0)  // Max +20%
+    }
+
+    /**
+     * Get pickaxe durability reduction chance for mining ores
+     * @return chance to cancel durability damage (0.0 to 1.0)
+     */
+    fun getPickaxeDurabilityReduction(player: Player): Double {
+        val data = plugin.playerDataManager.getPlayerData(player)
+        val miningSkill = data.getSkillValue(SkillType.MINING)
+
+        // GM (skill 100) gets 100% reduction, otherwise skill * 0.9%
+        return if (miningSkill >= 100.0) {
+            1.0  // 100% chance to cancel durability damage
+        } else {
+            miningSkill * 0.9 / 100.0  // 0-89% chance
+        }
     }
 
     /**
