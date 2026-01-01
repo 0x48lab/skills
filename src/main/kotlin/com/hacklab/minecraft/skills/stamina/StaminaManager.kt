@@ -11,6 +11,7 @@ import org.bukkit.potion.PotionEffectType
 import org.bukkit.scheduler.BukkitRunnable
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.sqrt
 
 /**
  * Manages internal stamina system (Monster Hunter style).
@@ -47,6 +48,10 @@ class StaminaManager(private val plugin: Skills) {
 
         // Exhausted walking speed (half speed)
         const val EXHAUSTED_WALK_SPEED = 0.1f
+
+        // Horizontal speed threshold to detect sprinting (blocks/tick)
+        // Normal walking ~0.1, sprinting ~0.26
+        const val SPRINT_SPEED_THRESHOLD = 0.2
     }
 
     // Track which players are in exhausted state
@@ -60,6 +65,9 @@ class StaminaManager(private val plugin: Skills) {
 
     // Store original walk speed for each player
     private val originalWalkSpeed: MutableMap<UUID, Float> = ConcurrentHashMap()
+
+    // Track players who want to sprint (set by PlayerToggleSprintEvent)
+    private val wantsToSprint: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
 
     private var updateTask: BukkitRunnable? = null
 
@@ -92,14 +100,20 @@ class StaminaManager(private val plugin: Skills) {
         val data = plugin.playerDataManager.getPlayerData(player)
         val isExhausted = exhaustedPlayers.contains(player.uniqueId)
 
-        // FR-1: Force stop sprinting if player is sprinting but cannot sprint
-        // This catches cases where PlayerToggleSprintEvent was bypassed (e.g., jumping)
-        if (player.isSprinting && !canSprint(player)) {
+        // FR-3: Detect effective sprinting state
+        // player.isSprinting may be false during jumps, so also check:
+        // 1. Player wants to sprint (from PlayerToggleSprintEvent)
+        // 2. Player is moving at sprint speed
+        val isSprinting = isEffectivelySprinting(player)
+
+        // FR-1: Force stop sprinting if player cannot sprint
+        if (isSprinting && !canSprint(player)) {
             player.isSprinting = false
+            wantsToSprint.remove(player.uniqueId)
         }
 
-        // Re-check sprinting state after potential force-stop
-        val isSprinting = player.isSprinting
+        // Re-check after potential force-stop
+        val shouldConsumeStamina = isEffectivelySprinting(player) && !isExhausted
 
         // If exhausted, handle recovery
         if (isExhausted) {
@@ -121,8 +135,8 @@ class StaminaManager(private val plugin: Skills) {
                 // Recovery sound
                 player.world.playSound(player.location, Sound.ENTITY_PLAYER_BREATH, 0.5f, 1.2f)
             }
-        } else if (isSprinting) {
-            // Consume stamina while sprinting
+        } else if (shouldConsumeStamina) {
+            // Consume stamina while sprinting (including during jumps)
             val consumed = data.consumeStamina(STAMINA_CONSUMPTION_PER_TICK)
 
             if (!consumed || data.stamina <= 0) {
@@ -227,6 +241,57 @@ class StaminaManager(private val plugin: Skills) {
     }
 
     /**
+     * Check if player is effectively sprinting.
+     * This considers not just player.isSprinting, but also:
+     * - Player's intent to sprint (from PlayerToggleSprintEvent)
+     * - Player's actual horizontal movement speed
+     *
+     * This is needed because player.isSprinting may return false during jumps
+     * even though the player is still moving at sprint speed.
+     */
+    private fun isEffectivelySprinting(player: Player): Boolean {
+        // If Bukkit says player is sprinting, trust it
+        if (player.isSprinting) {
+            wantsToSprint.add(player.uniqueId)
+            return true
+        }
+
+        // If player doesn't want to sprint, they're not sprinting
+        if (!wantsToSprint.contains(player.uniqueId)) {
+            return false
+        }
+
+        // Player wants to sprint but player.isSprinting is false (e.g., during jump)
+        // Check if moving at sprint speed
+        val velocity = player.velocity
+        val horizontalSpeed = sqrt(velocity.x * velocity.x + velocity.z * velocity.z)
+
+        // If moving fast, consider sprinting (consumes stamina)
+        // If not moving fast, player probably stopped sprinting
+        if (horizontalSpeed < SPRINT_SPEED_THRESHOLD) {
+            // Not moving fast anymore, clear sprint intent
+            wantsToSprint.remove(player.uniqueId)
+            return false
+        }
+
+        return true
+    }
+
+    /**
+     * Called when player starts sprinting (from PlayerToggleSprintEvent)
+     */
+    fun onSprintStart(player: Player) {
+        wantsToSprint.add(player.uniqueId)
+    }
+
+    /**
+     * Called when player stops sprinting (from PlayerToggleSprintEvent)
+     */
+    fun onSprintStop(player: Player) {
+        wantsToSprint.remove(player.uniqueId)
+    }
+
+    /**
      * Check if player can start sprinting (has enough stamina and not exhausted)
      */
     fun canSprint(player: Player): Boolean {
@@ -266,6 +331,7 @@ class StaminaManager(private val plugin: Skills) {
         exhaustedPlayers.remove(playerId)
         pantingCounter.remove(playerId)
         originalWalkSpeed.remove(playerId)
+        wantsToSprint.remove(playerId)
     }
 
     /**

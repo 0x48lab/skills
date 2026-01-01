@@ -110,14 +110,19 @@ class PlayerListener(private val plugin: Skills) : Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun onPlayerToggleSprint(event: PlayerToggleSprintEvent) {
-        // Only check when player is trying to start sprinting
-        if (!event.isSprinting) return
-
         val player = event.player
 
-        // Prevent sprinting if stamina is too low
-        if (!plugin.staminaManager.canSprint(player)) {
-            event.isCancelled = true
+        if (event.isSprinting) {
+            // Player is trying to start sprinting
+            if (!plugin.staminaManager.canSprint(player)) {
+                event.isCancelled = true
+            } else {
+                // Track sprint intent for jump detection
+                plugin.staminaManager.onSprintStart(player)
+            }
+        } else {
+            // Player stopped sprinting
+            plugin.staminaManager.onSprintStop(player)
         }
     }
 }
