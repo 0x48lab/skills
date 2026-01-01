@@ -22,16 +22,18 @@ class CraftingManager(private val plugin: Skills) {
         // Try skill gain
         plugin.skillManager.tryGainSkill(player, craftInfo.skill, craftInfo.difficulty)
 
-        // Apply quality based on skill
+        // Apply quality based on skill (only for non-stackable items)
         val qualifiedResult = plugin.qualityManager.applyQualityFromSkill(result, skillValue)
 
-        // Notify player
-        val quality = plugin.qualityManager.getQuality(qualifiedResult)
-        plugin.messageSender.send(
-            player, MessageKey.CRAFTING_QUALITY,
-            "item" to result.type.name.lowercase().replace("_", " "),
-            "quality" to quality.displayName
-        )
+        // Notify player only if quality was applied (non-stackable items)
+        if (result.maxStackSize == 1) {
+            val quality = plugin.qualityManager.getQuality(qualifiedResult)
+            plugin.messageSender.send(
+                player, MessageKey.CRAFTING_QUALITY,
+                "item" to result.type.name.lowercase().replace("_", " "),
+                "quality" to quality.displayName
+            )
+        }
 
         return qualifiedResult
     }

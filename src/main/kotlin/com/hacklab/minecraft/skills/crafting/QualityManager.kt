@@ -73,8 +73,15 @@ class QualityManager(private val plugin: Skills) {
 
     /**
      * Calculate and apply quality based on skill
+     * Only applies to non-stackable items (weapons, armor, tools)
      */
     fun applyQualityFromSkill(item: ItemStack, skillValue: Double): ItemStack {
+        // Only apply quality to non-stackable items (maxStackSize == 1)
+        // This prevents quality on items like chests, arrows, nuggets, etc.
+        if (item.maxStackSize > 1) {
+            return item
+        }
+
         val quality = QualityType.calculateQuality(skillValue)
         return setQuality(item, quality)
     }
