@@ -52,6 +52,10 @@ class StaminaManager(private val plugin: Skills) {
         // Horizontal speed threshold to detect sprinting (blocks/tick)
         // Normal walking ~0.1, sprinting ~0.26
         const val SPRINT_SPEED_THRESHOLD = 0.2
+
+        // Minimum food level required by vanilla Minecraft to sprint
+        // Below this, vanilla will force-stop sprinting
+        const val MIN_FOOD_LEVEL_FOR_SPRINT = 7
     }
 
     // Track which players are in exhausted state
@@ -100,14 +104,22 @@ class StaminaManager(private val plugin: Skills) {
         val data = plugin.playerDataManager.getPlayerData(player)
         val isExhausted = exhaustedPlayers.contains(player.uniqueId)
 
+        // Prevent vanilla from force-stopping sprint due to low food level
+        // Our plugin manages stamina independently, so keep food level high enough for vanilla sprint
+        if (player.foodLevel < MIN_FOOD_LEVEL_FOR_SPRINT && !isExhausted) {
+            player.foodLevel = MIN_FOOD_LEVEL_FOR_SPRINT
+        }
+
         // FR-3: Detect effective sprinting state
         // player.isSprinting may be false during jumps, so also check:
         // 1. Player wants to sprint (from PlayerToggleSprintEvent)
         // 2. Player is moving at sprint speed
         val isSprinting = isEffectivelySprinting(player)
 
-        // FR-1: Force stop sprinting if player cannot sprint
-        if (isSprinting && !canSprint(player)) {
+        // FR-1: Force stop sprinting only if player is exhausted
+        // Note: canSprint() checks if player can START sprinting (stamina >= 50)
+        // But once sprinting, player can continue until stamina reaches 0 (then becomes exhausted)
+        if (isSprinting && isExhausted) {
             player.isSprinting = false
             wantsToSprint.remove(player.uniqueId)
         }
