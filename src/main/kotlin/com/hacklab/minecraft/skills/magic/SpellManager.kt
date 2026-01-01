@@ -82,7 +82,7 @@ class SpellManager(private val plugin: Skills) {
             eyeLocation,
             direction,
             maxDistance,
-            0.5  // Ray size for better hit detection
+            1.2  // Ray size for more forgiving target selection
         ) { entity -> entity != player && entity is LivingEntity }
 
         if (rayTraceResult != null && rayTraceResult.hitEntity != null) {
@@ -117,7 +117,7 @@ class SpellManager(private val plugin: Skills) {
             eyeLocation,
             direction,
             maxDistance,
-            0.5
+            1.2  // Ray size for more forgiving target selection
         ) { entity -> entity != player && entity is LivingEntity }
 
         if (entityResult != null && entityResult.hitEntity != null) {

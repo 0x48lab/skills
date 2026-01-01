@@ -97,10 +97,10 @@ class SpellbookManager(private val plugin: Skills) {
     }
 
     /**
-     * Create a new empty spellbook
+     * Create a new empty spellbook (uses Japanese as default for NPC trades)
      */
     fun createSpellbook(): ItemStack {
-        return createSpellbookWithLanguage(Language.ENGLISH)
+        return createSpellbookWithLanguage(Language.JAPANESE)
     }
 
     /**

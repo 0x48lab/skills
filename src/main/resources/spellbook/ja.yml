@@ -1,7 +1,7 @@
 # Spellbook Localization - Japanese
 
 # Item display
-name: "魔法書"
+name: "魔導書"
 description: "魔法の呪文を記録するための本"
 spells_count: "呪文数: {count}"
 
