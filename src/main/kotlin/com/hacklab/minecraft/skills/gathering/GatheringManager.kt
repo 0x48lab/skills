@@ -51,31 +51,16 @@ class GatheringManager(private val plugin: Skills) {
 
     /**
      * Process lumberjacking event
+     * No bonus drops - skill benefits are durability reduction and speed bonus
      */
-    fun processLumberjacking(player: Player, block: Block, drops: MutableList<ItemStack>) {
+    fun processLumberjacking(player: Player, block: Block) {
         if (player.gameMode == GameMode.CREATIVE) return
         if (!GatheringDifficulty.isLog(block.type)) return
 
-        val data = plugin.playerDataManager.getPlayerData(player)
-        val lumberSkill = data.getSkillValue(SkillType.LUMBERJACKING)
         val difficulty = GatheringDifficulty.getLumberDifficulty(block.type)
 
         // Try skill gain
         plugin.skillManager.tryGainSkill(player, SkillType.LUMBERJACKING, difficulty)
-
-        // Bonus log drop
-        val bonusChance = lumberSkill / 2.0  // Max 50%
-        if (Random.nextDouble() * 100 < bonusChance) {
-            drops.add(ItemStack(block.type))
-            plugin.messageSender.send(player, MessageKey.GATHERING_BONUS_DROP)
-        }
-
-        // Increased sapling drop chance
-        val saplingBonus = lumberSkill / 5.0  // Max +20%
-        val saplingType = getSaplingForLog(block.type)
-        if (saplingType != null && Random.nextDouble() * 100 < saplingBonus) {
-            drops.add(ItemStack(saplingType))
-        }
     }
 
     /**
@@ -168,57 +153,40 @@ class GatheringManager(private val plugin: Skills) {
     }
 
     /**
-     * Get lumberjacking speed bonus based on STR and skill
+     * Get axe durability reduction chance for cutting logs
+     * @return chance to cancel durability damage (0.0 to 1.0)
      */
-    fun getLumberSpeedBonus(player: Player): Double {
+    fun getAxeDurabilityReduction(player: Player): Double {
         val data = plugin.playerDataManager.getPlayerData(player)
-        val str = data.str
         val lumberSkill = data.getSkillValue(SkillType.LUMBERJACKING)
-        return (str / 10.0) + (lumberSkill / 10.0)  // Max +20%
-    }
 
-    private fun getSaplingForLog(logType: Material): Material? {
-        return when (logType) {
-            Material.OAK_LOG -> Material.OAK_SAPLING
-            Material.BIRCH_LOG -> Material.BIRCH_SAPLING
-            Material.SPRUCE_LOG -> Material.SPRUCE_SAPLING
-            Material.JUNGLE_LOG -> Material.JUNGLE_SAPLING
-            Material.ACACIA_LOG -> Material.ACACIA_SAPLING
-            Material.DARK_OAK_LOG -> Material.DARK_OAK_SAPLING
-            Material.CHERRY_LOG -> Material.CHERRY_SAPLING
-            Material.MANGROVE_LOG -> Material.MANGROVE_PROPAGULE
-            else -> null
+        // GM (skill 100) gets 100% reduction, otherwise skill * 0.9%
+        return if (lumberSkill >= 100.0) {
+            1.0  // 100% chance to cancel durability damage
+        } else {
+            lumberSkill * 0.9 / 100.0  // 0-89% chance
         }
     }
 
     /**
-     * Process farming harvest event (mature crop broken)
+     * Get lumberjacking speed bonus based on skill
      */
-    fun processFarmingHarvest(player: Player, block: Block, drops: MutableList<ItemStack>) {
-        if (player.gameMode == GameMode.CREATIVE) return
+    fun getLumberSpeedBonus(player: Player): Double {
         val data = plugin.playerDataManager.getPlayerData(player)
-        val farmingSkill = data.getSkillValue(SkillType.FARMING)
+        val lumberSkill = data.getSkillValue(SkillType.LUMBERJACKING)
+        return lumberSkill / 2.0  // Max +50%
+    }
+
+    /**
+     * Process farming harvest event (mature crop broken)
+     * Skill gain only - no bonus drops, vanilla handles drops
+     */
+    fun processFarmingHarvest(player: Player, block: Block) {
+        if (player.gameMode == GameMode.CREATIVE) return
         val difficulty = GatheringDifficulty.getFarmingDifficulty(block.type)
 
         // Try skill gain
         plugin.skillManager.tryGainSkill(player, SkillType.FARMING, difficulty)
-
-        // Bonus harvest chance based on skill (max 50%)
-        val bonusChance = farmingSkill / 2.0
-        if (Random.nextDouble() * 100 < bonusChance) {
-            // Add bonus drop (duplicate first drop)
-            drops.firstOrNull()?.let { firstDrop ->
-                drops.add(firstDrop.clone())
-                plugin.messageSender.send(player, MessageKey.GATHERING_BONUS_DROP)
-            }
-        }
-
-        // Extra seed drop chance (max 25%)
-        val seedChance = farmingSkill / 4.0
-        val seedType = getSeedForCrop(block.type)
-        if (seedType != null && Random.nextDouble() * 100 < seedChance) {
-            drops.add(ItemStack(seedType))
-        }
     }
 
     /**
@@ -272,18 +240,6 @@ class GatheringManager(private val plugin: Skills) {
         val data = plugin.playerDataManager.getPlayerData(player)
         val farmingSkill = data.getSkillValue(SkillType.FARMING)
         return farmingSkill / 5.0  // Max +20% effectiveness
-    }
-
-    private fun getSeedForCrop(cropType: Material): Material? {
-        return when (cropType) {
-            Material.WHEAT -> Material.WHEAT_SEEDS
-            Material.BEETROOTS -> Material.BEETROOT_SEEDS
-            Material.MELON_STEM, Material.MELON -> Material.MELON_SEEDS
-            Material.PUMPKIN_STEM, Material.PUMPKIN -> Material.PUMPKIN_SEEDS
-            Material.TORCHFLOWER -> Material.TORCHFLOWER_SEEDS
-            Material.PITCHER_PLANT -> Material.PITCHER_POD
-            else -> null
-        }
     }
 }
 

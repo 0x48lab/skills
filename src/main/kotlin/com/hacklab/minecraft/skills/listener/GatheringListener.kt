@@ -23,6 +23,9 @@ class GatheringListener(private val plugin: Skills) : Listener {
     // Track players who just mined ore for durability reduction
     private val recentOreMining: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
 
+    // Track players who just cut logs for durability reduction
+    private val recentLogCutting: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
+
     // Crop block types for farming
     private val cropBlocks = setOf(
         Material.WHEAT,
@@ -89,25 +92,17 @@ class GatheringListener(private val plugin: Skills) : Listener {
         }
         // Check if it's a log (Lumberjacking)
         else if (GatheringDifficulty.isLog(block.type)) {
-            plugin.gatheringManager.processLumberjacking(player, block, drops)
+            // Mark player as cutting log for durability reduction
+            recentLogCutting.add(player.uniqueId)
 
-            // Apply modified drops
-            event.isDropItems = false
-            drops.forEach { drop ->
-                block.world.dropItemNaturally(block.location, drop)
-            }
+            // Process skill gain only - no bonus drops, vanilla handles drops
+            plugin.gatheringManager.processLumberjacking(player, block)
         }
         // Check if it's a crop (Farming)
         else if (cropBlocks.contains(block.type)) {
-            // Only process mature crops
+            // Only process mature crops - skill gain only, vanilla handles drops
             if (GatheringDifficulty.isMatureCrop(block.type, block.blockData)) {
-                plugin.gatheringManager.processFarmingHarvest(player, block, drops)
-
-                // Apply modified drops
-                event.isDropItems = false
-                drops.forEach { drop ->
-                    block.world.dropItemNaturally(block.location, drop)
-                }
+                plugin.gatheringManager.processFarmingHarvest(player, block)
             }
         }
     }
@@ -176,23 +171,23 @@ class GatheringListener(private val plugin: Skills) : Listener {
         // Skip in Creative mode
         if (player.gameMode == GameMode.CREATIVE) return
 
-        // Check if player just mined an ore
-        if (!recentOreMining.remove(player.uniqueId)) {
-            return
-        }
-
-        // Check if the item is a pickaxe
         val item = event.item
-        if (!isPickaxe(item.type)) {
+
+        // Check if player just mined an ore with a pickaxe
+        if (recentOreMining.remove(player.uniqueId) && isPickaxe(item.type)) {
+            val reductionChance = plugin.gatheringManager.getPickaxeDurabilityReduction(player)
+            if (Random.nextDouble() < reductionChance) {
+                event.isCancelled = true
+            }
             return
         }
 
-        // Calculate durability reduction chance based on Mining skill
-        val reductionChance = plugin.gatheringManager.getPickaxeDurabilityReduction(player)
-
-        // Roll for durability reduction
-        if (Random.nextDouble() < reductionChance) {
-            event.isCancelled = true
+        // Check if player just cut a log with an axe
+        if (recentLogCutting.remove(player.uniqueId) && isAxe(item.type)) {
+            val reductionChance = plugin.gatheringManager.getAxeDurabilityReduction(player)
+            if (Random.nextDouble() < reductionChance) {
+                event.isCancelled = true
+            }
         }
     }
 
@@ -203,5 +198,14 @@ class GatheringListener(private val plugin: Skills) : Listener {
                material == Material.GOLDEN_PICKAXE ||
                material == Material.DIAMOND_PICKAXE ||
                material == Material.NETHERITE_PICKAXE
+    }
+
+    private fun isAxe(material: Material): Boolean {
+        return material == Material.WOODEN_AXE ||
+               material == Material.STONE_AXE ||
+               material == Material.IRON_AXE ||
+               material == Material.GOLDEN_AXE ||
+               material == Material.DIAMOND_AXE ||
+               material == Material.NETHERITE_AXE
     }
 }
