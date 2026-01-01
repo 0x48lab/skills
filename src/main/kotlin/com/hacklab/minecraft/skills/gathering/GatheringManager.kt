@@ -100,12 +100,29 @@ class GatheringManager(private val plugin: Skills) {
     }
 
     /**
-     * Calculate fishing wait time reduction
+     * Calculate fishing wait time reduction (0.0 to 0.2)
+     * @return reduction rate (e.g., 0.2 = 20% faster)
      */
     fun getFishingWaitReduction(player: Player): Double {
         val data = plugin.playerDataManager.getPlayerData(player)
         val fishingSkill = data.getSkillValue(SkillType.FISHING)
-        return fishingSkill / 5.0  // Max -20%
+        return fishingSkill / 500.0  // Max 20% reduction (0.2)
+    }
+
+    /**
+     * Get fishing rod durability reduction chance
+     * @return chance to cancel durability damage (0.0 to 1.0)
+     */
+    fun getFishingRodDurabilityReduction(player: Player): Double {
+        val data = plugin.playerDataManager.getPlayerData(player)
+        val fishingSkill = data.getSkillValue(SkillType.FISHING)
+
+        // GM (skill 100) gets 100% reduction, otherwise skill * 0.9%
+        return if (fishingSkill >= 100.0) {
+            1.0  // 100% chance to cancel durability damage
+        } else {
+            fishingSkill * 0.9 / 100.0  // 0-89% chance
+        }
     }
 
     /**

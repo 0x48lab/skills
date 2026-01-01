@@ -4,6 +4,7 @@ import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.gathering.GatheringDifficulty
 import org.bukkit.GameMode
 import org.bukkit.Material
+import org.bukkit.entity.FishHook
 import org.bukkit.entity.Item
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -25,6 +26,9 @@ class GatheringListener(private val plugin: Skills) : Listener {
 
     // Track players who just cut logs for durability reduction
     private val recentLogCutting: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
+
+    // Track players who just caught fish for durability reduction
+    private val recentFishing: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
 
     // Crop block types for farming
     private val cropBlocks = setOf(
@@ -145,23 +149,43 @@ class GatheringListener(private val plugin: Skills) : Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun onPlayerFish(event: PlayerFishEvent) {
         val player = event.player
 
         // Skip skill processing in Creative mode
         if (player.gameMode == GameMode.CREATIVE) return
 
-        // Only process when actually catching something
-        if (event.state != PlayerFishEvent.State.CAUGHT_FISH &&
-            event.state != PlayerFishEvent.State.CAUGHT_ENTITY) {
-            return
+        when (event.state) {
+            // When casting the fishing rod, reduce wait time based on skill
+            PlayerFishEvent.State.FISHING -> {
+                val hook = event.hook
+                val reduction = plugin.gatheringManager.getFishingWaitReduction(player)
+
+                if (reduction > 0) {
+                    // Default: 100-600 ticks (5-30 seconds)
+                    // Reduce both min and max wait times
+                    val newMinWait = (hook.minWaitTime * (1 - reduction)).toInt().coerceAtLeast(20)
+                    val newMaxWait = (hook.maxWaitTime * (1 - reduction)).toInt().coerceAtLeast(newMinWait + 20)
+
+                    hook.minWaitTime = newMinWait
+                    hook.maxWaitTime = newMaxWait
+                }
+            }
+
+            // When catching something, process skill gain and track for durability
+            PlayerFishEvent.State.CAUGHT_FISH, PlayerFishEvent.State.CAUGHT_ENTITY -> {
+                val caught = event.caught as? Item ?: return
+
+                // Mark player as fishing for durability reduction
+                recentFishing.add(player.uniqueId)
+
+                // Process fishing skill
+                plugin.gatheringManager.processFishing(player, caught)
+            }
+
+            else -> { /* ignore other states */ }
         }
-
-        val caught = event.caught as? Item ?: return
-
-        // Process fishing
-        plugin.gatheringManager.processFishing(player, caught)
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -188,6 +212,15 @@ class GatheringListener(private val plugin: Skills) : Listener {
             if (Random.nextDouble() < reductionChance) {
                 event.isCancelled = true
             }
+            return
+        }
+
+        // Check if player just caught fish with a fishing rod
+        if (recentFishing.remove(player.uniqueId) && isFishingRod(item.type)) {
+            val reductionChance = plugin.gatheringManager.getFishingRodDurabilityReduction(player)
+            if (Random.nextDouble() < reductionChance) {
+                event.isCancelled = true
+            }
         }
     }
 
@@ -207,5 +240,9 @@ class GatheringListener(private val plugin: Skills) : Listener {
                material == Material.GOLDEN_AXE ||
                material == Material.DIAMOND_AXE ||
                material == Material.NETHERITE_AXE
+    }
+
+    private fun isFishingRod(material: Material): Boolean {
+        return material == Material.FISHING_ROD
     }
 }
