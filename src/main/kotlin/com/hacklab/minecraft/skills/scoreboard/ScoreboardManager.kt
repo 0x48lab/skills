@@ -179,6 +179,9 @@ class ScoreboardManager(private val plugin: Skills) {
                 )
             objective.displaySlot = DisplaySlot.BELOW_NAME
 
+            // ObjectiveレベルのデフォルトnumberFormatをコピー（称号表示用）
+            mainObjective.numberFormat()?.let { objective.numberFormat(it) }
+
             // スコアとnumberFormatをコピー
             mainObjective.scoreboard?.entries?.forEach { entry ->
                 val mainScore = mainObjective.getScore(entry)
