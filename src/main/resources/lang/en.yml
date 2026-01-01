@@ -38,7 +38,7 @@ stats:
 # Magic messages
 magic:
   cast_start: "<yellow>Casting {spell}..."
-  targeting: "<yellow>Select target for {action}... ({seconds}s)"
+  targeting: "<yellow>{action} - Right-click target ({seconds}s)"
   cast_success: "<green>Successfully cast {spell}!"
   cast_failed: "<red>Failed to cast {spell}."
   cancelled: "<gray>Spell cancelled."

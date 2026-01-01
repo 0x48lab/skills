@@ -36,6 +36,7 @@ import com.hacklab.minecraft.skills.stamina.StaminaManager
 import com.hacklab.minecraft.skills.util.CooldownManager
 import com.hacklab.minecraft.skills.vengeful.VengefulMobsListener
 import com.hacklab.minecraft.skills.vengeful.VengefulMobsManager
+import com.hacklab.minecraft.skills.integration.NotorietyIntegration
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.plugin.java.JavaPlugin
@@ -159,6 +160,10 @@ class Skills : JavaPlugin() {
     lateinit var chunkLimitManager: ChunkLimitManager
         private set
     lateinit var mobRewardManager: MobRewardManager
+        private set
+
+    // Integration
+    lateinit var notorietyIntegration: NotorietyIntegration
         private set
 
     // Listeners
@@ -301,6 +306,10 @@ class Skills : JavaPlugin() {
         }
         chunkLimitManager = ChunkLimitManager(this)
         mobRewardManager = MobRewardManager(this)
+
+        // Integration (Notoriety plugin)
+        notorietyIntegration = NotorietyIntegration(this)
+        notorietyIntegration.initialize()
     }
 
     private fun registerListeners() {
@@ -312,6 +321,7 @@ class Skills : JavaPlugin() {
         pm.registerEvents(CraftingListener(this), this)
         pm.registerEvents(GatheringListener(this), this)
         pm.registerEvents(TargetingListener(this), this)
+        pm.registerEvents(ThiefListener(this), this)
 
         meditationListener = MeditationListener(this)
         pm.registerEvents(meditationListener, this)

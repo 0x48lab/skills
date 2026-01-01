@@ -33,14 +33,15 @@ class TargetingListener(private val plugin: Skills) : Listener {
             return
         }
 
+        // Get state BEFORE processing (processEntityTarget clears the state)
+        val state = plugin.targetManager.getTargetingState(player.uniqueId)
+            ?: return
+
         // Process targeting
         event.isCancelled = true
 
         val result = plugin.targetManager.processEntityTarget(player, target)
         if (result is TargetResult.EntityTarget) {
-            val state = plugin.targetManager.getTargetingState(player.uniqueId)
-                ?: return // State was already cleared
-
             handleTargetAction(player, state.action, result.entity as? LivingEntity, null)
         }
     }

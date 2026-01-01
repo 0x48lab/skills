@@ -38,7 +38,7 @@ stats:
 # 魔法メッセージ
 magic:
   cast_start: "<yellow>{spell}を詠唱中..."
-  targeting: "<yellow>{action}のターゲットを選択... ({seconds}秒)"
+  targeting: "<yellow>{action} - 右クリックでターゲット選択 ({seconds}秒)"
   cast_success: "<green>{spell}の詠唱成功！"
   cast_failed: "<red>{spell}の詠唱失敗。"
   cancelled: "<gray>魔法をキャンセルしました。"

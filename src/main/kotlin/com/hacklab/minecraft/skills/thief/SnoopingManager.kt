@@ -11,6 +11,10 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.random.Random
 
 class SnoopingManager(private val plugin: Skills) {
+    companion object {
+        const val SNOOP_ALIGNMENT_PENALTY = -5
+    }
+
     // Track active snooping sessions: snooper UUID -> target UUID
     private val snoopingSessions: MutableMap<UUID, UUID> = ConcurrentHashMap()
 
@@ -33,6 +37,9 @@ class SnoopingManager(private val plugin: Skills) {
 
         // Try skill gain
         plugin.skillManager.tryGainSkill(snooper, SkillType.SNOOPING, targetSnoopingSkill.toInt())
+
+        // Apply alignment penalty for snooping (criminal act)
+        plugin.notorietyIntegration.addAlignment(snooper.uniqueId, SNOOP_ALIGNMENT_PENALTY)
 
         if (Random.nextDouble() * 100 > successChance) {
             // Failed - notify target
