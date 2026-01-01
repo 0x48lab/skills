@@ -91,6 +91,14 @@ class StaminaManager(private val plugin: Skills) {
     private fun updateStamina(player: Player) {
         val data = plugin.playerDataManager.getPlayerData(player)
         val isExhausted = exhaustedPlayers.contains(player.uniqueId)
+
+        // FR-1: Force stop sprinting if player is sprinting but cannot sprint
+        // This catches cases where PlayerToggleSprintEvent was bypassed (e.g., jumping)
+        if (player.isSprinting && !canSprint(player)) {
+            player.isSprinting = false
+        }
+
+        // Re-check sprinting state after potential force-stop
         val isSprinting = player.isSprinting
 
         // If exhausted, handle recovery
