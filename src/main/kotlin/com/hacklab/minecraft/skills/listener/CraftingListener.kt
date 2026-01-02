@@ -29,15 +29,29 @@ class CraftingListener(private val plugin: Skills) : Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    fun onFurnaceExtract(event: FurnaceExtractEvent) {
-        val player = event.player
-        val material = event.itemType
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    fun onFurnaceClick(event: InventoryClickEvent) {
+        val player = event.whoClicked as? Player ?: return
+
+        // Check if this is a furnace/smoker/blast furnace
+        val invType = event.inventory.type
+        if (invType != InventoryType.FURNACE &&
+            invType != InventoryType.SMOKER &&
+            invType != InventoryType.BLAST_FURNACE) return
+
+        // Check if clicking on result slot (slot 2)
+        if (event.rawSlot != 2) return
+
+        val item = event.currentItem
+        if (item == null || item.type == Material.AIR) return
 
         // Check if it's a food item (Cooking skill)
-        if (material.isEdible || material.name.startsWith("COOKED_")) {
-            val item = org.bukkit.inventory.ItemStack(material, event.itemAmount)
-            plugin.craftingManager.processCooking(player, item)
+        if (item.type.isEdible || item.type.name.startsWith("COOKED_")) {
+            // Process the food with cooking skill
+            val processedItem = plugin.craftingManager.processCooking(player, item.clone())
+
+            // Replace the item in the slot
+            event.currentItem = processedItem
         }
     }
 
@@ -105,17 +119,21 @@ class CraftingListener(private val plugin: Skills) : Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    fun onInventoryClick(event: InventoryClickEvent) {
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    fun onBrewingClick(event: InventoryClickEvent) {
         val player = event.whoClicked as? Player ?: return
 
         // Handle brewing stand extraction
         if (event.inventory.type == InventoryType.BREWING) {
             // Slot 0-2 are output slots
-            if (event.slot in 0..2 && event.currentItem != null) {
+            if (event.rawSlot in 0..2 && event.currentItem != null) {
                 val potion = event.currentItem!!
                 if (potion.type.name.contains("POTION")) {
-                    plugin.craftingManager.processBrewing(player, potion)
+                    // Process the potion with alchemy skill
+                    val processedPotion = plugin.craftingManager.processBrewing(player, potion.clone())
+
+                    // Replace the item in the slot
+                    event.currentItem = processedPotion
                 }
             }
         }

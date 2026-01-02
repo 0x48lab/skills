@@ -343,6 +343,9 @@ class Skills : JavaPlugin() {
 
         // Mending integration with Blacksmithy
         pm.registerEvents(MendingListener(this), this)
+
+        // Food consumption (Cooking skill bonus)
+        pm.registerEvents(FoodListener(this), this)
     }
 
     private fun registerCommands() {

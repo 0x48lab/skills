@@ -24,6 +24,7 @@
             <li><a href="#combat">戦闘</a></li>
             <li><a href="#magic">魔法</a></li>
             <li><a href="#crafting">生産</a></li>
+            <li><a href="#gathering">採集</a></li>
             <li><a href="#repair">修理システム</a></li>
             <li><a href="#commands">コマンド</a></li>
             <li><a href="#changelog">変更履歴</a></li>
@@ -258,12 +259,13 @@
             <div class="skill-category">
                 <div class="skill-card">
                     <h4>Mining <span class="badge badge-str">STR</span></h4>
-                    <p>採掘速度 +スキル/10%、ボーナス鉱石確率：スキル/2%</p>
-                    <p class="skill-effect">上昇条件：鉱石を採掘</p>
+                    <p>採掘速度（採掘速度上昇）、ボーナス鉱石確率：スキル/2%、耐久消費軽減</p>
+                    <p>シャベルでの土・砂・砂利の掘削も対象</p>
+                    <p class="skill-effect">上昇条件：鉱石を採掘、シャベルで掘る</p>
                 </div>
                 <div class="skill-card">
                     <h4>Lumberjacking <span class="badge badge-str">STR</span></h4>
-                    <p>伐採速度 +スキル/10%、ボーナスドロップ：スキル/2%</p>
+                    <p>伐採速度（採掘速度上昇）、耐久消費軽減</p>
                     <p class="skill-effect">上昇条件：原木を伐採</p>
                 </div>
                 <div class="skill-card">
@@ -385,6 +387,179 @@ Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
             </table>
         </section>
 
+        <!-- 生産システム -->
+        <section id="crafting">
+            <h2>生産システム</h2>
+            <p>生産スキルはアイテムの品質と特殊効果に影響します。スキルが高いほど良い品質と強いボーナスが得られます。</p>
+
+            <h3>品質システム</h3>
+            <table>
+                <tr>
+                    <th>品質</th>
+                    <th>必要スキル</th>
+                    <th>攻撃力/防御力</th>
+                    <th>耐久度</th>
+                </tr>
+                <tr><td class="quality-lq">低品質（LQ）</td><td>0-49</td><td>-15%</td><td>-25%</td></tr>
+                <tr><td>通常品質（NQ）</td><td>50-69</td><td>+0%</td><td>+0%</td></tr>
+                <tr><td class="quality-hq">高品質（HQ）</td><td>70-89</td><td>+15%</td><td>+30%</td></tr>
+                <tr><td class="quality-ex">最高品質（EX）</td><td>90-100</td><td>+25%</td><td>+50%</td></tr>
+            </table>
+
+            <h3>Cookingスキル</h3>
+            <p>調理した食べ物にCookingスキルに基づいた回復ボーナスが付与されます。</p>
+
+            <div class="formula">
+                <code>回復ボーナス = Cookingスキル / 4 + 品質補正</code>
+                <p>LQ: -15%、NQ: +0%、HQ: +15%、EX: +25%</p>
+            </div>
+
+            <h4>食べ物の難易度</h4>
+            <table>
+                <tr>
+                    <th>難易度</th>
+                    <th>食べ物</th>
+                </tr>
+                <tr><td>5（簡単）</td><td>乾燥昆布</td></tr>
+                <tr><td>10</td><td>ベイクドポテト</td></tr>
+                <tr><td>15</td><td>焼き鳥、焼きウサギ、焼き鱈</td></tr>
+                <tr><td>20</td><td>焼き豚、ステーキ、焼き羊肉、焼き鮭</td></tr>
+                <tr><td>25</td><td>パン、クッキー</td></tr>
+                <tr><td>35</td><td>パンプキンパイ、キノコシチュー、ビートルートスープ</td></tr>
+                <tr><td>45</td><td>ウサギシチュー、怪しげなシチュー、ケーキ</td></tr>
+                <tr><td>60</td><td>金のリンゴ</td></tr>
+                <tr><td>100（マスター）</td><td>エンチャントされた金のリンゴ</td></tr>
+            </table>
+
+            <h3>Alchemyスキル</h3>
+            <p>醸造したポーションにAlchemyスキルに基づいた効果時間延長ボーナスが付与されます。</p>
+
+            <div class="formula">
+                <code>効果時間延長 = Alchemyスキル / 200（スキル100で最大+50%）</code>
+            </div>
+
+            <h4>ポーションの難易度</h4>
+            <table>
+                <tr>
+                    <th>難易度</th>
+                    <th>ポーション</th>
+                </tr>
+                <tr><td>15（簡単）</td><td>ありふれた、濃厚な、奇妙な</td></tr>
+                <tr><td>25</td><td>暗視、水中呼吸</td></tr>
+                <tr><td>30</td><td>治癒、俊敏、跳躍、耐火</td></tr>
+                <tr><td>35</td><td>再生、力、低速落下</td></tr>
+                <tr><td>40</td><td>透明化</td></tr>
+                <tr><td>45</td><td>毒、弱体化、鈍化</td></tr>
+                <tr><td>50</td><td>負傷、タートルマスター、幸運</td></tr>
+                <tr><td>55（難しい）</td><td>不吉、風帯電、糸繰り、粘液、蟲憑き</td></tr>
+            </table>
+
+            <h4>難易度補正</h4>
+            <table>
+                <tr>
+                    <th>条件</th>
+                    <th>追加難易度</th>
+                </tr>
+                <tr><td>効果時間延長版</td><td>+15</td></tr>
+                <tr><td>強化版（レベルII）</td><td>+20</td></tr>
+                <tr><td>スプラッシュポーション</td><td>+10</td></tr>
+                <tr><td>残留ポーション</td><td>+20</td></tr>
+            </table>
+
+            <h3>Tinkeringスキル</h3>
+            <p>作成したアイテムの耐久性が向上し、修繕エンチャントの成功率が上がります。</p>
+
+            <div class="formula">
+                <code>修繕成功率 = min(100, Tinkeringスキル × 100 / 60)</code>
+            </div>
+
+            <h4>スキル別修繕成功率</h4>
+            <table>
+                <tr>
+                    <th>スキルレベル</th>
+                    <th>成功率</th>
+                </tr>
+                <tr><td>0</td><td>0%</td></tr>
+                <tr><td>30</td><td>50%</td></tr>
+                <tr><td>60+</td><td>100%</td></tr>
+            </table>
+
+            <h4>Tinkering対象アイテム</h4>
+            <ul>
+                <li>釣り竿、ハサミ、火打石と打ち金</li>
+                <li>時計、コンパス、望遠鏡</li>
+                <li>ランタン、鎖、ロケット花火</li>
+            </ul>
+        </section>
+
+        <!-- 採集システム -->
+        <section id="gathering">
+            <h2>採集システム</h2>
+            <p>採集スキルは資源収集時にボーナスを提供します。スキルが高いほど、採集速度が上がり、ドロップが良くなり、ツールの耐久消費が軽減されます。</p>
+
+            <h3>Miningスキル</h3>
+            <p>Miningスキルは鉱石採掘（ツルハシ）とソフトブロックの掘削（シャベル）の両方に適用されます。</p>
+
+            <h4>速度ボーナス（採掘速度上昇効果）</h4>
+            <p>鉱石を採掘したり、ソフトブロックを掘り始めると、スキルに応じた採掘速度上昇効果が適用されます。</p>
+            <table>
+                <tr>
+                    <th>Miningスキル</th>
+                    <th>速度ボーナス</th>
+                    <th>採掘速度上昇レベル</th>
+                </tr>
+                <tr><td>0-19</td><td>0-9%</td><td>なし</td></tr>
+                <tr><td>20-39</td><td>10-19%</td><td>採掘速度上昇 I</td></tr>
+                <tr><td>40-79</td><td>20-39%</td><td>採掘速度上昇 I</td></tr>
+                <tr><td>80-100</td><td>40-50%</td><td>採掘速度上昇 II</td></tr>
+            </table>
+
+            <h4>耐久消費軽減</h4>
+            <div class="formula">
+                <code>軽減確率 = スキル × 0.9%（GM = 100%）</code>
+                <p>スキル100（グランドマスター）では、ツールの耐久度が減らなくなります。</p>
+            </div>
+
+            <h4>掘削ブロックの難易度（シャベル）</h4>
+            <table>
+                <tr>
+                    <th>難易度</th>
+                    <th>ブロック</th>
+                </tr>
+                <tr><td>5（簡単）</td><td>土、草ブロック、砂、雪、農地、土の道</td></tr>
+                <tr><td>10</td><td>砂利、泥、コンクリートパウダー、根付いた土、ポドゾル、雪ブロック</td></tr>
+                <tr><td>15</td><td>粘土、菌糸、泥だらけのマングローブの根、粉雪</td></tr>
+                <tr><td>20</td><td>ソウルサンド、ソウルソイル</td></tr>
+                <tr><td>25</td><td>怪しい砂、怪しい砂利</td></tr>
+            </table>
+
+            <h3>Lumberjackingスキル</h3>
+            <p>斧で原木を伐採する際、スキルが高いほど効率が上がります。</p>
+
+            <h4>速度ボーナス（採掘速度上昇効果）</h4>
+            <div class="formula">
+                <code>速度ボーナス = Lumberjackingスキル / 2（最大 +50%）</code>
+            </div>
+
+            <h4>耐久消費軽減</h4>
+            <div class="formula">
+                <code>軽減確率 = スキル × 0.9%（GM = 100%）</code>
+            </div>
+
+            <h3>Fishingスキル</h3>
+            <p>Fishingスキルは釣り待ち時間を短縮し、宝物確率を向上させます。</p>
+
+            <h4>待ち時間短縮</h4>
+            <div class="formula">
+                <code>待ち時間短縮 = スキル / 5（最大 -20%）</code>
+            </div>
+
+            <h4>宝物確率</h4>
+            <div class="formula">
+                <code>宝物ボーナス = スキル / 4（最大 +25%）</code>
+            </div>
+        </section>
+
         <!-- 修理システム -->
         <section id="repair">
             <h2>修理・修繕システム</h2>
@@ -500,6 +675,11 @@ Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
             <div class="changelog-entry">
                 <h4>未リリース</h4>
                 <ul>
+                    <li><strong>シャベル掘削システム</strong> - シャベルでソフトブロックを掘るとMiningスキルが上昇、耐久消費軽減と採掘速度上昇ボーナス付き</li>
+                    <li><strong>採集速度ボーナス</strong> - Mining、Lumberjacking、掘削時にスキルに応じた採掘速度上昇効果を適用</li>
+                    <li><strong>Cookingスキル効果</strong> - 調理した食べ物にCookingスキルと品質に基づく回復ボーナスを付与</li>
+                    <li><strong>Alchemyスキル効果</strong> - 醸造したポーションにAlchemyスキルに基づく効果時間延長を付与</li>
+                    <li><strong>Tinkeringスキル効果</strong> - 対象アイテムの修繕成功率がTinkeringスキルに依存</li>
                     <li><strong>Spearスキル</strong> - 槍武器用の新しい戦闘スキル（1.21.5+）</li>
                     <li><strong>修理劣化システム</strong> - 金床修理で最大耐久度が減少</li>
                     <li><strong>修繕＋スキル連携</strong> - 修繕の成功率が生産スキルに依存</li>

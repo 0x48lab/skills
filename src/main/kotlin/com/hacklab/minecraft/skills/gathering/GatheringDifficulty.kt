@@ -46,6 +46,55 @@ object GatheringDifficulty {
         Material.WARPED_STEM to 35
     )
 
+    // Digging difficulties (soft blocks for shovels)
+    private val diggingDifficulties = mapOf(
+        // Basic soft blocks
+        Material.DIRT to 5,
+        Material.GRASS_BLOCK to 5,
+        Material.COARSE_DIRT to 5,
+        Material.ROOTED_DIRT to 10,
+        Material.DIRT_PATH to 5,
+        Material.PODZOL to 10,
+        Material.MYCELIUM to 15,
+        Material.FARMLAND to 5,
+        // Sand variants
+        Material.SAND to 5,
+        Material.RED_SAND to 5,
+        Material.SUSPICIOUS_SAND to 25,
+        Material.SUSPICIOUS_GRAVEL to 25,
+        // Gravel
+        Material.GRAVEL to 10,
+        // Clay
+        Material.CLAY to 15,
+        // Soul blocks
+        Material.SOUL_SAND to 20,
+        Material.SOUL_SOIL to 20,
+        // Snow
+        Material.SNOW to 5,
+        Material.SNOW_BLOCK to 10,
+        Material.POWDER_SNOW to 15,
+        // Mud variants
+        Material.MUD to 10,
+        Material.MUDDY_MANGROVE_ROOTS to 15,
+        // Concrete powder
+        Material.WHITE_CONCRETE_POWDER to 10,
+        Material.ORANGE_CONCRETE_POWDER to 10,
+        Material.MAGENTA_CONCRETE_POWDER to 10,
+        Material.LIGHT_BLUE_CONCRETE_POWDER to 10,
+        Material.YELLOW_CONCRETE_POWDER to 10,
+        Material.LIME_CONCRETE_POWDER to 10,
+        Material.PINK_CONCRETE_POWDER to 10,
+        Material.GRAY_CONCRETE_POWDER to 10,
+        Material.LIGHT_GRAY_CONCRETE_POWDER to 10,
+        Material.CYAN_CONCRETE_POWDER to 10,
+        Material.PURPLE_CONCRETE_POWDER to 10,
+        Material.BLUE_CONCRETE_POWDER to 10,
+        Material.BROWN_CONCRETE_POWDER to 10,
+        Material.GREEN_CONCRETE_POWDER to 10,
+        Material.RED_CONCRETE_POWDER to 10,
+        Material.BLACK_CONCRETE_POWDER to 10
+    )
+
     // Fishing base difficulty
     const val FISHING_FISH_DIFFICULTY = 15
     const val FISHING_TROPICAL_DIFFICULTY = 25
@@ -84,7 +133,11 @@ object GatheringDifficulty {
 
     fun getLumberDifficulty(material: Material): Int = lumberDifficulties[material] ?: 10
 
+    fun getDiggingDifficulty(material: Material): Int = diggingDifficulties[material] ?: 5
+
     fun isOre(material: Material): Boolean = miningDifficulties.containsKey(material)
+
+    fun isDiggable(material: Material): Boolean = diggingDifficulties.containsKey(material)
 
     fun isLog(material: Material): Boolean = lumberDifficulties.containsKey(material) ||
             material.name.endsWith("_LOG") || material.name.endsWith("_STEM")

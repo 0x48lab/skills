@@ -12,7 +12,10 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockDamageEvent
 import org.bukkit.event.player.PlayerFishEvent
+import org.bukkit.potion.PotionEffect
+import org.bukkit.potion.PotionEffectType
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerItemDamageEvent
 import java.util.UUID
@@ -32,6 +35,9 @@ class GatheringListener(private val plugin: Skills) : Listener {
 
     // Track players who just tilled soil for durability reduction
     private val recentTilling: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
+
+    // Track players who just dug soft blocks for durability reduction
+    private val recentDigging: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
 
     // Crop block types for farming
     private val cropBlocks = setOf(
@@ -70,6 +76,74 @@ class GatheringListener(private val plugin: Skills) : Listener {
         Material.TORCHFLOWER_SEEDS,
         Material.PITCHER_POD
     )
+
+    /**
+     * Apply Haste effect when player starts mining/digging
+     * This gives the speed bonus based on Mining skill
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    fun onBlockDamage(event: BlockDamageEvent) {
+        val player = event.player
+
+        // Skip in Creative mode
+        if (player.gameMode == GameMode.CREATIVE) return
+
+        val block = event.block
+        val heldItem = player.inventory.itemInMainHand
+
+        // Check if mining ore with pickaxe or digging soft block with shovel
+        val speedBonus: Double = when {
+            GatheringDifficulty.isOre(block.type) && isPickaxe(heldItem.type) -> {
+                plugin.gatheringManager.getMiningSpeedBonus(player)
+            }
+            GatheringDifficulty.isDiggable(block.type) && isShovel(heldItem.type) -> {
+                plugin.gatheringManager.getDiggingSpeedBonus(player)
+            }
+            GatheringDifficulty.isLog(block.type) && isAxe(heldItem.type) -> {
+                plugin.gatheringManager.getLumberSpeedBonus(player)
+            }
+            else -> 0.0
+        }
+
+        // Apply Haste effect if there's a speed bonus
+        if (speedBonus > 0) {
+            applyMiningSpeedBonus(player, speedBonus)
+        }
+    }
+
+    /**
+     * Apply mining speed bonus as Haste effect
+     * Haste I = +20% speed, Haste II = +40% speed, etc.
+     */
+    private fun applyMiningSpeedBonus(player: Player, bonusPercent: Double) {
+        // Convert bonus percentage to Haste level (each level = ~20% speed)
+        // Max 50% bonus = Haste II (approximately)
+        val hasteLevel = when {
+            bonusPercent >= 40.0 -> 2  // Haste II
+            bonusPercent >= 20.0 -> 1  // Haste I
+            bonusPercent >= 10.0 -> 0  // Haste I (level 0 = amplifier 0 = Haste I)
+            else -> return  // Too small to apply
+        }
+
+        // Check if player already has a stronger Haste effect
+        val existingHaste = player.getPotionEffect(PotionEffectType.HASTE)
+        if (existingHaste != null && existingHaste.amplifier >= hasteLevel) {
+            return  // Don't override stronger effects (beacons, potions)
+        }
+
+        // Apply short Haste effect (3 seconds = 60 ticks)
+        // Using ambient=true, particles=false for less visual clutter
+        player.addPotionEffect(
+            PotionEffect(
+                PotionEffectType.HASTE,
+                60,  // 3 seconds
+                hasteLevel,
+                true,  // ambient
+                false, // particles
+                true   // icon
+            )
+        )
+    }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun onBlockBreak(event: BlockBreakEvent) {
@@ -110,6 +184,18 @@ class GatheringListener(private val plugin: Skills) : Listener {
             // Only process mature crops - skill gain only, vanilla handles drops
             if (GatheringDifficulty.isMatureCrop(block.type, block.blockData)) {
                 plugin.gatheringManager.processFarmingHarvest(player, block)
+            }
+        }
+        // Check if it's a diggable block (soft blocks with shovel)
+        else if (GatheringDifficulty.isDiggable(block.type)) {
+            val heldItem = player.inventory.itemInMainHand
+            // Only process if player is using a shovel
+            if (isShovel(heldItem.type)) {
+                // Mark player as digging for durability reduction
+                recentDigging.add(player.uniqueId)
+
+                // Process skill gain - uses Mining skill
+                plugin.gatheringManager.processDigging(player, block)
             }
         }
     }
@@ -235,6 +321,15 @@ class GatheringListener(private val plugin: Skills) : Listener {
             if (Random.nextDouble() < reductionChance) {
                 event.isCancelled = true
             }
+            return
+        }
+
+        // Check if player just dug soft blocks with a shovel
+        if (recentDigging.remove(player.uniqueId) && isShovel(item.type)) {
+            val reductionChance = plugin.gatheringManager.getShovelDurabilityReduction(player)
+            if (Random.nextDouble() < reductionChance) {
+                event.isCancelled = true
+            }
         }
     }
 
@@ -267,5 +362,14 @@ class GatheringListener(private val plugin: Skills) : Listener {
                material == Material.GOLDEN_HOE ||
                material == Material.DIAMOND_HOE ||
                material == Material.NETHERITE_HOE
+    }
+
+    private fun isShovel(material: Material): Boolean {
+        return material == Material.WOODEN_SHOVEL ||
+               material == Material.STONE_SHOVEL ||
+               material == Material.IRON_SHOVEL ||
+               material == Material.GOLDEN_SHOVEL ||
+               material == Material.DIAMOND_SHOVEL ||
+               material == Material.NETHERITE_SHOVEL
     }
 }

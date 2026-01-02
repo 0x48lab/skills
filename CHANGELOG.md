@@ -8,6 +8,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Shovel Digging System**
+  - Digging soft blocks with shovels now gains Mining skill
+  - Target blocks: dirt, grass, sand, gravel, clay, soul sand, snow, mud, concrete powder, etc.
+  - Difficulty range: 5 (basic soil) to 25 (suspicious sand/gravel)
+  - Durability reduction based on Mining skill (skill 100 = 100% reduction)
+  - Haste speed bonus based on Mining skill (up to Haste II at skill 80+)
+
+- **Gathering Speed Bonus System** (Haste Effect)
+  - Mining ores, chopping logs, and digging soft blocks now apply Haste effect
+  - Speed bonus calculated from skill level:
+    - Mining: STR/10 + MiningSkill/10 (max 20%)
+    - Lumberjacking: LumberjackingSkill/2 (max 50%)
+    - Digging: MiningSkill/2 (max 50%)
+  - Haste level applied:
+    - 10-19% bonus: Haste I
+    - 20-39% bonus: Haste I
+    - 40%+ bonus: Haste II
+  - Does not override stronger Haste effects (beacons, potions)
+
+- **Cooking Skill Effects**
+  - Food cooked gets recovery bonus based on Cooking skill
+  - Formula: baseRecovery × (1 + skill/4/100 + qualityBonus)
+  - Quality modifiers: LQ -15%, NQ +0%, HQ +15%, EX +25%
+  - Difficulty range: 5 (dried kelp) to 100 (enchanted golden apple)
+
+- **Alchemy Skill Effects**
+  - Brewed potions get duration extension based on Alchemy skill
+  - Formula: baseDuration × (1 + skill/200) - max +50% at skill 100
+  - Quality affects potion strength
+  - Difficulty range: 15 (mundane) to 55 (special potions)
+  - Modifiers: Extended +15, Enhanced +20, Splash +10, Lingering +20
+
+- **Tinkering Skill Effects**
+  - Mending success rate for tinkering items depends on Tinkering skill
+  - Formula: min(100, TinkeringSkill × 100/60)
+  - Skill 0: 0%, Skill 30: 50%, Skill 60+: 100%
+  - Target items: Fishing Rod, Shears, Flint and Steel, Clock, Compass, Spyglass
+
 - **Spear Skill** (1.21.5+)
   - New combat skill for spear weapons
   - DEX-weighted skill (affects DEX stat calculation)

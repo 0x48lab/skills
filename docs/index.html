@@ -24,6 +24,7 @@
             <li><a href="#combat">Combat</a></li>
             <li><a href="#magic">Magic</a></li>
             <li><a href="#crafting">Crafting</a></li>
+            <li><a href="#gathering">Gathering</a></li>
             <li><a href="#repair">Repair System</a></li>
             <li><a href="#commands">Commands</a></li>
             <li><a href="#changelog">Changelog</a></li>
@@ -258,12 +259,13 @@
             <div class="skill-category">
                 <div class="skill-card">
                     <h4>Mining <span class="badge badge-str">STR</span></h4>
-                    <p>Mining speed +Skill/10%, Bonus ore chance: Skill/2%</p>
-                    <p class="skill-effect">Gain: Mine ores</p>
+                    <p>Mining speed (Haste), Bonus ore chance: Skill/2%, Durability reduction</p>
+                    <p>Also covers digging soft blocks with shovels (dirt, sand, gravel, etc.)</p>
+                    <p class="skill-effect">Gain: Mine ores, dig with shovel</p>
                 </div>
                 <div class="skill-card">
                     <h4>Lumberjacking <span class="badge badge-str">STR</span></h4>
-                    <p>Chopping speed +Skill/10%, Bonus drop: Skill/2%</p>
+                    <p>Chopping speed (Haste), Durability reduction</p>
                     <p class="skill-effect">Gain: Chop logs</p>
                 </div>
                 <div class="skill-card">
@@ -385,6 +387,179 @@ Final = Base × STR × Tactics × Anatomy × Quality × Enchant</pre>
             </table>
         </section>
 
+        <!-- Crafting -->
+        <section id="crafting">
+            <h2>Crafting System</h2>
+            <p>Crafting skills affect the quality and special properties of items you create. Higher skill means better quality and stronger bonuses.</p>
+
+            <h3>Quality System</h3>
+            <table>
+                <tr>
+                    <th>Quality</th>
+                    <th>Skill Required</th>
+                    <th>Damage/Defense</th>
+                    <th>Durability</th>
+                </tr>
+                <tr><td class="quality-lq">Low Quality (LQ)</td><td>0-49</td><td>-15%</td><td>-25%</td></tr>
+                <tr><td>Normal Quality (NQ)</td><td>50-69</td><td>+0%</td><td>+0%</td></tr>
+                <tr><td class="quality-hq">High Quality (HQ)</td><td>70-89</td><td>+15%</td><td>+30%</td></tr>
+                <tr><td class="quality-ex">Exceptional (EX)</td><td>90-100</td><td>+25%</td><td>+50%</td></tr>
+            </table>
+
+            <h3>Cooking Skill</h3>
+            <p>Food you cook gets a recovery bonus based on your Cooking skill level.</p>
+
+            <div class="formula">
+                <code>Recovery Bonus = Cooking Skill / 4 + Quality Modifier</code>
+                <p>LQ: -15%, NQ: +0%, HQ: +15%, EX: +25%</p>
+            </div>
+
+            <h4>Food Difficulty</h4>
+            <table>
+                <tr>
+                    <th>Difficulty</th>
+                    <th>Foods</th>
+                </tr>
+                <tr><td>5 (Easy)</td><td>Dried Kelp</td></tr>
+                <tr><td>10</td><td>Baked Potato</td></tr>
+                <tr><td>15</td><td>Cooked Chicken, Cooked Rabbit, Cooked Cod</td></tr>
+                <tr><td>20</td><td>Cooked Porkchop, Cooked Beef, Cooked Mutton, Cooked Salmon</td></tr>
+                <tr><td>25</td><td>Bread, Cookie</td></tr>
+                <tr><td>35</td><td>Pumpkin Pie, Mushroom Stew, Beetroot Soup</td></tr>
+                <tr><td>45</td><td>Rabbit Stew, Suspicious Stew, Cake</td></tr>
+                <tr><td>60</td><td>Golden Apple</td></tr>
+                <tr><td>100 (Master)</td><td>Enchanted Golden Apple</td></tr>
+            </table>
+
+            <h3>Alchemy Skill</h3>
+            <p>Potions you brew get extended duration based on your Alchemy skill level.</p>
+
+            <div class="formula">
+                <code>Duration Bonus = Alchemy Skill / 200 (max +50% at skill 100)</code>
+            </div>
+
+            <h4>Potion Difficulty</h4>
+            <table>
+                <tr>
+                    <th>Difficulty</th>
+                    <th>Potions</th>
+                </tr>
+                <tr><td>15 (Easy)</td><td>Mundane, Thick, Awkward</td></tr>
+                <tr><td>25</td><td>Night Vision, Water Breathing</td></tr>
+                <tr><td>30</td><td>Healing, Swiftness, Leaping, Fire Resistance</td></tr>
+                <tr><td>35</td><td>Regeneration, Strength, Slow Falling</td></tr>
+                <tr><td>40</td><td>Invisibility</td></tr>
+                <tr><td>45</td><td>Poison, Weakness, Slowness</td></tr>
+                <tr><td>50</td><td>Harming, Turtle Master, Luck</td></tr>
+                <tr><td>55 (Hard)</td><td>Ominous, Wind Charged, Weaving, Oozing, Infested</td></tr>
+            </table>
+
+            <h4>Difficulty Modifiers</h4>
+            <table>
+                <tr>
+                    <th>Modifier</th>
+                    <th>Added Difficulty</th>
+                </tr>
+                <tr><td>Extended Duration</td><td>+15</td></tr>
+                <tr><td>Enhanced (Level II)</td><td>+20</td></tr>
+                <tr><td>Splash Potion</td><td>+10</td></tr>
+                <tr><td>Lingering Potion</td><td>+20</td></tr>
+            </table>
+
+            <h3>Tinkering Skill</h3>
+            <p>Items you craft last longer and Mending works better.</p>
+
+            <div class="formula">
+                <code>Mending Success Rate = min(100, Tinkering Skill × 100 / 60)</code>
+            </div>
+
+            <h4>Mending Success by Skill</h4>
+            <table>
+                <tr>
+                    <th>Skill Level</th>
+                    <th>Success Rate</th>
+                </tr>
+                <tr><td>0</td><td>0%</td></tr>
+                <tr><td>30</td><td>50%</td></tr>
+                <tr><td>60+</td><td>100%</td></tr>
+            </table>
+
+            <h4>Tinkering Items</h4>
+            <ul>
+                <li>Fishing Rod, Shears, Flint and Steel</li>
+                <li>Clock, Compass, Spyglass</li>
+                <li>Lantern, Chain, Firework Rocket</li>
+            </ul>
+        </section>
+
+        <!-- Gathering System -->
+        <section id="gathering">
+            <h2>Gathering System</h2>
+            <p>Gathering skills provide bonuses when collecting resources. Higher skill means faster gathering, better drops, and reduced tool durability consumption.</p>
+
+            <h3>Mining Skill</h3>
+            <p>Mining skill covers both ore mining (pickaxe) and soft block digging (shovel).</p>
+
+            <h4>Speed Bonus (Haste Effect)</h4>
+            <p>When you start mining ores or digging soft blocks, a Haste effect is applied based on your skill.</p>
+            <table>
+                <tr>
+                    <th>Mining Skill</th>
+                    <th>Speed Bonus</th>
+                    <th>Haste Level</th>
+                </tr>
+                <tr><td>0-19</td><td>0-9%</td><td>None</td></tr>
+                <tr><td>20-39</td><td>10-19%</td><td>Haste I</td></tr>
+                <tr><td>40-79</td><td>20-39%</td><td>Haste I</td></tr>
+                <tr><td>80-100</td><td>40-50%</td><td>Haste II</td></tr>
+            </table>
+
+            <h4>Durability Reduction</h4>
+            <div class="formula">
+                <code>Reduction Chance = Skill × 0.9% (GM = 100%)</code>
+                <p>At skill 100 (Grandmaster), tool durability never decreases.</p>
+            </div>
+
+            <h4>Digging Block Difficulties (Shovel)</h4>
+            <table>
+                <tr>
+                    <th>Difficulty</th>
+                    <th>Blocks</th>
+                </tr>
+                <tr><td>5 (Easy)</td><td>Dirt, Grass Block, Sand, Snow, Farmland, Dirt Path</td></tr>
+                <tr><td>10</td><td>Gravel, Mud, Concrete Powder, Rooted Dirt, Podzol, Snow Block</td></tr>
+                <tr><td>15</td><td>Clay, Mycelium, Muddy Mangrove Roots, Powder Snow</td></tr>
+                <tr><td>20</td><td>Soul Sand, Soul Soil</td></tr>
+                <tr><td>25</td><td>Suspicious Sand, Suspicious Gravel</td></tr>
+            </table>
+
+            <h3>Lumberjacking Skill</h3>
+            <p>Chopping logs with axes improves with higher skill.</p>
+
+            <h4>Speed Bonus (Haste Effect)</h4>
+            <div class="formula">
+                <code>Speed Bonus = Lumberjacking Skill / 2 (max +50%)</code>
+            </div>
+
+            <h4>Durability Reduction</h4>
+            <div class="formula">
+                <code>Reduction Chance = Skill × 0.9% (GM = 100%)</code>
+            </div>
+
+            <h3>Fishing Skill</h3>
+            <p>Fishing skill reduces wait time and improves loot quality.</p>
+
+            <h4>Wait Time Reduction</h4>
+            <div class="formula">
+                <code>Wait Reduction = Skill / 5 (max -20%)</code>
+            </div>
+
+            <h4>Treasure Chance</h4>
+            <div class="formula">
+                <code>Treasure Bonus = Skill / 4 (max +25%)</code>
+            </div>
+        </section>
+
         <!-- Repair System -->
         <section id="repair">
             <h2>Repair & Mending System</h2>
@@ -500,6 +675,11 @@ Final = Base × STR × Tactics × Anatomy × Quality × Enchant</pre>
             <div class="changelog-entry">
                 <h4>Unreleased</h4>
                 <ul>
+                    <li><strong>Shovel Digging System</strong> - Digging soft blocks with shovels now gains Mining skill, with durability reduction and Haste speed bonus</li>
+                    <li><strong>Gathering Speed Bonus</strong> - Mining, Lumberjacking, and Digging now apply Haste effect based on skill level</li>
+                    <li><strong>Cooking Skill Effects</strong> - Food cooked gets recovery bonus based on Cooking skill and quality</li>
+                    <li><strong>Alchemy Skill Effects</strong> - Brewed potions get duration extension based on Alchemy skill</li>
+                    <li><strong>Tinkering Skill Effects</strong> - Mending success rate depends on Tinkering skill for applicable items</li>
                     <li><strong>Spear Skill</strong> - New combat skill for spear weapons (1.21.5+)</li>
                     <li><strong>Repair Degradation System</strong> - Anvil repairs reduce max durability</li>
                     <li><strong>Mending + Skill Integration</strong> - Mending success depends on crafting skills</li>

@@ -62,6 +62,70 @@ Support:
 - Tinkering: Tools
 - Craftsmanship: Wood
 
+Higher skill = better quality!
+
+---PAGE---
+
+=== Cooking Skill ===
+
+Effect:
+Foods you cook get a
+recovery bonus based on
+your Cooking skill level.
+
+Quality bonuses:
+- LQ: -15% recovery
+- NQ: Normal
+- HQ: +15% recovery
+- EX: +25% recovery
+
+Difficulty varies by food:
+- Basic (10): Baked potato
+- Medium (25): Soup
+- Complex (35): Rabbit stew
+- Special (50): Golden items
+
+---PAGE---
+
+=== Alchemy Skill ===
+
+Effect:
+Potions you brew get
+extended duration based on
+your Alchemy skill level.
+
+Skill 100 = +50% duration!
+
+Quality bonuses:
+- HQ/EX: Stronger effects
+
+Difficulty varies by potion:
+- Basic (30): Healing, Speed
+- Enhanced (50): Level II
+- Extended (45): 8 min ver
+- Splash: +10 difficulty
+- Lingering: +20 difficulty
+
+---PAGE---
+
+=== Tinkering Skill ===
+
+Effect:
+Items you craft last longer
+and Mending works better.
+
+Mending success rate:
+- Skill 0: 0% success
+- Skill 30: 50% success
+- Skill 60+: 100% success
+
+Target items:
+- Fishing Rod
+- Shears
+- Flint and Steel
+- Clock, Compass
+- Spyglass
+
 ---PAGE---
 
 === Gathering Skills ===

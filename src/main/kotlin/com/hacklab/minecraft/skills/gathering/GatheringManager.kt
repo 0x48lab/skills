@@ -50,6 +50,46 @@ class GatheringManager(private val plugin: Skills) {
     }
 
     /**
+     * Process digging event (soft blocks with shovel)
+     * Links to Mining skill - benefits are durability reduction and speed bonus
+     */
+    fun processDigging(player: Player, block: Block) {
+        if (player.gameMode == GameMode.CREATIVE) return
+        if (!GatheringDifficulty.isDiggable(block.type)) return
+
+        val difficulty = GatheringDifficulty.getDiggingDifficulty(block.type)
+
+        // Try skill gain (uses Mining skill)
+        plugin.skillManager.tryGainSkill(player, SkillType.MINING, difficulty)
+    }
+
+    /**
+     * Get shovel durability reduction chance for digging soft blocks
+     * @return chance to cancel durability damage (0.0 to 1.0)
+     */
+    fun getShovelDurabilityReduction(player: Player): Double {
+        val data = plugin.playerDataManager.getPlayerData(player)
+        val miningSkill = data.getSkillValue(SkillType.MINING)
+
+        // GM (skill 100) gets 100% reduction, otherwise skill * 0.9%
+        return if (miningSkill >= 100.0) {
+            1.0  // 100% chance to cancel durability damage
+        } else {
+            miningSkill * 0.9 / 100.0  // 0-89% chance
+        }
+    }
+
+    /**
+     * Get digging speed bonus based on Mining skill
+     * @return speed bonus percentage (0.0 to 50.0)
+     */
+    fun getDiggingSpeedBonus(player: Player): Double {
+        val data = plugin.playerDataManager.getPlayerData(player)
+        val miningSkill = data.getSkillValue(SkillType.MINING)
+        return miningSkill / 2.0  // Max +50%
+    }
+
+    /**
      * Process lumberjacking event
      * No bonus drops - skill benefits are durability reduction and speed bonus
      */

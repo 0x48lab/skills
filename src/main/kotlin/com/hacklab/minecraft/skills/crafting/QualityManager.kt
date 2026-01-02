@@ -72,17 +72,29 @@ class QualityManager(private val plugin: Skills) {
     }
 
     /**
-     * Calculate and apply quality based on skill
+     * Calculate and apply quality based on skill (legacy, no difficulty)
      * Only applies to non-stackable items (weapons, armor, tools)
      */
     fun applyQualityFromSkill(item: ItemStack, skillValue: Double): ItemStack {
+        return applyQualityFromSkill(item, skillValue, 0)
+    }
+
+    /**
+     * Calculate and apply quality based on skill and item difficulty
+     * Only applies to non-stackable items (weapons, armor, tools)
+     *
+     * @param item The item to apply quality to
+     * @param skillValue The player's skill value (0-100)
+     * @param difficulty The item's crafting difficulty (0-100)
+     */
+    fun applyQualityFromSkill(item: ItemStack, skillValue: Double, difficulty: Int): ItemStack {
         // Only apply quality to non-stackable items (maxStackSize == 1)
         // This prevents quality on items like chests, arrows, nuggets, etc.
         if (item.maxStackSize > 1) {
             return item
         }
 
-        val quality = QualityType.calculateQuality(skillValue)
+        val quality = QualityType.calculateQuality(skillValue, difficulty)
         return setQuality(item, quality)
     }
 
