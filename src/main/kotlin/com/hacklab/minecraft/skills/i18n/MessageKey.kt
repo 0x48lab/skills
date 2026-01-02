@@ -75,6 +75,8 @@ enum class MessageKey(val path: String) {
     THIEF_STEAL_SUCCESS("thief.steal_success"),
     THIEF_STEAL_FAILED("thief.steal_failed"),
     THIEF_STEAL_NOTICED("thief.steal_noticed"),
+    THIEF_STEAL_ITEM_MOVED("thief.steal_item_moved"),
+    THIEF_STEAL_TARGET_OFFLINE("thief.steal_target_offline"),
     THIEF_POISON_APPLIED("thief.poison_applied"),
     THIEF_POISON_FAILED("thief.poison_failed"),
     THIEF_POISON_HIT("thief.poison_hit"),
@@ -115,6 +117,7 @@ enum class MessageKey(val path: String) {
     SCROLL_FAILED("scroll.failed"),
     SCROLL_USED("scroll.used"),
     SCROLL_LEARNED("scroll.learned"),
+    SCROLL_ALREADY_KNOWN("scroll.already_known"),
 
     // Rune
     RUNE_CREATED("rune.created"),

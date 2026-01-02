@@ -180,7 +180,7 @@ class CraftingListener(private val plugin: Skills) : Listener {
             event.isCancelled = true
         } else {
             // Spell already known
-            player.sendMessage("§7You already know this spell.")
+            plugin.messageSender.send(player, MessageKey.SCROLL_ALREADY_KNOWN)
             event.isCancelled = true
         }
     }

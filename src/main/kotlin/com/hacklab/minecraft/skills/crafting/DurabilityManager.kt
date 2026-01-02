@@ -1,6 +1,10 @@
 package com.hacklab.minecraft.skills.crafting
 
 import com.hacklab.minecraft.skills.Skills
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextDecoration
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
@@ -144,6 +148,7 @@ class DurabilityManager(private val plugin: Skills) {
 
     /**
      * Update item lore to show durability information
+     * Uses Adventure Components to avoid legacy formatting codes
      */
     fun updateDurabilityLore(item: ItemStack) {
         val meta = item.itemMeta ?: return
@@ -151,25 +156,34 @@ class DurabilityManager(private val plugin: Skills) {
         val vanillaMax = getVanillaMaxDurability(item)
         val current = getCurrentDurability(item).coerceAtMost(customMax)
 
-        val lore = meta.lore?.toMutableList() ?: mutableListOf()
+        val lore = meta.lore()?.toMutableList() ?: mutableListOf()
 
         // Remove old durability line if exists
-        lore.removeIf { it.contains("耐久度:") || it.contains("Durability:") }
+        lore.removeIf { component ->
+            val plain = PlainTextComponentSerializer.plainText().serialize(component)
+            plain.contains("耐久度:") || plain.contains("Durability:")
+        }
 
         // Calculate percentage for color
         val percentage = (customMax.toDouble() / vanillaMax) * 100
-        val color = when {
-            percentage > 75 -> "§a"  // Green
-            percentage > 50 -> "§e"  // Yellow
-            percentage > 25 -> "§6"  // Orange
-            else -> "§c"             // Red
+        val percentColor = when {
+            percentage > 75 -> NamedTextColor.GREEN
+            percentage > 50 -> NamedTextColor.YELLOW
+            percentage > 25 -> NamedTextColor.GOLD
+            else -> NamedTextColor.RED
         }
 
-        // Add durability line at the beginning
-        val durabilityLine = "§7耐久度: $current/$customMax ${color}(${percentage.toInt()}%)"
+        // Build durability line using Components
+        val durabilityLine = Component.text("耐久度: $current/$customMax ")
+            .color(NamedTextColor.GRAY)
+            .decoration(TextDecoration.ITALIC, false)
+            .append(
+                Component.text("(${percentage.toInt()}%)")
+                    .color(percentColor)
+            )
         lore.add(0, durabilityLine)
 
-        meta.lore = lore
+        meta.lore(lore)
         item.itemMeta = meta
     }
 

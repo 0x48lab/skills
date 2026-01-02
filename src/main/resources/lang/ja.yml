@@ -81,6 +81,8 @@ thief:
   steal_success: "<green>{item}を盗みました！"
   steal_failed: "<red>盗むことに失敗しました。"
   steal_noticed: "<yellow>{player}があなたの{item}を盗もうとしました！"
+  steal_item_moved: "<gray>アイテムが移動されました。"
+  steal_target_offline: "<red>対象がオフラインになりました。"
   poison_applied: "<dark_green>毒を塗りました（{charges}回分）。"
   poison_failed: "<red>毒の塗布に失敗しました。"
   poison_hit: "<dark_green>毒が効いた！"
@@ -128,6 +130,7 @@ scroll:
   failed: "<red>スクロールの作成に失敗しました。"
   used: "<yellow>{spell}のスクロールを使用しました。"
   learned: "<green>スクロールから{spell}を習得しました！"
+  already_known: "<gray>この魔法は既に習得済みです。"
 
 # ルーンメッセージ
 rune:

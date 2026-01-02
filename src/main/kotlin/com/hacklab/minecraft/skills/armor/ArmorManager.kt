@@ -2,6 +2,7 @@ package com.hacklab.minecraft.skills.armor
 
 import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.i18n.MessageKey
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
@@ -117,10 +118,13 @@ class ArmorManager(private val plugin: Skills) {
 
     /**
      * Get display name for armor item
+     * Uses PlainTextComponentSerializer to avoid legacy formatting codes in MiniMessage
      */
     private fun getArmorDisplayName(item: ItemStack): String {
         return if (item.hasItemMeta() && item.itemMeta?.hasDisplayName() == true) {
-            item.itemMeta?.displayName?.toString() ?: item.type.name
+            item.itemMeta?.displayName()?.let { component ->
+                PlainTextComponentSerializer.plainText().serialize(component)
+            } ?: item.type.name
         } else {
             // Convert DIAMOND_CHESTPLATE to Diamond Chestplate
             item.type.name.lowercase().split("_").joinToString(" ") {

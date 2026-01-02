@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.7] - 2026-01-02
 
 ### Added
 - **Shovel Digging System**
@@ -137,6 +137,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Spellbook Crafting Recipe**
   - Removed Book + Echo Shard = Empty Spellbook recipe
   - Spellbooks are now obtained from Librarian villagers
+
+### Fixed
+- **MiniMessage Legacy Format Code Error**
+  - Fixed `ArmorManager.getArmorDisplayName()` converting Adventure Component to legacy § codes
+  - Fixed `DurabilityManager.updateDurabilityLore()` using legacy § color codes in item lore
+  - Fixed `CraftingListener` and `ThiefListener` using legacy § codes in `sendMessage()`
+  - All text now uses Adventure Components with `NamedTextColor` and `PlainTextComponentSerializer`
 
 ### Added
 - **Armor System**

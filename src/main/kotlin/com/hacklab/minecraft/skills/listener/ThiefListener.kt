@@ -1,6 +1,7 @@
 package com.hacklab.minecraft.skills.listener
 
 import com.hacklab.minecraft.skills.Skills
+import com.hacklab.minecraft.skills.i18n.MessageKey
 import com.hacklab.minecraft.skills.thief.StealResult
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -51,10 +52,10 @@ class ThiefListener(private val plugin: Skills) : Listener {
                 // Already handled in StealingManager - target was notified
             }
             StealResult.ITEM_MOVED -> {
-                player.sendMessage("§7The item was moved.")
+                plugin.messageSender.send(player, MessageKey.THIEF_STEAL_ITEM_MOVED)
             }
             StealResult.TARGET_OFFLINE -> {
-                player.sendMessage("§cTarget went offline.")
+                plugin.messageSender.send(player, MessageKey.THIEF_STEAL_TARGET_OFFLINE)
             }
             StealResult.NO_ITEM -> {
                 // Empty slot, do nothing

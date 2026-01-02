@@ -81,6 +81,8 @@ thief:
   steal_success: "<green>You stole {item}!"
   steal_failed: "<red>Failed to steal."
   steal_noticed: "<yellow>{player} tried to steal your {item}!"
+  steal_item_moved: "<gray>The item was moved."
+  steal_target_offline: "<red>Target went offline."
   poison_applied: "<dark_green>Poison applied ({charges} charges)."
   poison_failed: "<red>Failed to apply poison."
   poison_hit: "<dark_green>Poisoned!"
@@ -128,6 +130,7 @@ scroll:
   failed: "<red>Failed to create scroll."
   used: "<yellow>Used scroll of {spell}."
   learned: "<green>Learned {spell} from the scroll!"
+  already_known: "<gray>You already know this spell."
 
 # Rune messages
 rune:
