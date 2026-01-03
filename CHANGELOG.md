@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.8] - 2026-01-03
+
+### Added
+- **UO-Style Deadly Poison System**
+  - 4 poison levels: Lesser, Regular, Greater, Deadly
+  - Each level has different damage, difficulty, and Alchemy requirements:
+    - Lesser Poison (弱毒): 0.5 dmg/s, difficulty 20, Alchemy 0+
+    - Regular Poison (毒): 1.0 dmg/s, difficulty 40, Alchemy 30+
+    - Greater Poison (強毒): 1.5 dmg/s, difficulty 60, Alchemy 60+
+    - Deadly Poison (猛毒): 2.0 dmg/s, difficulty 80, Alchemy 90+
+  - Custom damage system independent of vanilla POISON effect
+  - Poison damage reduces target to 1 HP minimum (UO-style, won't kill)
+  - Variable difficulty allows Poisoning skill training to 100
+
+- **Alchemy-Poison Integration**
+  - Brewing poison potions now creates custom poison based on Alchemy skill
+  - Vanilla Poison → Lesser/Regular/Greater/Deadly based on skill level
+  - Vanilla Strong Poison → Regular/Greater/Deadly based on skill level
+  - Custom poison potions show damage rate and Alchemy requirement in lore
+
+- **Poison Level Display**
+  - Weapon lore shows poison level and remaining charges
+  - Color-coded by poison level (green → dark green → cyan → purple)
+  - Messages display localized poison level names (English/Japanese)
+
+### Changed
+- **PoisoningManager Rewrite**
+  - Complete rewrite to support poison levels
+  - Uses BukkitRunnable for periodic poison damage application
+  - Success chance now based on skill vs poison difficulty delta
+
 ## [0.2.7] - 2026-01-02
 
 ### Added
