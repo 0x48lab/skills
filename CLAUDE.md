@@ -14,23 +14,24 @@ UO風の3つの内部ステータスを持ち、関連スキルの合計値に�
 
 #### ステータス計算
 ```
-STR = STR対象スキル合計 / 対象スキル数（11スキル）× 100 / 100
-DEX = DEX対象スキル合計 / 対象スキル数（11スキル）× 100 / 100
-INT = INT対象スキル合計 / 対象スキル数（8スキル）× 100 / 100
+STR = STR対象スキル合計 / 対象スキル数（13スキル）× 100 / 100
+DEX = DEX対象スキル合計 / 対象スキル数（14スキル）× 100 / 100
+INT = INT対象スキル合計 / 対象スキル数（7スキル）× 100 / 100
 ```
 ※ 各対象スキルの平均値がそのままステータス値となる
 ※ 各ステータスの最大値: 100（全対象スキルが100の場合）
 
-#### 対象スキル（全40スキルを分類）
+#### 対象スキル（全39スキルを分類）
 | ステータス | 対象スキル |
 |-----------|----------------------|
-| STR | Swordsmanship, Axe, Mace Fighting, Wrestling, Tactics, Anatomy, Mining, Lumberjacking, Blacksmithy, Craftsmanship, Cooking, Heat Resistance, Cold Resistance, Endurance（14スキル） |
-| DEX | Archery, Throwing, Spear, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Tinkering, Athletics, Swimming（14スキル） |
-| INT | Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Alchemy, Bowcraft, Animal Lore（8スキル） |
+| STR | Swordsmanship, Axe, Mace Fighting, Wrestling, Tactics, Anatomy, Mining, Lumberjacking, Blacksmithy, Cooking, Heat Resistance, Cold Resistance, Endurance（13スキル） |
+| DEX | Archery, Throwing, Spear, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Farming, Athletics, Swimming（14スキル） |
+| INT | Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Alchemy, Animal Lore（7スキル） |
 
 #### 複数ステータスに影響するスキル
 | スキル | 影響ステータス |
 |-------|---------------|
+| Craftsmanship | STR 50% + DEX 50% |
 | Animal Taming | STR 50% + DEX 50% |
 | Veterinary | STR 50% + INT 50% |
 | Detecting Hidden | DEX 50% + INT 50% |
@@ -197,25 +198,25 @@ INT: 60  (-30% マナ消費, +6% 詠唱成功率)
 #### 生産難易度（素材別）
 | 素材 | 難易度 | 対象スキル |
 |-----|--------|-----------|
-| 木製品 | 10 | Craftsmanship |
-| 石製品 | 20 | Blacksmithy（石ツール） |
-| 革製品 | 25 | Craftsmanship |
-| 鉄製品 | 40 | Blacksmithy |
-| 金製品 | 35 | Blacksmithy |
-| ダイヤ製品 | 60 | Blacksmithy |
-| ネザライト製品 | 80 | Blacksmithy |
-| 弓・クロスボウ | 40 | Bowcraft |
-| 矢（通常） | 15 | Bowcraft |
-| 矢（特殊） | 35 | Bowcraft |
+| 木製品 | 5 | Craftsmanship |
+| 石製品 | 10 | Blacksmithy（石ツール） |
+| 革製品 | 15 | Craftsmanship |
+| 鉄製品 | 25 | Blacksmithy |
+| 金製品 | 20 | Blacksmithy |
+| ダイヤ製品 | 40 | Blacksmithy |
+| ネザライト製品 | 60 | Blacksmithy |
+| 弓・クロスボウ | 20-30 | Craftsmanship |
+| 矢（通常） | 5 | Craftsmanship |
+| 矢（特殊） | 20-25 | Craftsmanship |
 | ポーション（基本） | 30 | Alchemy |
 | ポーション（強化） | 50 | Alchemy |
 | ポーション（延長） | 45 | Alchemy |
 | スクロール | 魔法サークル × 10 | Inscription |
 | 食料（基本） | 10 | Cooking |
 | 食料（複合） | 30 | Cooking |
-| 細工品（基本） | 15 | Tinkering |
-| 細工品（複合） | 35 | Tinkering |
-| 細工品（精密） | 50 | Tinkering |
+| 細工品（基本） | 10 | Craftsmanship |
+| 細工品（複合） | 20 | Craftsmanship |
+| 細工品（精密） | 35 | Craftsmanship |
 
 #### 資源収集難易度
 | 資源 | 難易度 | 対象スキル |
@@ -303,12 +304,38 @@ data class SkillData(
 | スキル名 | 対象アイテム | 説明 | 上昇条件 |
 |---------|-------------|------|---------|
 | Alchemy | ポーション | 醸造台でのポーション作成。品質で効果時間・強度変動 | ポーション作成時 |
-| Blacksmithy | 金属武器・防具・ツール | 鉄/金/ダイヤ/ネザライト製品。金床修理も対象 | 対象アイテムクラフト時 |
-| Bowcraft | 弓、クロスボウ、矢 | 射撃武器・弾薬の作成。品質で威力変動 | 対象アイテムクラフト時 |
-| Craftsmanship | 木製品、革製品 | 盾、ドア、チェスト、革防具など（木工+裁縫統合） | 対象アイテムクラフト時 |
+| Blacksmithy | 金属武器・防具・ツール | 鉄/金/ダイヤ/ネザライト/石製品。金床修理も対象 | 対象アイテムクラフト時 |
+| Craftsmanship | 木製品、革製品、弓矢、細工品 | 盾、弓、矢、ハサミ、釣り竿、時計など（木工+裁縫+弓職人+細工統合） | 対象アイテムクラフト時 |
 | Cooking | 食料 | かまど/燻製器での調理。品質で回復量変動 | 食料を取り出した時 |
 | Inscription | 魔法スクロール | 魔法を封じ込めた巻物の作成。Mageryと連携 | スクロール作成時 |
-| Tinkering | 小物・ツール | ハサミ、釣り竿、火打石、時計、コンパスなど | 対象アイテムクラフト時 |
+
+#### スタック上限ボーナス
+生産スキルの合計に応じて、スタック可能なアイテムの最大スタック数が64から99に増加する。
+
+##### 対象スキル
+- Craftsmanship
+- Blacksmithy
+- Cooking
+- Alchemy
+
+##### 計算式
+```
+スタック上限 = 64 + (対象スキル合計 / 400 × 35)
+```
+
+##### スタック上限表
+| スキル合計 | スタック上限 |
+|-----------|-------------|
+| 0 | 64 |
+| 100 | 73 |
+| 200 | 82 |
+| 300 | 90 |
+| 400 | 99 |
+
+##### 適用タイミング
+- アイテムを地面から拾った時
+- コンテナ（チェスト、かまど等）からアイテムを取り出した時
+- プレイヤーがログインした時（既存インベントリを更新）
 
 #### 生産スキル対象アイテム詳細
 ##### Alchemy（錬金術）
@@ -379,9 +406,8 @@ data class SkillData(
 |-------------|-----------|
 | 鉄/金/ダイヤ/ネザライト/チェーン/石の武器・防具・ツール | Blacksmithy |
 | トライデント、メイス、槍 | Blacksmithy |
-| 弓、クロスボウ | Bowcraft |
-| 革の防具、木製品、盾 | Craftsmanship |
-| 釣り竿、ハサミ、火打石と打ち金 | Tinkering |
+| 弓、クロスボウ、革の防具、木製品、盾 | Craftsmanship |
+| 釣り竿、ハサミ、火打石と打ち金 | Craftsmanship |
 | エリトラ、タートルヘルメット | スキル不要（常に100%） |
 
 ```
@@ -399,16 +425,28 @@ data class SkillData(
 - 失敗時：経験値はプレイヤーに入り、修繕は発動しない
 - スキル60で安定して修繕が使えるようになる
 
-##### Bowcraft（弓職人）
-- 弓 / クロスボウ
-- 矢（通常） / 矢（光の矢、効能付きの矢）
-
 ##### Craftsmanship（工芸）
+木工、裁縫、弓職人、細工を統合したスキル。
+
+**木製品・基本**
 - 盾 / 木の剣 / 木のツール
 - ドア / トラップドア / フェンス / フェンスゲート
 - チェスト / 樽 / 額縁 / 看板
 - ベッド / 本棚 / 作業台 / 織機 / 製図台
+
+**革製品**
 - 革の帽子/上着/ズボン/ブーツ
+
+**弓矢（旧Bowcraft）**
+- 弓 / クロスボウ
+- 矢（通常） / 矢（光の矢、効能付きの矢）
+
+**細工品（旧Tinkering）**
+- 基本: ハサミ / 火打石と打ち金 / 金塊・鉄塊
+- 複合: 釣り竿 / ランタン / 蝋燭 / 鎖 / 火薬
+- 精密: 時計 / コンパス / 望遠鏡 / ロケット花火
+
+**その他**
 - 本と羽根ペン / 地図（紙ベース）
 - 旗 / カーペット
 
@@ -443,31 +481,6 @@ LQ: -15%、NQ: +0%、HQ: +15%、EX: +25%
 ##### Inscription（書写）
 - 魔法スクロール（全魔法）
 - ルーン（アメジストの欠片 + 紙）
-
-##### Tinkering（細工）
-- **基本（難易度15）**: ハサミ / 火打石と打ち金 / 金塊・鉄塊
-- **複合（難易度35）**: 釣り竿 / ランタン / 蝋燭 / 鎖 / 火薬
-- **精密（難易度50）**: 時計 / コンパス / 望遠鏡 / ロケット花火
-
-###### Tinkeringスキル効果
-作成アイテムの耐久性向上、修繕エンチャントの成功率UP。
-```
-修繕成功率 = min(100, Tinkeringスキル × 100 / 60)
-```
-
-###### 修繕成功率
-| スキル | 成功率 |
-|-------|-------|
-| 0 | 0% |
-| 20 | 33% |
-| 30 | 50% |
-| 40 | 67% |
-| 50 | 83% |
-| 60+ | 100% |
-
-###### 対象アイテム
-- 釣り竿、ハサミ、火打石と打ち金
-- 時計、コンパス、望遠鏡
 
 ### 資源収集系スキル
 | スキル名 | 対象 | 説明 | 上昇条件 |
@@ -2071,7 +2084,7 @@ com.hacklab.minecraft.skills/
 #### Enum定義
 
 ```kotlin
-// スキル種別（34スキル）
+// スキル種別（39スキル）
 enum class SkillType(
     val displayName: String,
     val category: SkillCategory,
@@ -2100,15 +2113,14 @@ enum class SkillType(
     // 生産系
     ALCHEMY("Alchemy", SkillCategory.CRAFTING, mapOf(StatType.INT to 1.0)),
     BLACKSMITHY("Blacksmithy", SkillCategory.CRAFTING, mapOf(StatType.STR to 1.0)),
-    BOWCRAFT("Bowcraft", SkillCategory.CRAFTING, mapOf(StatType.INT to 1.0)),
-    CRAFTSMANSHIP("Craftsmanship", SkillCategory.CRAFTING, mapOf(StatType.STR to 1.0)),
+    CRAFTSMANSHIP("Craftsmanship", SkillCategory.CRAFTING, mapOf(StatType.STR to 0.5, StatType.DEX to 0.5)),  // 木工+裁縫+弓職人+細工統合
     COOKING("Cooking", SkillCategory.CRAFTING, mapOf(StatType.STR to 1.0)),
-    TINKERING("Tinkering", SkillCategory.CRAFTING, mapOf(StatType.DEX to 1.0)),
 
     // 資源収集系
     MINING("Mining", SkillCategory.GATHERING, mapOf(StatType.STR to 1.0)),
     LUMBERJACKING("Lumberjacking", SkillCategory.GATHERING, mapOf(StatType.STR to 1.0)),
     FISHING("Fishing", SkillCategory.GATHERING, mapOf(StatType.DEX to 1.0)),
+    FARMING("Farming", SkillCategory.GATHERING, mapOf(StatType.DEX to 1.0)),
 
     // シーフ系
     HIDING("Hiding", SkillCategory.THIEF, mapOf(StatType.DEX to 1.0)),

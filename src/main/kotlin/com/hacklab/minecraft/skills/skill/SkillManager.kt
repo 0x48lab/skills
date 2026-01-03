@@ -26,6 +26,11 @@ class SkillManager(private val plugin: Skills) {
         // Update last used time
         skillData.updateLastUsed()
 
+        // Check if skill can increase (lock mode check)
+        if (!skillData.canIncrease()) {
+            return false
+        }
+
         // Check if skill is already maxed
         if (currentValue >= SkillType.MAX_SKILL_VALUE) {
             return false
@@ -47,11 +52,11 @@ class SkillManager(private val plugin: Skills) {
         // Check total skill cap
         val totalSkills = data.getTotalSkillPoints()
         if (totalSkills + gainAmount > SkillType.TOTAL_SKILL_CAP) {
-            // Need to decrease another skill
-            val skillToDecrease = data.getLeastRecentlyUsedSkill(exclude = skillType)
+            // Need to decrease another skill (respects lock mode)
+            val skillToDecrease = data.getSkillToDecrease(exclude = skillType)
             if (skillToDecrease != null) {
                 val decreaseData = data.getSkill(skillToDecrease)
-                if (decreaseData.value >= gainAmount) {
+                if (decreaseData.value >= gainAmount && decreaseData.canDecrease()) {
                     decreaseData.addValue(-gainAmount)
                     plugin.messageSender.send(
                         player, MessageKey.SKILL_DECREASE,
@@ -60,11 +65,12 @@ class SkillManager(private val plugin: Skills) {
                         "current" to String.format("%.1f", decreaseData.value)
                     )
                 } else {
-                    // Not enough to decrease, cap reached
+                    // Not enough to decrease or locked, cap reached
                     plugin.messageSender.send(player, MessageKey.SKILL_CAP_REACHED)
                     return false
                 }
             } else {
+                // No skill available to decrease (all locked)
                 plugin.messageSender.send(player, MessageKey.SKILL_CAP_REACHED)
                 return false
             }

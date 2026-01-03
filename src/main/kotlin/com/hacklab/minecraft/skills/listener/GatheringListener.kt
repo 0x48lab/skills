@@ -91,9 +91,9 @@ class GatheringListener(private val plugin: Skills) : Listener {
         val block = event.block
         val heldItem = player.inventory.itemInMainHand
 
-        // Check if mining ore with pickaxe or digging soft block with shovel
+        // Check if mining with pickaxe or digging soft block with shovel
         val speedBonus: Double = when {
-            GatheringDifficulty.isOre(block.type) && isPickaxe(heldItem.type) -> {
+            GatheringDifficulty.isMineable(block.type) && isPickaxe(heldItem.type) -> {
                 plugin.gatheringManager.getMiningSpeedBonus(player)
             }
             GatheringDifficulty.isDiggable(block.type) && isShovel(heldItem.type) -> {
@@ -155,15 +155,15 @@ class GatheringListener(private val plugin: Skills) : Listener {
         val block = event.block
         val drops = event.block.getDrops(player.inventory.itemInMainHand).toMutableList()
 
-        // Check if it's an ore (Mining)
-        if (GatheringDifficulty.isOre(block.type)) {
-            // Mark player as mining ore for durability reduction
+        // Check if it's mineable with pickaxe (ores + stone)
+        if (GatheringDifficulty.isMineable(block.type)) {
+            // Mark player as mining for durability reduction
             recentOreMining.add(player.uniqueId)
 
             val shouldHandleDrops = plugin.gatheringManager.processMining(player, block, drops)
 
             // Only handle drops if processMining returns true (item drops with potential bonus)
-            // If false (block drops like silk touch or ancient debris), let vanilla handle it
+            // If false (block drops like silk touch, ancient debris, or stone), let vanilla handle it
             if (shouldHandleDrops) {
                 event.isDropItems = false
                 drops.forEach { drop ->

@@ -15,9 +15,7 @@ import kotlin.random.Random
  *
  * Mending success rate depends on the appropriate crafting skill for each item type:
  * - Metal items (iron/gold/diamond/netherite/chain/stone) → Blacksmithy
- * - Leather/wooden items, shields → Craftsmanship
- * - Bows, crossbows → Bowcraft
- * - Fishing rod, shears, flint and steel → Tinkering
+ * - Everything else (leather, wooden, bows, tools, gadgets) → Craftsmanship
  * - Elytra, turtle helmet → No skill required (100% success)
  *
  * Formula: min(100, skill * 100 / 60)
@@ -79,25 +77,21 @@ class MendingListener(private val plugin: Skills) : Listener {
             // Spears → Blacksmithy (metal-tipped)
             typeName.contains("_SPEAR") -> SkillType.BLACKSMITHY
 
-            // Bows and crossbows → Bowcraft
-            item.type == Material.BOW ||
-            item.type == Material.CROSSBOW -> SkillType.BOWCRAFT
+            // Special items - no skill required (always 100%)
+            item.type == Material.ELYTRA ||
+            item.type == Material.TURTLE_HELMET -> null
 
-            // Leather armor, wooden items, shields → Craftsmanship
+            // Everything else → Craftsmanship (bows, leather, wooden, tools, gadgets)
+            item.type == Material.BOW ||
+            item.type == Material.CROSSBOW ||
             typeName.contains("LEATHER_") ||
             typeName.contains("WOODEN_") ||
-            item.type == Material.SHIELD -> SkillType.CRAFTSMANSHIP
-
-            // Tinkering items
+            item.type == Material.SHIELD ||
             item.type == Material.FISHING_ROD ||
             item.type == Material.SHEARS ||
             item.type == Material.FLINT_AND_STEEL ||
             item.type == Material.CARROT_ON_A_STICK ||
-            item.type == Material.WARPED_FUNGUS_ON_A_STICK -> SkillType.TINKERING
-
-            // Special items - no skill required (always 100%)
-            item.type == Material.ELYTRA ||
-            item.type == Material.TURTLE_HELMET -> null
+            item.type == Material.WARPED_FUNGUS_ON_A_STICK -> SkillType.CRAFTSMANSHIP
 
             // Default: no skill required
             else -> null

@@ -14,19 +14,25 @@ import kotlin.random.Random
 class GatheringManager(private val plugin: Skills) {
 
     /**
-     * Process mining event
-     * @return true if plugin should handle drops (item drops), false if vanilla should handle (block drops)
+     * Process mining event (ores + stone blocks)
+     * @return true if plugin should handle drops (ore item drops), false if vanilla should handle (stone/block drops)
      */
     fun processMining(player: Player, block: Block, drops: MutableList<ItemStack>): Boolean {
         if (player.gameMode == GameMode.CREATIVE) return false
-        if (!GatheringDifficulty.isOre(block.type)) return false
+        if (!GatheringDifficulty.isMineable(block.type)) return false
 
         val data = plugin.playerDataManager.getPlayerData(player)
         val miningSkill = data.getSkillValue(SkillType.MINING)
         val difficulty = GatheringDifficulty.getMiningDifficulty(block.type)
 
-        // Try skill gain (always, regardless of drop type)
+        // Try skill gain (always, regardless of block type)
         plugin.skillManager.tryGainSkill(player, SkillType.MINING, difficulty)
+
+        // Only apply bonus drops for ores (not stone blocks)
+        if (!GatheringDifficulty.isOre(block.type)) {
+            // Stone blocks - skill gain only, vanilla handles drops
+            return false
+        }
 
         // Check if drops are blocks (silk touch or ancient debris)
         // If all drops are blocks, let vanilla handle it - no bonus for block drops
@@ -36,7 +42,7 @@ class GatheringManager(private val plugin: Skills) {
             return false
         }
 
-        // Item drops - apply bonus chance based on skill
+        // Ore item drops - apply bonus chance based on skill
         val bonusChance = miningSkill / 2.0  // Max 50%
         if (Random.nextDouble() * 100 < bonusChance) {
             // Add bonus drop (duplicate first non-block drop)

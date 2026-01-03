@@ -31,11 +31,9 @@ enum class SkillType(
     // Crafting
     ALCHEMY("Alchemy", SkillCategory.CRAFTING, intWeight = 1.0),
     BLACKSMITHY("Blacksmithy", SkillCategory.CRAFTING, strWeight = 1.0),
-    BOWCRAFT("Bowcraft", SkillCategory.CRAFTING, intWeight = 1.0),
-    CRAFTSMANSHIP("Craftsmanship", SkillCategory.CRAFTING, strWeight = 1.0),
+    CRAFTSMANSHIP("Craftsmanship", SkillCategory.CRAFTING, strWeight = 0.5, dexWeight = 0.5),  // Wood, leather, bows, tinker items
     COOKING("Cooking", SkillCategory.CRAFTING, strWeight = 1.0),
     INSCRIPTION("Inscription", SkillCategory.CRAFTING, intWeight = 1.0),
-    TINKERING("Tinkering", SkillCategory.CRAFTING, dexWeight = 1.0),
 
     // Gathering
     MINING("Mining", SkillCategory.GATHERING, strWeight = 1.0),

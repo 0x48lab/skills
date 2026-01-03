@@ -139,6 +139,15 @@ rune:
   created: "<light_purple>Created a blank rune."
   marked: "<gold>Rune marked with this location."
 
+# Runebook messages
+runebook:
+  rune_added: "<green>Rune added to runebook."
+  rune_removed: "<yellow>Removed {name} from runebook."
+  full: "<red>Runebook is full (max 16 runes)."
+  not_a_rune: "<red>This is not a rune."
+  rune_not_marked: "<red>This rune has no marked location."
+  world_not_found: "<red>Destination world no longer exists."
+
 # Gate messages
 gate:
   created: "<gold>A bidirectional gate has been opened! (Duration: {duration} seconds)"

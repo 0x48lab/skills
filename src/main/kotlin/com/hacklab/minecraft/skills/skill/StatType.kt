@@ -22,5 +22,35 @@ enum class StatType(val displayName: String) {
 enum class StatLockMode {
     UP,      // Can go up (default)
     DOWN,    // Can go down only
-    LOCKED   // Cannot change
+    LOCKED;  // Cannot change
+
+    fun next(): StatLockMode = when (this) {
+        UP -> DOWN
+        DOWN -> LOCKED
+        LOCKED -> UP
+    }
+}
+
+/**
+ * Skill lock mode (UO-style)
+ * - UP: Skill can increase, will decrease when others need room
+ * - DOWN: Skill can decrease, cannot increase
+ * - LOCKED: Skill cannot change at all
+ */
+enum class SkillLockMode {
+    UP,      // Can go up (default)
+    DOWN,    // Can go down only
+    LOCKED;  // Cannot change
+
+    fun next(): SkillLockMode = when (this) {
+        UP -> DOWN
+        DOWN -> LOCKED
+        LOCKED -> UP
+    }
+
+    fun getSymbol(): String = when (this) {
+        UP -> "▲"
+        DOWN -> "▼"
+        LOCKED -> "🔒"
+    }
 }

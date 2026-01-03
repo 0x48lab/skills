@@ -102,6 +102,8 @@ class Skills : JavaPlugin() {
         private set
     lateinit var gateManager: GateManager
         private set
+    lateinit var runebookManager: RunebookManager
+        private set
 
     // Crafting
     lateinit var craftingManager: CraftingManager
@@ -174,6 +176,8 @@ class Skills : JavaPlugin() {
     // Listeners
     private lateinit var meditationListener: MeditationListener
     lateinit var survivalListener: SurvivalListener
+        private set
+    lateinit var runebookListener: RunebookListener
         private set
 
     override fun onEnable() {
@@ -268,6 +272,7 @@ class Skills : JavaPlugin() {
         scrollManager = ScrollManager(this)
         runeManager = RuneManager(this)
         gateManager = GateManager(this)
+        runebookManager = RunebookManager(this)
         castingManager = CastingManager(this)
         spellManager = SpellManager(this)
 
@@ -356,6 +361,10 @@ class Skills : JavaPlugin() {
 
         // Stack size bonus based on production skills
         pm.registerEvents(StackBonusListener(this), this)
+
+        // Runebook GUI
+        runebookListener = RunebookListener(this)
+        pm.registerEvents(runebookListener, this)
     }
 
     private fun registerCommands() {

@@ -4,6 +4,7 @@ import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.data.PlayerData
 import com.hacklab.minecraft.skills.data.SkillData
 import com.hacklab.minecraft.skills.i18n.Language
+import com.hacklab.minecraft.skills.skill.SkillLockMode
 import com.hacklab.minecraft.skills.skill.SkillType
 import com.hacklab.minecraft.skills.skill.StatLockMode
 import com.hacklab.minecraft.skills.skill.StatType
@@ -65,6 +66,7 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
                     skill_type TEXT NOT NULL,
                     value REAL DEFAULT 0.0,
                     last_used INTEGER DEFAULT 0,
+                    lock_mode TEXT DEFAULT 'UP',
                     PRIMARY KEY (uuid, skill_type),
                     FOREIGN KEY (uuid) REFERENCES players(uuid) ON DELETE CASCADE
                 )
@@ -85,8 +87,8 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
     private fun migrateStatColumns() {
         val conn = connection ?: return
 
-        // Check if columns exist and add them if not
-        val columnsToAdd = listOf(
+        // Check if columns exist and add them if not (players table)
+        val playerColumnsToAdd = listOf(
             "str" to "INTEGER DEFAULT ${StatType.DEFAULT_STAT_VALUE}",
             "dex" to "INTEGER DEFAULT ${StatType.DEFAULT_STAT_VALUE}",
             "int" to "INTEGER DEFAULT ${StatType.DEFAULT_STAT_VALUE}",
@@ -95,7 +97,7 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
             "int_lock" to "TEXT DEFAULT 'UP'"
         )
 
-        columnsToAdd.forEach { (columnName, columnDef) ->
+        playerColumnsToAdd.forEach { (columnName, columnDef) ->
             try {
                 conn.createStatement().use { stmt ->
                     stmt.executeUpdate("ALTER TABLE players ADD COLUMN $columnName $columnDef")
@@ -104,6 +106,16 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
             } catch (e: Exception) {
                 // Column already exists, ignore
             }
+        }
+
+        // Add lock_mode column to skills table if not exists
+        try {
+            conn.createStatement().use { stmt ->
+                stmt.executeUpdate("ALTER TABLE skills ADD COLUMN lock_mode TEXT DEFAULT 'UP'")
+            }
+            plugin.logger.info("Added column lock_mode to skills table")
+        } catch (e: Exception) {
+            // Column already exists, ignore
         }
     }
 
@@ -157,6 +169,11 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
             val skillData = playerData.getSkill(skillType)
             skillData.value = skillResult.getDouble("value")
             skillData.lastUsed = skillResult.getLong("last_used")
+            skillData.lockMode = try {
+                skillResult.getString("lock_mode")?.let { SkillLockMode.valueOf(it) } ?: SkillLockMode.UP
+            } catch (e: Exception) {
+                SkillLockMode.UP
+            }
         }
         skillStmt.close()
 
@@ -192,8 +209,8 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
 
         // Save skills
         val skillStmt = conn.prepareStatement("""
-            INSERT OR REPLACE INTO skills (uuid, skill_type, value, last_used)
-            VALUES (?, ?, ?, ?)
+            INSERT OR REPLACE INTO skills (uuid, skill_type, value, last_used, lock_mode)
+            VALUES (?, ?, ?, ?, ?)
         """.trimIndent())
 
         data.getAllSkills().forEach { (skillType, skillData) ->
@@ -201,6 +218,7 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
             skillStmt.setString(2, skillType.name)
             skillStmt.setDouble(3, skillData.value)
             skillStmt.setLong(4, skillData.lastUsed)
+            skillStmt.setString(5, skillData.lockMode.name)
             skillStmt.addBatch()
         }
 

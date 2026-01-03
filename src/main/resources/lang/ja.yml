@@ -139,6 +139,15 @@ rune:
   created: "<light_purple>空のルーンを作成しました。"
   marked: "<gold>ルーンにこの場所を記録しました。"
 
+# ルーンブックメッセージ
+runebook:
+  rune_added: "<green>ルーンをルーンブックに追加しました。"
+  rune_removed: "<yellow>{name}をルーンブックから削除しました。"
+  full: "<red>ルーンブックがいっぱいです（最大16個）。"
+  not_a_rune: "<red>これはルーンではありません。"
+  rune_not_marked: "<red>このルーンには場所が記録されていません。"
+  world_not_found: "<red>目的地のワールドが存在しません。"
+
 # ゲートメッセージ
 gate:
   created: "<gold>双方向ゲートを開きました！（持続時間: {duration}秒）"

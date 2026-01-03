@@ -65,11 +65,9 @@ class SkillTitleManager(private val plugin: Skills) {
         // Crafting
         SkillType.ALCHEMY to Pair("Alchemist", "錬金術師"),
         SkillType.BLACKSMITHY to Pair("Blacksmith", "鍛冶師"),
-        SkillType.BOWCRAFT to Pair("Bowyer", "弓職人"),
         SkillType.CRAFTSMANSHIP to Pair("Artisan", "職人"),
         SkillType.COOKING to Pair("Chef", "料理人"),
         SkillType.INSCRIPTION to Pair("Scribe", "書写師"),
-        SkillType.TINKERING to Pair("Tinker", "細工師"),
 
         // Gathering
         SkillType.MINING to Pair("Miner", "採掘者"),

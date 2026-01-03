@@ -696,18 +696,24 @@ class SpellManager(private val plugin: Skills) {
             }
 
             SpellType.RECALL -> {
-                // Teleport to marked rune location
-                val rune = plugin.runeManager.getMarkedRune(caster)
-                if (rune != null) {
-                    val targetLoc = plugin.runeManager.getMarkedLocation(rune)
-                    if (targetLoc != null) {
-                        // Visual: Departure
-                        caster.world.spawnParticle(Particle.REVERSE_PORTAL, caster.location.add(0.0, 1.0, 0.0), 60, 0.3, 0.8, 0.3, 0.1)
-                        caster.world.playSound(caster.location, Sound.BLOCK_PORTAL_TRAVEL, 0.5f, 1.5f)
-                        caster.teleport(targetLoc)
-                        // Visual: Arrival
-                        caster.world.spawnParticle(Particle.REVERSE_PORTAL, targetLoc.clone().add(0.0, 1.0, 0.0), 60, 0.3, 0.8, 0.3, 0.1)
+                // Check for runebook pending location first
+                var targetLoc = plugin.runebookListener.getPendingRecallLocation(caster)
+
+                // Fall back to held rune if no runebook location
+                if (targetLoc == null) {
+                    val rune = plugin.runeManager.getMarkedRune(caster)
+                    if (rune != null) {
+                        targetLoc = plugin.runeManager.getMarkedLocation(rune)
                     }
+                }
+
+                if (targetLoc != null) {
+                    // Visual: Departure
+                    caster.world.spawnParticle(Particle.REVERSE_PORTAL, caster.location.add(0.0, 1.0, 0.0), 60, 0.3, 0.8, 0.3, 0.1)
+                    caster.world.playSound(caster.location, Sound.BLOCK_PORTAL_TRAVEL, 0.5f, 1.5f)
+                    caster.teleport(targetLoc)
+                    // Visual: Arrival
+                    caster.world.spawnParticle(Particle.REVERSE_PORTAL, targetLoc.clone().add(0.0, 1.0, 0.0), 60, 0.3, 0.8, 0.3, 0.1)
                 }
             }
 
@@ -726,34 +732,40 @@ class SpellManager(private val plugin: Skills) {
             }
 
             SpellType.GATE_TRAVEL -> {
-                // Create bidirectional portal between caster and rune location
-                val rune = plugin.runeManager.getMarkedRune(caster)
-                if (rune != null) {
-                    val targetLoc = plugin.runeManager.getMarkedLocation(rune)
-                    if (targetLoc != null) {
-                        // Close any existing gate from this player first
-                        plugin.gateManager.closeGatesForPlayer(caster.uniqueId)
+                // Check for runebook pending location first
+                var targetLoc = plugin.runebookListener.getPendingGateLocation(caster)
 
-                        // Calculate gate duration based on magery skill (30-60 seconds)
-                        val durationSeconds = 30 + (magerySkill / 3.5).toInt()
-                        val durationTicks = durationSeconds * 20
-
-                        // Spawn gate 2 blocks in front of caster so they don't immediately enter
-                        val casterLoc = caster.location.clone()
-                        val direction = casterLoc.direction.setY(0).normalize()
-                        val gateLocation = casterLoc.add(direction.multiply(2.0))
-
-                        // Create bidirectional gate
-                        plugin.gateManager.createGate(
-                            caster = caster,
-                            locationA = gateLocation,
-                            locationB = targetLoc.clone(),
-                            durationTicks = durationTicks
-                        )
-
-                        plugin.messageSender.send(caster, MessageKey.GATE_CREATED,
-                            "duration" to durationSeconds.toString())
+                // Fall back to held rune if no runebook location
+                if (targetLoc == null) {
+                    val rune = plugin.runeManager.getMarkedRune(caster)
+                    if (rune != null) {
+                        targetLoc = plugin.runeManager.getMarkedLocation(rune)
                     }
+                }
+
+                if (targetLoc != null) {
+                    // Close any existing gate from this player first
+                    plugin.gateManager.closeGatesForPlayer(caster.uniqueId)
+
+                    // Calculate gate duration based on magery skill (30-60 seconds)
+                    val durationSeconds = 30 + (magerySkill / 3.5).toInt()
+                    val durationTicks = durationSeconds * 20
+
+                    // Spawn gate 2 blocks in front of caster so they don't immediately enter
+                    val casterLoc = caster.location.clone()
+                    val direction = casterLoc.direction.setY(0).normalize()
+                    val gateLocation = casterLoc.add(direction.multiply(2.0))
+
+                    // Create bidirectional gate
+                    plugin.gateManager.createGate(
+                        caster = caster,
+                        locationA = gateLocation,
+                        locationB = targetLoc.clone(),
+                        durationTicks = durationTicks
+                    )
+
+                    plugin.messageSender.send(caster, MessageKey.GATE_CREATED,
+                        "duration" to durationSeconds.toString())
                 }
             }
         }

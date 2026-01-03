@@ -1,6 +1,7 @@
 package com.hacklab.minecraft.skills.data
 
 import com.hacklab.minecraft.skills.i18n.Language
+import com.hacklab.minecraft.skills.skill.SkillLockMode
 import com.hacklab.minecraft.skills.skill.SkillType
 import com.hacklab.minecraft.skills.skill.StatLockMode
 import com.hacklab.minecraft.skills.skill.StatType
@@ -50,13 +51,42 @@ data class PlayerData(
 
     fun getAllSkills(): Map<SkillType, SkillData> = skills.toMap()
 
-    // Find the least recently used skill (for skill decrease)
-    fun getLeastRecentlyUsedSkill(exclude: SkillType? = null): SkillType? {
-        return skills.entries
-            .filter { it.key != exclude && it.value.value > 0 }
+    // Find the skill to decrease (for skill seesaw)
+    // Priority: DOWN mode skills first, then UP mode, never LOCKED
+    fun getSkillToDecrease(exclude: SkillType? = null): SkillType? {
+        // First try skills set to DOWN mode (least recently used)
+        val downModeSkill = skills.entries
+            .filter { it.key != exclude && it.value.value > 0 && it.value.lockMode == SkillLockMode.DOWN }
             .minByOrNull { it.value.lastUsed }
             ?.key
+        if (downModeSkill != null) return downModeSkill
+
+        // Then try skills set to UP mode (least recently used)
+        return skills.entries
+            .filter { it.key != exclude && it.value.value > 0 && it.value.lockMode == SkillLockMode.UP }
+            .minByOrNull { it.value.lastUsed }
+            ?.key
+        // LOCKED skills are never decreased
     }
+
+    // Skill lock operations
+    fun getSkillLock(skillType: SkillType): SkillLockMode = getSkill(skillType).lockMode
+
+    fun setSkillLock(skillType: SkillType, mode: SkillLockMode) {
+        getSkill(skillType).lockMode = mode
+        dirty = true
+    }
+
+    fun toggleSkillLock(skillType: SkillType): SkillLockMode {
+        val skill = getSkill(skillType)
+        skill.lockMode = skill.lockMode.next()
+        dirty = true
+        return skill.lockMode
+    }
+
+    fun canSkillIncrease(skillType: SkillType): Boolean = getSkill(skillType).canIncrease()
+
+    fun canSkillDecrease(skillType: SkillType): Boolean = getSkill(skillType).canDecrease()
 
     // Stats - UO style (independent values)
     // Properties str, dex, int are accessed directly (Kotlin generates getters automatically)

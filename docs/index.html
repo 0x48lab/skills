@@ -39,7 +39,7 @@
 
             <h3>Key Features</h3>
             <ul>
-                <li><strong>40 Skills</strong> across combat, magic, crafting, gathering, thief, taming, and survival categories</li>
+                <li><strong>38 Skills</strong> across combat, magic, crafting, gathering, thief, taming, and survival categories</li>
                 <li><strong>Skill Cap System</strong> - Total cap of 700 points, individual cap of 100 per skill</li>
                 <li><strong>Use-Based Progression</strong> - Skills improve when used, with difficulty affecting gain rate</li>
                 <li><strong>Stat System</strong> - STR, DEX, INT calculated from related skills</li>
@@ -67,12 +67,17 @@
                 <tr>
                     <td class="dex"><strong>DEX</strong></td>
                     <td>+Attack speed, +Movement speed</td>
-                    <td>Archery, Throwing, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Tinkering, Athletics, Swimming</td>
+                    <td>Archery, Throwing, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Athletics, Swimming</td>
                 </tr>
                 <tr>
                     <td class="int"><strong>INT</strong></td>
                     <td>-Mana cost, +Cast success</td>
-                    <td>Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Alchemy, Bowcraft, Animal Lore</td>
+                    <td>Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Alchemy, Animal Lore</td>
+                </tr>
+                <tr>
+                    <td><strong>Mixed</strong></td>
+                    <td>See individual skills</td>
+                    <td>Craftsmanship (STR 50% + DEX 50%), Animal Taming, Veterinary, Detecting Hidden, Arms Lore</td>
                 </tr>
             </table>
 
@@ -229,14 +234,9 @@
                     <p class="skill-effect">Gain: Craft metal items, repair on anvil</p>
                 </div>
                 <div class="skill-card">
-                    <h4>Bowcraft <span class="badge badge-int">INT</span></h4>
-                    <p>Bows, crossbows, arrows.</p>
-                    <p class="skill-effect">Gain: Craft bows/arrows</p>
-                </div>
-                <div class="skill-card">
-                    <h4>Craftsmanship <span class="badge badge-str">STR</span></h4>
-                    <p>Wood and leather items, shields.</p>
-                    <p class="skill-effect">Gain: Craft wood/leather items</p>
+                    <h4>Craftsmanship <span class="badge badge-mixed">STR/DEX</span></h4>
+                    <p>Wood/leather items, shields, bows, crossbows, arrows, and small tools (scissors, fishing rods, etc.).</p>
+                    <p class="skill-effect">Gain: Craft wood/leather/bow/tool items</p>
                 </div>
                 <div class="skill-card">
                     <h4>Alchemy <span class="badge badge-int">INT</span></h4>
@@ -247,11 +247,6 @@
                     <h4>Cooking <span class="badge badge-str">STR</span></h4>
                     <p>Food preparation.</p>
                     <p class="skill-effect">Gain: Cook food</p>
-                </div>
-                <div class="skill-card">
-                    <h4>Tinkering <span class="badge badge-dex">DEX</span></h4>
-                    <p>Small tools and gadgets.</p>
-                    <p class="skill-effect">Gain: Craft tools</p>
                 </div>
             </div>
 
@@ -466,29 +461,32 @@ Final = Base × STR × Tactics × Anatomy × Quality × Enchant</pre>
                 <tr><td>Lingering Potion</td><td>+20</td></tr>
             </table>
 
-            <h3>Tinkering Skill</h3>
-            <p>Items you craft last longer and Mending works better.</p>
+            <h3>Stack Size Bonus</h3>
+            <p>Production skills increase the maximum stack size of items from 64 to 99.</p>
 
             <div class="formula">
-                <code>Mending Success Rate = min(100, Tinkering Skill × 100 / 60)</code>
+                <code>Max Stack Size = 64 + (Skill Sum / 400 × 35)</code>
+                <p>Contributing Skills: Craftsmanship + Blacksmithy + Cooking + Alchemy</p>
             </div>
 
-            <h4>Mending Success by Skill</h4>
+            <h4>Stack Size by Skill Sum</h4>
             <table>
                 <tr>
-                    <th>Skill Level</th>
-                    <th>Success Rate</th>
+                    <th>Skill Sum</th>
+                    <th>Max Stack Size</th>
                 </tr>
-                <tr><td>0</td><td>0%</td></tr>
-                <tr><td>30</td><td>50%</td></tr>
-                <tr><td>60+</td><td>100%</td></tr>
+                <tr><td>0</td><td>64</td></tr>
+                <tr><td>100</td><td>73</td></tr>
+                <tr><td>200</td><td>82</td></tr>
+                <tr><td>300</td><td>90</td></tr>
+                <tr><td>400</td><td>99</td></tr>
             </table>
 
-            <h4>Tinkering Items</h4>
+            <p>Stack bonus is applied when:</p>
             <ul>
-                <li>Fishing Rod, Shears, Flint and Steel</li>
-                <li>Clock, Compass, Spyglass</li>
-                <li>Lantern, Chain, Firework Rocket</li>
+                <li>Picking up items from the ground</li>
+                <li>Taking items from containers (chests, furnaces, etc.)</li>
+                <li>Logging in (existing inventory is updated)</li>
             </ul>
         </section>
 
@@ -596,9 +594,8 @@ Final = Base × STR × Tactics × Anatomy × Quality × Enchant</pre>
                 </tr>
                 <tr><td>Iron/Gold/Diamond/Netherite/Chain/Stone items</td><td>Blacksmithy</td></tr>
                 <tr><td>Trident, Mace, Spears</td><td>Blacksmithy</td></tr>
-                <tr><td>Bow, Crossbow</td><td>Bowcraft</td></tr>
-                <tr><td>Leather armor, Wood items, Shield</td><td>Craftsmanship</td></tr>
-                <tr><td>Fishing Rod, Shears, Flint and Steel</td><td>Tinkering</td></tr>
+                <tr><td>Bow, Crossbow, Leather armor, Wood items, Shield</td><td>Craftsmanship</td></tr>
+                <tr><td>Fishing Rod, Shears, Flint and Steel</td><td>Craftsmanship</td></tr>
                 <tr><td>Elytra, Turtle Helmet</td><td>None (always 100%)</td></tr>
             </table>
 
@@ -673,6 +670,16 @@ Final = Base × STR × Tactics × Anatomy × Quality × Enchant</pre>
             <h2>Changelog</h2>
 
             <div class="changelog-entry">
+                <h4>v0.2.8</h4>
+                <span class="date">2026-01-03</span>
+                <ul>
+                    <li><strong>Skill Consolidation</strong> - Bowcraft and Tinkering merged into Craftsmanship</li>
+                    <li><strong>Stack Size Bonus</strong> - Items can stack up to 99 based on production skills (Craftsmanship + Blacksmithy + Cooking + Alchemy)</li>
+                    <li><strong>Craftsmanship Update</strong> - Now covers bows, arrows, and tools; stat contribution changed to STR 50% + DEX 50%</li>
+                </ul>
+            </div>
+
+            <div class="changelog-entry">
                 <h4>v0.2.7</h4>
                 <span class="date">2026-01-02</span>
                 <ul>
@@ -707,7 +714,7 @@ Final = Base × STR × Tactics × Anatomy × Quality × Enchant</pre>
             <div class="changelog-entry">
                 <h4>v1.0.0 - Initial Release</h4>
                 <ul>
-                    <li>34 skills inspired by classic MMORPGs</li>
+                    <li>38 skills inspired by classic MMORPGs</li>
                     <li>STR/DEX/INT stat system</li>
                     <li>Internal HP/Mana system</li>
                     <li>Skill cap system (700 total, 100 per skill)</li>

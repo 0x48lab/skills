@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.9] - 2026-01-03
+
+### Added
+- **UO-Style Runebook System**
+  - Runebook item that stores up to 16 runes
+  - Purchase from level 3 Librarian villagers (40-60 emeralds)
+  - GUI interface with 27 slots (3 rows)
+    - Row 1-2: 16 rune slots (8 per row)
+    - Row 3: Drop zone for adding runes
+  - Click on registered rune to cast Recall (left-click) or Gate Travel (shift+left-click)
+  - Drag & drop marked runes to register them
+  - Right-click on registered rune to remove it (returns as item)
+  - Full spell casting requirements apply (reagents, mana, casting time)
+  - Bilingual support (English/Japanese)
+
+### Technical
+- RunebookManager for item creation and rune data management
+- RunebookListener for GUI handling and spell integration
+- JSON storage using Gson (PDC-based persistence)
+- Integration with existing SpellManager for Recall/Gate Travel
+
 ## [0.2.8] - 2026-01-03
 
 ### Added

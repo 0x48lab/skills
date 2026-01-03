@@ -1,0 +1,147 @@
+package com.hacklab.minecraft.skills.crafting
+
+import com.hacklab.minecraft.skills.Skills
+import com.hacklab.minecraft.skills.skill.SkillType
+import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.ItemMeta
+
+/**
+ * Manages stack size bonus based on production skills.
+ *
+ * Stack size increases from 64 to 99 based on the sum of:
+ * - Craftsmanship
+ * - Blacksmithy
+ * - Cooking
+ * - Alchemy
+ *
+ * Formula: stackSize = 64 + (skillSum / 400 * 35)
+ * - Skill sum 0: 64 stack
+ * - Skill sum 200: 82 stack
+ * - Skill sum 400: 99 stack
+ */
+class StackBonusManager(private val plugin: Skills) {
+
+    companion object {
+        const val BASE_STACK_SIZE = 64
+        const val MAX_STACK_SIZE = 99
+        const val BONUS_STACK_SIZE = MAX_STACK_SIZE - BASE_STACK_SIZE // 35
+        const val MAX_SKILL_SUM = 400.0 // 4 skills * 100 each
+
+        // Skills that contribute to stack size bonus
+        val CONTRIBUTING_SKILLS = listOf(
+            SkillType.CRAFTSMANSHIP,
+            SkillType.BLACKSMITHY,
+            SkillType.COOKING,
+            SkillType.ALCHEMY
+        )
+    }
+
+    /**
+     * Calculate the stack size bonus for a player based on their production skills.
+     *
+     * @param player The player to calculate for
+     * @return The maximum stack size (64-99)
+     */
+    fun calculateMaxStackSize(player: Player): Int {
+        val data = plugin.playerDataManager.getPlayerData(player)
+
+        val skillSum = CONTRIBUTING_SKILLS.sumOf { skill ->
+            data.getSkillValue(skill)
+        }
+
+        // Formula: 64 + (skillSum / 400 * 35)
+        val bonus = (skillSum / MAX_SKILL_SUM * BONUS_STACK_SIZE).toInt()
+        return BASE_STACK_SIZE + bonus
+    }
+
+    /**
+     * Get the sum of contributing skills for a player.
+     *
+     * @param player The player
+     * @return Sum of Craftsmanship + Blacksmithy + Cooking + Alchemy
+     */
+    fun getSkillSum(player: Player): Double {
+        val data = plugin.playerDataManager.getPlayerData(player)
+        return CONTRIBUTING_SKILLS.sumOf { skill ->
+            data.getSkillValue(skill)
+        }
+    }
+
+    /**
+     * Apply stack size bonus to an item based on player's skills.
+     *
+     * @param item The item to modify
+     * @param player The player whose skills determine the stack size
+     * @return The modified item (same instance)
+     */
+    fun applyStackBonus(item: ItemStack, player: Player): ItemStack {
+        // Only apply to stackable items (original max > 1)
+        if (item.type.maxStackSize <= 1) {
+            return item
+        }
+
+        val maxStackSize = calculateMaxStackSize(player)
+
+        // Only modify if bonus applies (> 64)
+        if (maxStackSize > BASE_STACK_SIZE) {
+            val meta = item.itemMeta
+            if (meta != null) {
+                meta.setMaxStackSize(maxStackSize)
+                item.itemMeta = meta
+            }
+        }
+
+        return item
+    }
+
+    /**
+     * Apply stack size bonus to multiple items.
+     *
+     * @param items The items to modify
+     * @param player The player whose skills determine the stack size
+     */
+    fun applyStackBonusToAll(items: Array<ItemStack?>, player: Player) {
+        val maxStackSize = calculateMaxStackSize(player)
+
+        if (maxStackSize <= BASE_STACK_SIZE) {
+            return // No bonus to apply
+        }
+
+        for (item in items) {
+            if (item != null && item.type.maxStackSize > 1) {
+                val meta = item.itemMeta
+                if (meta != null) {
+                    meta.setMaxStackSize(maxStackSize)
+                    item.itemMeta = meta
+                }
+            }
+        }
+    }
+
+    /**
+     * Check if an item has a custom stack size set.
+     *
+     * @param item The item to check
+     * @return true if item has custom max stack size
+     */
+    fun hasCustomStackSize(item: ItemStack): Boolean {
+        val meta = item.itemMeta ?: return false
+        return meta.hasMaxStackSize()
+    }
+
+    /**
+     * Get the current max stack size of an item.
+     *
+     * @param item The item
+     * @return The max stack size (custom if set, otherwise default)
+     */
+    fun getMaxStackSize(item: ItemStack): Int {
+        val meta = item.itemMeta
+        return if (meta != null && meta.hasMaxStackSize()) {
+            meta.maxStackSize
+        } else {
+            item.type.maxStackSize
+        }
+    }
+}

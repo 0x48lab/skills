@@ -224,6 +224,7 @@ li {
 .badge-str { background: #fadbd8; color: #c0392b; }
 .badge-dex { background: #d5f5e3; color: #1e8449; }
 .badge-int { background: #d4e6f1; color: #2471a3; }
+.badge-mixed { background: linear-gradient(90deg, #fadbd8 50%, #d5f5e3 50%); color: #5d4e37; }
 
 /* Formula box */
 .formula {

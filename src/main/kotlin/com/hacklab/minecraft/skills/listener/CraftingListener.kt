@@ -24,9 +24,59 @@ class CraftingListener(private val plugin: Skills) : Listener {
 
         // Check if this is a skill-craftable item
         if (plugin.craftingManager.isSkillCraftable(result.type)) {
-            val processedResult = plugin.craftingManager.processCraft(player, result.clone())
+            // Calculate how many times we're crafting (for shift-click)
+            val craftCount = calculateCraftCount(event)
+
+            // Process craft with the count for skill gain
+            val processedResult = plugin.craftingManager.processCraft(player, result.clone(), craftCount)
             event.inventory.result = processedResult
         }
+    }
+
+    /**
+     * Calculate how many times an item will be crafted
+     * For shift-click, calculates max possible crafts from available materials
+     */
+    private fun calculateCraftCount(event: CraftItemEvent): Int {
+        // Normal click = 1 craft
+        if (!event.click.isShiftClick) {
+            return 1
+        }
+
+        // Shift-click: calculate max possible crafts from materials
+        val matrix = event.inventory.matrix
+        val resultAmount = event.recipe.result.amount
+
+        // Find the minimum stack size in the crafting grid (excluding empty slots)
+        var minMaterialCount = Int.MAX_VALUE
+        for (item in matrix) {
+            if (item != null && item.type != Material.AIR) {
+                minMaterialCount = minOf(minMaterialCount, item.amount)
+            }
+        }
+
+        if (minMaterialCount == Int.MAX_VALUE) {
+            return 1
+        }
+
+        // Calculate how many times we can craft
+        // Also limit by how many can fit in inventory
+        val maxCrafts = minMaterialCount
+        val resultPerCraft = resultAmount
+
+        // Check available inventory space
+        val inventory = event.whoClicked.inventory
+        var availableSpace = 0
+        for (slot in inventory.storageContents) {
+            if (slot == null || slot.type == Material.AIR) {
+                availableSpace += event.recipe.result.maxStackSize
+            } else if (slot.type == event.recipe.result.type && slot.amount < slot.maxStackSize) {
+                availableSpace += slot.maxStackSize - slot.amount
+            }
+        }
+
+        val maxBySpace = availableSpace / resultPerCraft
+        return minOf(maxCrafts, maxBySpace).coerceAtLeast(1)
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -47,8 +97,11 @@ class CraftingListener(private val plugin: Skills) : Listener {
 
         // Check if it's a food item (Cooking skill)
         if (item.type.isEdible || item.type.name.startsWith("COOKED_")) {
-            // Process the food with cooking skill
-            val processedItem = plugin.craftingManager.processCooking(player, item.clone())
+            // Get amount being taken (for shift-click, it's the full stack)
+            val amount = item.amount
+
+            // Process the food with cooking skill (skill gain for each item)
+            val processedItem = plugin.craftingManager.processCooking(player, item.clone(), amount)
 
             // Replace the item in the slot
             event.currentItem = processedItem

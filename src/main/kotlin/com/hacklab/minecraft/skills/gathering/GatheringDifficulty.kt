@@ -9,8 +9,8 @@ object GatheringDifficulty {
         val difficulty: Int
     )
 
-    // Mining difficulties
-    private val miningDifficulties = mapOf(
+    // Mining difficulties (ores)
+    private val oreDifficulties = mapOf(
         Material.COAL_ORE to 10,
         Material.DEEPSLATE_COAL_ORE to 15,
         Material.COPPER_ORE to 20,
@@ -32,6 +32,68 @@ object GatheringDifficulty {
         Material.ANCIENT_DEBRIS to 90
     )
 
+    // Mining difficulties (stone blocks - pickaxe)
+    private val stoneDifficulties = mapOf(
+        // Basic stone
+        Material.STONE to 5,
+        Material.COBBLESTONE to 5,
+        Material.MOSSY_COBBLESTONE to 5,
+        // Deepslate
+        Material.DEEPSLATE to 10,
+        Material.COBBLED_DEEPSLATE to 10,
+        // Decorative stones
+        Material.GRANITE to 5,
+        Material.DIORITE to 5,
+        Material.ANDESITE to 5,
+        Material.POLISHED_GRANITE to 5,
+        Material.POLISHED_DIORITE to 5,
+        Material.POLISHED_ANDESITE to 5,
+        // Tuff and Calcite
+        Material.TUFF to 5,
+        Material.CALCITE to 5,
+        // Dripstone
+        Material.DRIPSTONE_BLOCK to 10,
+        Material.POINTED_DRIPSTONE to 10,
+        // Basalt
+        Material.BASALT to 10,
+        Material.POLISHED_BASALT to 10,
+        Material.SMOOTH_BASALT to 10,
+        // Blackstone
+        Material.BLACKSTONE to 15,
+        Material.POLISHED_BLACKSTONE to 15,
+        Material.GILDED_BLACKSTONE to 25,
+        // Nether/End
+        Material.NETHERRACK to 5,
+        Material.END_STONE to 15,
+        // Obsidian (hard)
+        Material.OBSIDIAN to 40,
+        Material.CRYING_OBSIDIAN to 45,
+        // Bricks and processed
+        Material.STONE_BRICKS to 5,
+        Material.MOSSY_STONE_BRICKS to 5,
+        Material.CRACKED_STONE_BRICKS to 5,
+        Material.CHISELED_STONE_BRICKS to 5,
+        Material.DEEPSLATE_BRICKS to 10,
+        Material.DEEPSLATE_TILES to 10,
+        Material.POLISHED_DEEPSLATE to 10,
+        Material.CHISELED_DEEPSLATE to 10,
+        // Sandstone
+        Material.SANDSTONE to 5,
+        Material.RED_SANDSTONE to 5,
+        // Prismarine
+        Material.PRISMARINE to 15,
+        Material.PRISMARINE_BRICKS to 15,
+        Material.DARK_PRISMARINE to 15,
+        // Purpur
+        Material.PURPUR_BLOCK to 20,
+        Material.PURPUR_PILLAR to 20,
+        // End stone bricks
+        Material.END_STONE_BRICKS to 15
+    )
+
+    // Combined mining difficulties (ores + stone)
+    private val miningDifficulties = oreDifficulties + stoneDifficulties
+
     // Lumberjacking difficulties
     private val lumberDifficulties = mapOf(
         Material.OAK_LOG to 10,
@@ -48,51 +110,51 @@ object GatheringDifficulty {
 
     // Digging difficulties (soft blocks for shovels)
     private val diggingDifficulties = mapOf(
-        // Basic soft blocks
-        Material.DIRT to 5,
-        Material.GRASS_BLOCK to 5,
-        Material.COARSE_DIRT to 5,
-        Material.ROOTED_DIRT to 10,
-        Material.DIRT_PATH to 5,
-        Material.PODZOL to 10,
-        Material.MYCELIUM to 15,
-        Material.FARMLAND to 5,
-        // Sand variants
-        Material.SAND to 5,
-        Material.RED_SAND to 5,
-        Material.SUSPICIOUS_SAND to 25,
-        Material.SUSPICIOUS_GRAVEL to 25,
+        // Basic soft blocks (very easy)
+        Material.DIRT to 3,
+        Material.GRASS_BLOCK to 3,
+        Material.COARSE_DIRT to 3,
+        Material.DIRT_PATH to 3,
+        Material.FARMLAND to 3,
+        // Slightly harder dirt variants
+        Material.ROOTED_DIRT to 5,
+        Material.PODZOL to 5,
+        Material.MUD to 5,
+        Material.MYCELIUM to 10,
+        Material.MUDDY_MANGROVE_ROOTS to 10,
+        // Sand variants (easy)
+        Material.SAND to 3,
+        Material.RED_SAND to 3,
+        Material.SUSPICIOUS_SAND to 20,
+        Material.SUSPICIOUS_GRAVEL to 20,
         // Gravel
-        Material.GRAVEL to 10,
+        Material.GRAVEL to 5,
         // Clay
-        Material.CLAY to 15,
-        // Soul blocks
-        Material.SOUL_SAND to 20,
-        Material.SOUL_SOIL to 20,
-        // Snow
-        Material.SNOW to 5,
-        Material.SNOW_BLOCK to 10,
-        Material.POWDER_SNOW to 15,
-        // Mud variants
-        Material.MUD to 10,
-        Material.MUDDY_MANGROVE_ROOTS to 15,
+        Material.CLAY to 10,
+        // Soul blocks (harder - Nether)
+        Material.SOUL_SAND to 15,
+        Material.SOUL_SOIL to 15,
+        // Snow (easy)
+        Material.SNOW to 3,
+        Material.SNOW_BLOCK to 5,
+        Material.POWDER_SNOW to 10,
         // Concrete powder
-        Material.WHITE_CONCRETE_POWDER to 10,
-        Material.ORANGE_CONCRETE_POWDER to 10,
-        Material.MAGENTA_CONCRETE_POWDER to 10,
-        Material.LIGHT_BLUE_CONCRETE_POWDER to 10,
-        Material.YELLOW_CONCRETE_POWDER to 10,
-        Material.LIME_CONCRETE_POWDER to 10,
-        Material.PINK_CONCRETE_POWDER to 10,
-        Material.GRAY_CONCRETE_POWDER to 10,
-        Material.LIGHT_GRAY_CONCRETE_POWDER to 10,
-        Material.CYAN_CONCRETE_POWDER to 10,
-        Material.PURPLE_CONCRETE_POWDER to 10,
-        Material.BLUE_CONCRETE_POWDER to 10,
-        Material.BROWN_CONCRETE_POWDER to 10,
-        Material.GREEN_CONCRETE_POWDER to 10,
-        Material.RED_CONCRETE_POWDER to 10,
-        Material.BLACK_CONCRETE_POWDER to 10
+        Material.WHITE_CONCRETE_POWDER to 5,
+        Material.ORANGE_CONCRETE_POWDER to 5,
+        Material.MAGENTA_CONCRETE_POWDER to 5,
+        Material.LIGHT_BLUE_CONCRETE_POWDER to 5,
+        Material.YELLOW_CONCRETE_POWDER to 5,
+        Material.LIME_CONCRETE_POWDER to 5,
+        Material.PINK_CONCRETE_POWDER to 5,
+        Material.GRAY_CONCRETE_POWDER to 5,
+        Material.LIGHT_GRAY_CONCRETE_POWDER to 5,
+        Material.CYAN_CONCRETE_POWDER to 5,
+        Material.PURPLE_CONCRETE_POWDER to 5,
+        Material.BLUE_CONCRETE_POWDER to 5,
+        Material.BROWN_CONCRETE_POWDER to 5,
+        Material.GREEN_CONCRETE_POWDER to 5,
+        Material.RED_CONCRETE_POWDER to 5,
+        Material.BLACK_CONCRETE_POWDER to 5
     )
 
     // Fishing base difficulty
@@ -135,7 +197,11 @@ object GatheringDifficulty {
 
     fun getDiggingDifficulty(material: Material): Int = diggingDifficulties[material] ?: 5
 
-    fun isOre(material: Material): Boolean = miningDifficulties.containsKey(material)
+    /** Check if block is mineable with pickaxe (ores + stone) */
+    fun isMineable(material: Material): Boolean = miningDifficulties.containsKey(material)
+
+    /** Check if block is an ore (gives bonus drops) */
+    fun isOre(material: Material): Boolean = oreDifficulties.containsKey(material)
 
     fun isDiggable(material: Material): Boolean = diggingDifficulties.containsKey(material)
 

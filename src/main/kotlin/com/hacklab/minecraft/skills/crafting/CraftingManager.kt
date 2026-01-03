@@ -17,11 +17,12 @@ class CraftingManager(private val plugin: Skills) {
     /**
      * Process a crafting event
      * Called when player crafts an item
+     * @param craftCount Number of times crafting (for shift-click)
      */
-    fun processCraft(player: Player, result: ItemStack): ItemStack {
+    fun processCraft(player: Player, result: ItemStack, craftCount: Int = 1): ItemStack {
         // Check if this is a craftable food
         if (CookingDifficulty.isCraftedFood(result.type)) {
-            return processCraftedFood(player, result)
+            return processCraftedFood(player, result, craftCount)
         }
 
         val craftInfo = CraftDifficulty.getCraftInfo(result.type) ?: return result
@@ -29,8 +30,10 @@ class CraftingManager(private val plugin: Skills) {
         val data = plugin.playerDataManager.getPlayerData(player)
         val skillValue = data.getSkillValue(craftInfo.skill)
 
-        // Try skill gain
-        plugin.skillManager.tryGainSkill(player, craftInfo.skill, craftInfo.difficulty)
+        // Try skill gain for each craft
+        repeat(craftCount) {
+            plugin.skillManager.tryGainSkill(player, craftInfo.skill, craftInfo.difficulty)
+        }
 
         // Apply quality based on skill and difficulty (only for non-stackable items)
         val qualifiedResult = plugin.qualityManager.applyQualityFromSkill(result, skillValue, craftInfo.difficulty)
@@ -51,13 +54,15 @@ class CraftingManager(private val plugin: Skills) {
     /**
      * Process crafted food items (bread, cake, etc.)
      */
-    private fun processCraftedFood(player: Player, result: ItemStack): ItemStack {
+    private fun processCraftedFood(player: Player, result: ItemStack, craftCount: Int = 1): ItemStack {
         val data = plugin.playerDataManager.getPlayerData(player)
         val cookingSkill = data.getSkillValue(SkillType.COOKING)
         val difficulty = CookingDifficulty.getDifficulty(result.type)
 
-        // Try skill gain
-        plugin.skillManager.tryGainSkill(player, SkillType.COOKING, difficulty)
+        // Try skill gain for each craft
+        repeat(craftCount) {
+            plugin.skillManager.tryGainSkill(player, SkillType.COOKING, difficulty)
+        }
 
         // Apply food bonus
         return foodBonusManager.applyFoodBonus(result, cookingSkill, difficulty, player.name)
@@ -84,10 +89,14 @@ class CraftingManager(private val plugin: Skills) {
     }
 
     /**
-     * Process brewing (Alchemy)
-     * Applies duration bonus and quality based on Alchemy skill
+     * Process brewing (potions from brewing stand)
+     * Applies duration bonus based on Alchemy skill
+     *
+     * @param player The player
+     * @param result The brewed potion
+     * @param amount How many potions were taken (for skill gain opportunities)
      */
-    fun processBrewing(player: Player, result: ItemStack): ItemStack {
+    fun processBrewing(player: Player, result: ItemStack, amount: Int = 1): ItemStack {
         val data = plugin.playerDataManager.getPlayerData(player)
         val alchemySkill = data.getSkillValue(SkillType.ALCHEMY)
 
@@ -108,7 +117,10 @@ class CraftingManager(private val plugin: Skills) {
             }
         }
 
-        plugin.skillManager.tryGainSkill(player, SkillType.ALCHEMY, difficulty)
+        // Try skill gain for each potion brewed
+        repeat(amount) {
+            plugin.skillManager.tryGainSkill(player, SkillType.ALCHEMY, difficulty)
+        }
 
         // Apply potion bonus (duration extension, quality)
         return potionBonusManager.applyPotionBonus(result, alchemySkill, player.name)
@@ -117,15 +129,22 @@ class CraftingManager(private val plugin: Skills) {
     /**
      * Process cooking (food from furnace/smoker)
      * Applies recovery bonus based on Cooking skill
+     *
+     * @param player The player
+     * @param result The cooked item
+     * @param amount How many items were taken (for skill gain opportunities)
      */
-    fun processCooking(player: Player, result: ItemStack): ItemStack {
+    fun processCooking(player: Player, result: ItemStack, amount: Int = 1): ItemStack {
         val data = plugin.playerDataManager.getPlayerData(player)
         val cookingSkill = data.getSkillValue(SkillType.COOKING)
 
         // Get difficulty from cooking difficulty table
         val difficulty = CookingDifficulty.getDifficulty(result.type)
 
-        plugin.skillManager.tryGainSkill(player, SkillType.COOKING, difficulty)
+        // Try skill gain for each item cooked
+        repeat(amount) {
+            plugin.skillManager.tryGainSkill(player, SkillType.COOKING, difficulty)
+        }
 
         // Apply food bonus (recovery bonus based on skill and quality)
         return foodBonusManager.applyFoodBonus(result, cookingSkill, difficulty, player.name)

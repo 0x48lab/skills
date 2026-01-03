@@ -125,6 +125,14 @@ enum class MessageKey(val path: String) {
     RUNE_CREATED("rune.created"),
     RUNE_MARKED("rune.marked"),
 
+    // Runebook
+    RUNEBOOK_RUNE_ADDED("runebook.rune_added"),
+    RUNEBOOK_RUNE_REMOVED("runebook.rune_removed"),
+    RUNEBOOK_FULL("runebook.full"),
+    RUNEBOOK_NOT_A_RUNE("runebook.not_a_rune"),
+    RUNEBOOK_RUNE_NOT_MARKED("runebook.rune_not_marked"),
+    RUNEBOOK_WORLD_NOT_FOUND("runebook.world_not_found"),
+
     // Gate
     GATE_CREATED("gate.created"),
     GATE_TRAVEL_USED("gate.travel_used"),

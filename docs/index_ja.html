@@ -39,7 +39,7 @@
 
             <h3>主な機能</h3>
             <ul>
-                <li><strong>40スキル</strong> - 戦闘、魔法、生産、採集、シーフ、テイム、サバイバルの各カテゴリ</li>
+                <li><strong>38スキル</strong> - 戦闘、魔法、生産、採集、シーフ、テイム、サバイバルの各カテゴリ</li>
                 <li><strong>スキルキャップ</strong> - 合計700ポイント、各スキル最大100ポイント</li>
                 <li><strong>使用による成長</strong> - スキルは使用することで上昇、難易度が成長率に影響</li>
                 <li><strong>ステータスシステム</strong> - 関連スキルからSTR、DEX、INTを計算</li>
@@ -67,12 +67,17 @@
                 <tr>
                     <td class="dex"><strong>DEX</strong></td>
                     <td>+攻撃速度、+移動速度</td>
-                    <td>Archery, Throwing, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Tinkering, Athletics, Swimming</td>
+                    <td>Archery, Throwing, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Athletics, Swimming</td>
                 </tr>
                 <tr>
                     <td class="int"><strong>INT</strong></td>
                     <td>-マナ消費、+詠唱成功率</td>
-                    <td>Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Alchemy, Bowcraft, Animal Lore</td>
+                    <td>Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Alchemy, Animal Lore</td>
+                </tr>
+                <tr>
+                    <td><strong>複合</strong></td>
+                    <td>個別スキル参照</td>
+                    <td>Craftsmanship（STR 50% + DEX 50%）、Animal Taming、Veterinary、Detecting Hidden、Arms Lore</td>
                 </tr>
             </table>
 
@@ -229,14 +234,9 @@
                     <p class="skill-effect">上昇条件：金属製品をクラフト、金床で修理</p>
                 </div>
                 <div class="skill-card">
-                    <h4>Bowcraft <span class="badge badge-int">INT</span></h4>
-                    <p>弓、クロスボウ、矢の作成。</p>
-                    <p class="skill-effect">上昇条件：弓・矢をクラフト</p>
-                </div>
-                <div class="skill-card">
-                    <h4>Craftsmanship <span class="badge badge-str">STR</span></h4>
-                    <p>木製品、革製品、盾。</p>
-                    <p class="skill-effect">上昇条件：木・革製品をクラフト</p>
+                    <h4>Craftsmanship <span class="badge badge-mixed">STR/DEX</span></h4>
+                    <p>木製品、革製品、盾、弓、クロスボウ、矢、小物（ハサミ、釣り竿など）。</p>
+                    <p class="skill-effect">上昇条件：木・革・弓・ツール製品をクラフト</p>
                 </div>
                 <div class="skill-card">
                     <h4>Alchemy <span class="badge badge-int">INT</span></h4>
@@ -247,11 +247,6 @@
                     <h4>Cooking <span class="badge badge-str">STR</span></h4>
                     <p>食料の調理。</p>
                     <p class="skill-effect">上昇条件：食料を調理</p>
-                </div>
-                <div class="skill-card">
-                    <h4>Tinkering <span class="badge badge-dex">DEX</span></h4>
-                    <p>小物やツールの作成。</p>
-                    <p class="skill-effect">上昇条件：ツールをクラフト</p>
                 </div>
             </div>
 
@@ -466,29 +461,32 @@ Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
                 <tr><td>残留ポーション</td><td>+20</td></tr>
             </table>
 
-            <h3>Tinkeringスキル</h3>
-            <p>作成したアイテムの耐久性が向上し、修繕エンチャントの成功率が上がります。</p>
+            <h3>スタック上限ボーナス</h3>
+            <p>生産スキルによりアイテムの最大スタック数が64から99まで増加します。</p>
 
             <div class="formula">
-                <code>修繕成功率 = min(100, Tinkeringスキル × 100 / 60)</code>
+                <code>最大スタック数 = 64 + (スキル合計 / 400 × 35)</code>
+                <p>対象スキル：Craftsmanship + Blacksmithy + Cooking + Alchemy</p>
             </div>
 
-            <h4>スキル別修繕成功率</h4>
+            <h4>スキル合計別スタック上限</h4>
             <table>
                 <tr>
-                    <th>スキルレベル</th>
-                    <th>成功率</th>
+                    <th>スキル合計</th>
+                    <th>最大スタック数</th>
                 </tr>
-                <tr><td>0</td><td>0%</td></tr>
-                <tr><td>30</td><td>50%</td></tr>
-                <tr><td>60+</td><td>100%</td></tr>
+                <tr><td>0</td><td>64</td></tr>
+                <tr><td>100</td><td>73</td></tr>
+                <tr><td>200</td><td>82</td></tr>
+                <tr><td>300</td><td>90</td></tr>
+                <tr><td>400</td><td>99</td></tr>
             </table>
 
-            <h4>Tinkering対象アイテム</h4>
+            <p>スタックボーナスが適用されるタイミング：</p>
             <ul>
-                <li>釣り竿、ハサミ、火打石と打ち金</li>
-                <li>時計、コンパス、望遠鏡</li>
-                <li>ランタン、鎖、ロケット花火</li>
+                <li>地面からアイテムを拾った時</li>
+                <li>コンテナ（チェスト、かまど等）からアイテムを取り出した時</li>
+                <li>ログイン時（既存のインベントリが更新される）</li>
             </ul>
         </section>
 
@@ -596,9 +594,8 @@ Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
                 </tr>
                 <tr><td>鉄/金/ダイヤ/ネザライト/チェーン/石の装備</td><td>Blacksmithy</td></tr>
                 <tr><td>トライデント、メイス、槍</td><td>Blacksmithy</td></tr>
-                <tr><td>弓、クロスボウ</td><td>Bowcraft</td></tr>
-                <tr><td>革の防具、木製品、盾</td><td>Craftsmanship</td></tr>
-                <tr><td>釣り竿、ハサミ、火打石と打ち金</td><td>Tinkering</td></tr>
+                <tr><td>弓、クロスボウ、革の防具、木製品、盾</td><td>Craftsmanship</td></tr>
+                <tr><td>釣り竿、ハサミ、火打石と打ち金</td><td>Craftsmanship</td></tr>
                 <tr><td>エリトラ、タートルヘルメット</td><td>不要（常に100%）</td></tr>
             </table>
 
@@ -673,6 +670,16 @@ Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
             <h2>変更履歴</h2>
 
             <div class="changelog-entry">
+                <h4>v0.2.8</h4>
+                <span class="date">2026-01-03</span>
+                <ul>
+                    <li><strong>スキル統合</strong> - BowcraftとTinkeringがCraftsmanshipに統合</li>
+                    <li><strong>スタック上限ボーナス</strong> - 生産スキル（Craftsmanship + Blacksmithy + Cooking + Alchemy）に応じてアイテムが99までスタック可能に</li>
+                    <li><strong>Craftsmanship更新</strong> - 弓・矢・ツールをカバー、ステータス寄与がSTR 50% + DEX 50%に変更</li>
+                </ul>
+            </div>
+
+            <div class="changelog-entry">
                 <h4>v0.2.7</h4>
                 <span class="date">2026-01-02</span>
                 <ul>
@@ -707,7 +714,7 @@ Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
             <div class="changelog-entry">
                 <h4>v1.0.0 - 初回リリース</h4>
                 <ul>
-                    <li>クラシックMMORPGにインスパイアされた34スキル</li>
+                    <li>クラシックMMORPGにインスパイアされた38スキル</li>
                     <li>STR/DEX/INTステータスシステム</li>
                     <li>内部HP/マナシステム</li>
                     <li>スキルキャップシステム（合計700、各スキル100）</li>

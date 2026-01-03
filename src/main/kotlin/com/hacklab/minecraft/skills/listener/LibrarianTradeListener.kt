@@ -40,7 +40,10 @@ class LibrarianTradeListener(private val plugin: Skills) : Listener {
         when (level) {
             1 -> maybeAddCircle1ScrollTrade(villager)
             2 -> maybeAddCircle1Or2ScrollTrade(villager)
-            3 -> maybeAddSpellbookTrade(villager)
+            3 -> {
+                maybeAddSpellbookTrade(villager)
+                maybeAddRunebookTrade(villager)
+            }
             4 -> maybeAddCircle2ScrollTrade(villager)
         }
     }
@@ -86,6 +89,19 @@ class LibrarianTradeListener(private val plugin: Skills) : Listener {
         val price = Random.nextInt(30, 51) // 30-50 emeralds
 
         addTrade(villager, spellbook, price, 1, 10) // maxUses=1, villagerXp=10
+    }
+
+    /**
+     * Add an empty runebook trade (level 3 librarian)
+     * Price: 40-60 emeralds
+     */
+    private fun maybeAddRunebookTrade(villager: Villager) {
+        if (hasRunebookTrade(villager)) return
+
+        val runebook = plugin.runebookManager.createRunebook(false)
+        val price = Random.nextInt(40, 61) // 40-60 emeralds
+
+        addTrade(villager, runebook, price, 1, 10) // maxUses=1, villagerXp=10
     }
 
     /**
@@ -139,6 +155,15 @@ class LibrarianTradeListener(private val plugin: Skills) : Listener {
     private fun hasSpellbookTrade(villager: Villager): Boolean {
         return villager.recipes.any { recipe ->
             plugin.spellbookManager.isSpellbook(recipe.result)
+        }
+    }
+
+    /**
+     * Check if villager already has a runebook trade
+     */
+    private fun hasRunebookTrade(villager: Villager): Boolean {
+        return villager.recipes.any { recipe ->
+            plugin.runebookManager.isRunebook(recipe.result)
         }
     }
 }

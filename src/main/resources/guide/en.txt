@@ -55,14 +55,31 @@ Support:
 === Crafting Skills ===
 
 - Blacksmithy: Weapons/Armor
-- Bowcraft: Bows/Arrows
+- Craftsmanship: Wood/Leather/
+  Bows/Arrows/Tools
 - Alchemy: Potions
 - Cooking: Food
 - Inscription: Scrolls
-- Tinkering: Tools
-- Craftsmanship: Wood
 
 Higher skill = better quality!
+
+---PAGE---
+
+=== Stack Size Bonus ===
+
+Production skills increase
+max stack size from 64 to 99.
+
+Formula:
+64 + (SkillSum / 400 x 35)
+
+Contributing Skills:
+- Craftsmanship
+- Blacksmithy
+- Cooking
+- Alchemy
+
+Skill 400 total = 99 stack!
 
 ---PAGE---
 
@@ -105,26 +122,6 @@ Difficulty varies by potion:
 - Extended (45): 8 min ver
 - Splash: +10 difficulty
 - Lingering: +20 difficulty
-
----PAGE---
-
-=== Tinkering Skill ===
-
-Effect:
-Items you craft last longer
-and Mending works better.
-
-Mending success rate:
-- Skill 0: 0% success
-- Skill 30: 50% success
-- Skill 60+: 100% success
-
-Target items:
-- Fishing Rod
-- Shears
-- Flint and Steel
-- Clock, Compass
-- Spyglass
 
 ---PAGE---
 
