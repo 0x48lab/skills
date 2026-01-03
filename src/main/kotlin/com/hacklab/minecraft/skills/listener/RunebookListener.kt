@@ -19,6 +19,7 @@ import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryDragEvent
 import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import java.util.UUID
@@ -309,5 +310,16 @@ class RunebookListener(private val plugin: Skills) : Listener {
     fun onInventoryClose(event: org.bukkit.event.inventory.InventoryCloseEvent) {
         val player = event.player as? Player ?: return
         openRunebooks.remove(player.uniqueId)
+    }
+
+    /**
+     * Clean up when player quits
+     */
+    @EventHandler
+    fun onPlayerQuit(event: PlayerQuitEvent) {
+        val uuid = event.player.uniqueId
+        openRunebooks.remove(uuid)
+        pendingRecall.remove(uuid)
+        pendingGate.remove(uuid)
     }
 }

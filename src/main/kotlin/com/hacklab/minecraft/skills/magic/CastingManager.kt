@@ -252,6 +252,9 @@ class CastingManager(private val plugin: Skills) {
         plugin.server.getPlayer(playerId)?.let { player ->
             player.hideBossBar(state.bossBar)
 
+            // Clear any pending runebook spell locations
+            plugin.runebookListener.clearPending(player)
+
             if (!silent) {
                 player.world.playSound(player.location, Sound.ENTITY_PLAYER_BURP, 0.5f, 0.5f)
             }
