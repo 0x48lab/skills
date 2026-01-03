@@ -68,7 +68,7 @@ class RunebookListener(private val plugin: Skills) : Listener {
         val runebook = openRunebooks[player.uniqueId] ?: return
 
         val title = event.view.title()
-        val isRunebookGUI = title.toString().contains("Runebook") || title.toString().contains("ルーンブック")
+        val isRunebookGUI = title.toString().contains("Runebook") || title.toString().contains("ルーンの書")
         if (!isRunebookGUI) return
 
         // Cancel all default actions in the runebook GUI
@@ -139,7 +139,7 @@ class RunebookListener(private val plugin: Skills) : Listener {
         if (!openRunebooks.containsKey(player.uniqueId)) return
 
         val title = event.view.title()
-        val isRunebookGUI = title.toString().contains("Runebook") || title.toString().contains("ルーンブック")
+        val isRunebookGUI = title.toString().contains("Runebook") || title.toString().contains("ルーンの書")
         if (!isRunebookGUI) return
 
         // Cancel dragging in the runebook GUI

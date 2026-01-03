@@ -58,7 +58,7 @@ class RunebookManager(private val plugin: Skills) {
         val meta = runebook.itemMeta ?: return runebook
 
         // Display name
-        val displayName = if (useJapanese) "ルーンブック" else "Runebook"
+        val displayName = if (useJapanese) "ルーンの書" else "Runebook"
         meta.displayName(
             Component.text(displayName)
                 .color(NamedTextColor.GOLD)
@@ -211,7 +211,7 @@ class RunebookManager(private val plugin: Skills) {
         if (!isRunebook(runebook)) return
 
         val useJapanese = plugin.localeManager.getLanguage(player) == Language.JAPANESE
-        val title = if (useJapanese) "ルーンブック" else "Runebook"
+        val title = if (useJapanese) "ルーンの書" else "Runebook"
 
         val inventory = Bukkit.createInventory(null, GUI_SIZE, Component.text(title).color(NamedTextColor.DARK_PURPLE))
 
@@ -370,7 +370,7 @@ class RunebookManager(private val plugin: Skills) {
         val lore = mutableListOf<Component>()
         if (useJapanese) {
             lore.add(Component.text("記録済みのルーンをドロップして").color(NamedTextColor.GRAY))
-            lore.add(Component.text("ルーンブックに追加").color(NamedTextColor.GRAY))
+            lore.add(Component.text("ルーンの書に追加").color(NamedTextColor.GRAY))
         } else {
             lore.add(Component.text("Drop a marked rune here to").color(NamedTextColor.GRAY))
             lore.add(Component.text("add it to the runebook").color(NamedTextColor.GRAY))
