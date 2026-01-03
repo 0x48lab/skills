@@ -747,8 +747,8 @@ class SpellManager(private val plugin: Skills) {
                     // Close any existing gate from this player first
                     plugin.gateManager.closeGatesForPlayer(caster.uniqueId)
 
-                    // Calculate gate duration based on magery skill (30-60 seconds)
-                    val durationSeconds = 30 + (magerySkill / 3.5).toInt()
+                    // Gate duration is fixed at 30 seconds (UO-style)
+                    val durationSeconds = 30
                     val durationTicks = durationSeconds * 20
 
                     // Spawn gate 2 blocks in front of caster so they don't immediately enter
