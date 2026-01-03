@@ -1,6 +1,7 @@
 package com.hacklab.minecraft.skills.crafting
 
 import com.hacklab.minecraft.skills.Skills
+import com.hacklab.minecraft.skills.thief.PoisonLevel
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
@@ -41,6 +42,11 @@ class PotionBonusManager(private val plugin: Skills) {
     ): ItemStack {
         val meta = item.itemMeta as? PotionMeta ?: return item
         val potionType = meta.basePotionType ?: return item
+
+        // Check if this is a poison potion - convert to custom poison based on Alchemy skill
+        if (isPoisonPotion(potionType)) {
+            return createCustomPoisonPotion(item, potionType, alchemySkill, alchemistName)
+        }
 
         // Calculate difficulty
         val isExtended = potionType.name.contains("LONG") || isExtendedPotion(meta)
@@ -220,5 +226,88 @@ class PotionBonusManager(private val plugin: Skills) {
     fun hasPotionBonus(item: ItemStack?): Boolean {
         if (item == null) return false
         return item.itemMeta?.persistentDataContainer?.has(alchemistKey, PersistentDataType.STRING) == true
+    }
+
+    /**
+     * Check if a potion type is a poison potion
+     */
+    private fun isPoisonPotion(potionType: PotionType): Boolean {
+        val name = potionType.name
+        return name == "POISON" || name == "STRONG_POISON" || name == "LONG_POISON"
+    }
+
+    /**
+     * Create a custom poison potion based on Alchemy skill
+     *
+     * Poison levels are determined by Alchemy skill:
+     * - Lesser (0+): From vanilla Poison or Long Poison
+     * - Regular (30+): Upgrade chance from vanilla, guaranteed from Strong Poison
+     * - Greater (60+): Can create from Strong Poison
+     * - Deadly (90+): Can create from Strong Poison
+     *
+     * @param item The original poison potion
+     * @param potionType The vanilla potion type
+     * @param alchemySkill The player's Alchemy skill
+     * @param alchemistName The player who brewed it
+     * @return Custom poison potion or the original item
+     */
+    private fun createCustomPoisonPotion(
+        item: ItemStack,
+        potionType: PotionType,
+        alchemySkill: Double,
+        alchemistName: String
+    ): ItemStack {
+        // Determine base level from vanilla potion
+        val isStrongPoison = potionType.name == "STRONG_POISON"
+
+        // Calculate max achievable poison level based on alchemy skill
+        val maxLevel = when {
+            alchemySkill >= PoisonLevel.DEADLY.alchemyRequired -> PoisonLevel.DEADLY
+            alchemySkill >= PoisonLevel.GREATER.alchemyRequired -> PoisonLevel.GREATER
+            alchemySkill >= PoisonLevel.REGULAR.alchemyRequired -> PoisonLevel.REGULAR
+            else -> PoisonLevel.LESSER
+        }
+
+        // Base level from vanilla potion type
+        val baseLevel = if (isStrongPoison) PoisonLevel.REGULAR else PoisonLevel.LESSER
+
+        // Final level is the higher of base and max achievable
+        val finalLevel = if (baseLevel.ordinal >= maxLevel.ordinal) {
+            // Can't upgrade beyond max skill allows
+            maxLevel
+        } else {
+            // Upgrade to max level skill allows
+            maxLevel
+        }
+
+        // Create custom poison potion using PoisonItemManager
+        val useJapanese = false // Default to English; player locale checked elsewhere
+        val customPoison = plugin.poisonItemManager.createPoisonPotion(finalLevel, useJapanese)
+
+        // Preserve splash/lingering type
+        when (item.type) {
+            Material.SPLASH_POTION -> customPoison.type = Material.SPLASH_POTION
+            Material.LINGERING_POTION -> customPoison.type = Material.LINGERING_POTION
+            else -> { /* Keep as regular potion */ }
+        }
+
+        // Add alchemist info to lore
+        val meta = customPoison.itemMeta as? PotionMeta
+        if (meta != null) {
+            meta.persistentDataContainer.set(alchemistKey, PersistentDataType.STRING, alchemistName)
+
+            // Add alchemist to lore for exceptional quality (high skill)
+            if (alchemySkill >= 90) {
+                val lore = meta.lore()?.toMutableList() ?: mutableListOf()
+                lore.add(Component.text("Brewed by: $alchemistName")
+                    .color(NamedTextColor.GOLD)
+                    .decoration(TextDecoration.ITALIC, false))
+                meta.lore(lore)
+            }
+
+            customPoison.itemMeta = meta
+        }
+
+        return customPoison
     }
 }

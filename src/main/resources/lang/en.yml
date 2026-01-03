@@ -83,9 +83,11 @@ thief:
   steal_noticed: "<yellow>{player} tried to steal your {item}!"
   steal_item_moved: "<gray>The item was moved."
   steal_target_offline: "<red>Target went offline."
-  poison_applied: "<dark_green>Poison applied ({charges} charges)."
+  poison_applied: "<dark_green>{level} applied ({charges} charges)."
   poison_failed: "<red>Failed to apply poison."
   poison_hit: "<dark_green>Poisoned!"
+  poison_no_weapon: "<red>Hold a weapon in your main hand."
+  poison_no_potion: "<red>You need a Poison Potion in your inventory."
 
 # Taming messages
 taming:

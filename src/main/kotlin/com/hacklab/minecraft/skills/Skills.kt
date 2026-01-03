@@ -14,6 +14,7 @@ import com.hacklab.minecraft.skills.economy.VaultHook
 import com.hacklab.minecraft.skills.crafting.CraftingManager
 import com.hacklab.minecraft.skills.crafting.DurabilityManager
 import com.hacklab.minecraft.skills.crafting.QualityManager
+import com.hacklab.minecraft.skills.crafting.StackBonusManager
 import com.hacklab.minecraft.skills.data.PlayerDataManager
 import com.hacklab.minecraft.skills.database.Database
 import com.hacklab.minecraft.skills.database.SQLiteDatabase
@@ -109,6 +110,8 @@ class Skills : JavaPlugin() {
         private set
     lateinit var durabilityManager: DurabilityManager
         private set
+    lateinit var stackBonusManager: StackBonusManager
+        private set
 
     // Gathering
     lateinit var gatheringManager: GatheringManager
@@ -122,6 +125,8 @@ class Skills : JavaPlugin() {
     lateinit var snoopingManager: SnoopingManager
         private set
     lateinit var stealingManager: StealingManager
+        private set
+    lateinit var poisonItemManager: PoisonItemManager
         private set
     lateinit var poisoningManager: PoisoningManager
         private set
@@ -270,6 +275,7 @@ class Skills : JavaPlugin() {
         qualityManager = QualityManager(this)
         craftingManager = CraftingManager(this)
         durabilityManager = DurabilityManager(this)
+        stackBonusManager = StackBonusManager(this)
 
         // Gathering
         gatheringManager = GatheringManager(this)
@@ -279,6 +285,7 @@ class Skills : JavaPlugin() {
         detectingManager = DetectingManager(this)
         snoopingManager = SnoopingManager(this)
         stealingManager = StealingManager(this)
+        poisonItemManager = PoisonItemManager(this)
         poisoningManager = PoisoningManager(this)
 
         // Taming
@@ -346,6 +353,9 @@ class Skills : JavaPlugin() {
 
         // Food consumption (Cooking skill bonus)
         pm.registerEvents(FoodListener(this), this)
+
+        // Stack size bonus based on production skills
+        pm.registerEvents(StackBonusListener(this), this)
     }
 
     private fun registerCommands() {

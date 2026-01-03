@@ -80,6 +80,8 @@ enum class MessageKey(val path: String) {
     THIEF_POISON_APPLIED("thief.poison_applied"),
     THIEF_POISON_FAILED("thief.poison_failed"),
     THIEF_POISON_HIT("thief.poison_hit"),
+    THIEF_POISON_NO_WEAPON("thief.poison_no_weapon"),
+    THIEF_POISON_NO_POTION("thief.poison_no_potion"),
 
     // Taming
     TAMING_START("taming.start"),
