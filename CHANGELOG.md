@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Clear pending runebook spell locations when casting is cancelled
 - Clean up runebook data on player quit to prevent memory leaks
+- Gate Travel duration now fixed at 30 seconds (UO-style)
+- Japanese runebook name changed from "ルーンブック" to "ルーンの書"
 
 ## [0.2.8] - 2026-01-03
 

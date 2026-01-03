@@ -1368,6 +1368,55 @@ Magery軽減 = min(Mageryスキル / 100 × 0.3, 0.3)  // 最大30%短縮
 - ItemMetaのLoreに場所情報を表示
 - Mark詠唱時に場所名を入力可能（チャット or 看板UI）
 
+### ルーンの書（Runebook）
+
+複数のルーンを保存できる魔法の本。GUIからRecallとGate Travelを直接実行できる。
+
+#### アイテム仕様
+- **ベースアイテム**: `BOOK`（エンチャントグロー付き）
+- **最大ルーン数**: 16個（UOと同じ）
+- **入手方法**: 司書の村人（Lv.3）から購入（40〜60エメラルド）
+- **PDC保存データ**:
+  - `runebook`: BYTE（ルーンの書フラグ）
+  - `runebook_runes`: STRING（JSON形式でルーン情報を保存）
+
+#### ルーン情報の保存形式（JSON）
+```json
+[
+  {"name": "Home", "world": "world", "x": 100.5, "y": 64.0, "z": -200.3},
+  {"name": "Mine", "world": "world_nether", "x": 50.0, "y": 32.0, "z": 100.0}
+]
+```
+
+#### GUI設計（27スロット = 3行）
+```
+Row 1: [Rune1][Rune2][Rune3][Rune4][Rune5][Rune6][Rune7][Rune8][情報]
+Row 2: [Rune9][Rune10][Rune11][Rune12][Rune13][Rune14][Rune15][Rune16][閉じる]
+Row 3: [ルーン追加エリア - 記録済みルーンをドロップして登録]
+```
+
+- **空スロット**: 灰色のガラス板 + "Empty Slot"
+- **登録済み**: エンダーアイ + ルーン名 + 座標情報
+
+#### 操作方法
+| 操作 | 効果 |
+|-----|------|
+| 左クリック | Recall詠唱開始（GUI閉じる→詠唱→テレポート） |
+| Shift+左クリック | Gate Travel詠唱開始（GUI閉じる→詠唱→ゲート生成） |
+| 右クリック | ルーン削除（ルーンアイテムがインベントリに戻る） |
+| Row 3にルーンをドロップ | 記録済みルーンをルーンの書に追加（ルーンは消費される） |
+
+#### 詠唱時の要件
+- ルーンの書からの詠唱も通常詠唱と同じ要件:
+  - **触媒チェック**: Recall=エンダーパール、Gate Travel=エンダーパール×2+ブレイズパウダー
+  - **マナチェック**: Recall=5、Gate Travel=7
+  - **詠唱時間**: 通常のRecall/Gate Travelと同じ（Mageryスキルで短縮）
+- Gate Travelの持続時間: **30秒**（固定、UO準拠）
+
+#### 実装ファイル
+- `magic/RunebookManager.kt` - ルーンの書作成・管理・GUI生成
+- `listener/RunebookListener.kt` - InventoryClickEvent処理・詠唱連携
+
 ## 戦闘システム
 
 ### 攻撃フロー（UO準拠）
@@ -2023,8 +2072,10 @@ com.hacklab.minecraft.skills/
 │   │   └── SpellbookManager.kt   # 魔法の書管理
 │   ├── scroll/
 │   │   └── ScrollManager.kt      # スクロール管理
-│   └── rune/
-│       └── RuneManager.kt        # ルーン管理
+│   ├── rune/
+│   │   └── RuneManager.kt        # ルーン管理
+│   └── runebook/
+│       └── RunebookManager.kt    # ルーンの書管理
 ├── crafting/
 │   ├── QualityType.kt            # 品質種別enum（LQ/NQ/HQ/EX）
 │   ├── QualityManager.kt         # 品質判定・付与
@@ -2070,6 +2121,7 @@ com.hacklab.minecraft.skills/
 │   ├── PlayerInteractListener.kt # プレイヤー操作イベント
 │   ├── PlayerMoveListener.kt     # 移動イベント
 │   ├── InventoryListener.kt      # インベントリイベント
+│   ├── RunebookListener.kt       # ルーンの書GUI・詠唱連携
 │   └── PlayerJoinQuitListener.kt # 入退出イベント
 └── util/
     ├── MessageUtil.kt            # メッセージ送信

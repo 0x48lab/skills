@@ -304,8 +304,31 @@ Paralyze (5th)
   Reagent: Spider Eye, String
 
 Gate Travel (7th)
-  Open portal to rune
+  Open portal to rune (30 sec)
   Reagent: Ender Pearl x2, Blaze Powder
+
+---PAGE---
+
+=== Runebook ===
+
+A magical book that stores
+multiple runes.
+
+[How to Get]
+Purchase from Librarian (Lv.3)
+Price: 40-60 emeralds
+
+[How to Use]
+1. Right-click to open GUI
+2. Drop marked runes to register
+3. Store up to 16 runes
+
+[Controls]
+- Left-click: Cast Recall
+- Shift+Left: Cast Gate Travel
+- Right-click: Remove rune
+
+*Normal reagents/mana required
 
 ---PAGE---
 
