@@ -18,36 +18,92 @@ circles:
 
 # Spell descriptions
 spells:
-  # Attack
+  # 1st Circle - Attack
   MAGIC_ARROW: "Fires a magic arrow (small damage)"
-  HARM: "Deals direct damage (medium damage)"
-  FIREBALL: "Hurls a fireball, sets target on fire"
-  LIGHTNING: "Lightning strike (large damage)"
-  FIRE_WALL: "Creates a wall of fire (continuous damage)"
-  MIND_BLAST: "Drains target's mana (hunger)"
-  EXPLOSION: "Area damage around target"
-  METEOR_SWARM: "Massive area damage"
-
-  # Healing
+  # 1st Circle - Healing
   HEAL: "Restores small amount of HP"
-  CURE: "Removes status effects"
-  GREATER_HEAL: "Restores large amount of HP"
-
-  # Buffs
-  BLESS: "Increases attack power"
-  PROTECTION: "Increases defense"
-  INVISIBILITY: "Turns invisible"
-
-  # Utility
+  # 1st Circle - Utility
   CREATE_FOOD: "Creates synthetic meat"
   NIGHT_SIGHT: "Grants night vision"
+  # 1st Circle - Debuff
+  CLUMSY: "Slows target's movement"
+  WEAKEN: "Reduces target's attack power"
+
+  # 2nd Circle - Attack
+  HARM: "Deals direct damage (medium damage)"
+  # 2nd Circle - Healing
+  CURE: "Removes status effects"
+  # 2nd Circle - Utility
   FEATHER_FALL: "Grants slow falling"
+  # 2nd Circle - Buff
+  AGILITY: "Increases movement speed"
+  STRENGTH: "Increases attack power temporarily"
+  CUNNING: "Sharpens the mind (Luck effect)"
+
+  # 3rd Circle - Attack
+  FIREBALL: "Hurls a fireball, sets target on fire"
+  # 3rd Circle - Buff
+  BLESS: "Increases attack power"
+  # 3rd Circle - Utility
   WATER_BREATHING: "Grants water breathing"
   TELEPORT: "Short range teleport to clicked location"
+  # 3rd Circle - Debuff
+  POISON: "Poisons target over time"
+  # 3rd Circle - Field
+  WALL_OF_STONE: "Creates a temporary stone barrier"
+
+  # 4th Circle - Attack
+  LIGHTNING: "Lightning strike (large damage)"
+  FIRE_WALL: "Creates a wall of fire (continuous damage)"
+  # 4th Circle - Healing
+  GREATER_HEAL: "Restores large amount of HP"
+  # 4th Circle - Utility
+  ARCH_CURE: "Cures all allies in range"
+  # 4th Circle - Debuff
+  CURSE: "Reduces all target's stats"
+  MANA_DRAIN: "Drains mana from target"
+
+  # 5th Circle - Attack
+  ENERGY_BOLT: "Deals heavy magic damage"
+  MIND_BLAST: "Drains target's mana (hunger)"
+  # 5th Circle - Buff
+  PROTECTION: "Increases defense"
+  # 5th Circle - Utility
   MARK: "Marks a rune with current location"
   RECALL: "Teleports to a marked rune"
   PARALYZE: "Immobilizes target"
+  # 5th Circle - Summon
+  SUMMON_CREATURE: "Summons a creature based on skill"
+
+  # 6th Circle - Attack
+  EXPLOSION: "Area damage around target"
+  # 6th Circle - Buff
+  INVISIBILITY: "Turns invisible"
+  # 6th Circle - Utility
+  DISPEL: "Removes buffs from target"
+  REVEAL: "Reveals hidden players in range"
+  # 6th Circle - Debuff
+  MASS_CURSE: "Curses all enemies in range"
+  # 6th Circle - Field
+  PARALYZE_FIELD: "Creates a paralyzing field"
+
+  # 7th Circle - Utility
   GATE_TRAVEL: "Opens a gate to a marked rune"
+  # 7th Circle - Attack
+  CHAIN_LIGHTNING: "Lightning that chains between targets"
+  FLAMESTRIKE: "Pillar of flame with burning"
+  # 7th Circle - Field
+  ENERGY_FIELD: "Creates an impassable energy wall"
+  # 7th Circle - Utility
+  MANA_VAMPIRE: "Drains large amount of mana"
+  MASS_DISPEL: "Dispels all targets in range"
+
+  # 8th Circle - Attack
+  METEOR_SWARM: "Massive area damage"
+  EARTHQUAKE: "Shakes ground damaging all nearby"
+  # 8th Circle - Special
+  WORD_OF_DEATH: "Instant death if target HP below 50%"
+  MASS_SLEEP: "Puts all enemies in range to sleep"
 
 # Material names (Minecraft items)
 materials:

@@ -2,9 +2,12 @@ package com.hacklab.minecraft.skills.listener
 
 import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.skill.StatCalculator
+import org.bukkit.Particle
+import org.bukkit.Sound
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.entity.Projectile
+import org.bukkit.entity.SmallFireball
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -13,6 +16,10 @@ import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.entity.EntityRegainHealthEvent
 import org.bukkit.event.entity.EntityShootBowEvent
+import org.bukkit.event.entity.ProjectileHitEvent
+import org.bukkit.persistence.PersistentDataType
+import org.bukkit.potion.PotionEffectType
+import java.util.UUID
 
 class CombatListener(private val plugin: Skills) : Listener {
 
@@ -40,9 +47,12 @@ class CombatListener(private val plugin: Skills) : Listener {
 
         // Player attacking
         if (attacker != null && target is LivingEntity) {
-            // Break hiding on attack
+            // Break hiding/invisibility on attack
             if (plugin.hidingManager.isHidden(attacker.uniqueId)) {
                 plugin.hidingManager.breakHiding(attacker, "attack")
+            } else if (attacker.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+                // Magic invisibility - remove it on attack
+                attacker.removePotionEffect(PotionEffectType.INVISIBILITY)
             }
 
             val weapon = attacker.inventory.itemInMainHand
@@ -177,6 +187,46 @@ class CombatListener(private val plugin: Skills) : Listener {
         if (shooter is Player) {
             val wasMoving = plugin.combatManager.isPlayerMoving(shooter)
             plugin.combatManager.recordProjectileShot(projectile.uniqueId, wasMoving)
+        }
+    }
+
+    /**
+     * Handle spell fireball hits
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    fun onProjectileHit(event: ProjectileHitEvent) {
+        val projectile = event.entity
+
+        // Check if this is a spell fireball
+        if (projectile !is SmallFireball) return
+
+        val pdc = projectile.persistentDataContainer
+        val casterUuidStr = pdc.get(plugin.spellManager.spellCasterKey, PersistentDataType.STRING) ?: return
+        val damage = pdc.get(plugin.spellManager.spellDamageKey, PersistentDataType.DOUBLE) ?: return
+
+        val caster = plugin.server.getPlayer(UUID.fromString(casterUuidStr))
+        val hitEntity = event.hitEntity
+        val hitBlock = event.hitBlock
+        val world = projectile.world
+
+        if (hitEntity != null && hitEntity is LivingEntity && hitEntity.uniqueId.toString() != casterUuidStr) {
+            // Hit an entity - apply magic damage
+            plugin.spellManager.applyMagicDamage(caster, hitEntity, damage)
+
+            // Apply fire effect
+            hitEntity.fireTicks = 60  // 3 seconds
+
+            // Impact particles and sound
+            val loc = hitEntity.location.add(0.0, 1.0, 0.0)
+            world.spawnParticle(Particle.FLAME, loc, 40, 0.6, 0.6, 0.6, 0.1)
+            world.spawnParticle(Particle.LAVA, loc, 20, 0.4, 0.4, 0.4, 0.0)
+            world.playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 0.8f, 1.2f)
+        } else if (hitBlock != null) {
+            // Hit a block - just explosion effect
+            val loc = hitBlock.location.add(0.5, 0.5, 0.5)
+            world.spawnParticle(Particle.FLAME, loc, 30, 0.5, 0.5, 0.5, 0.1)
+            world.spawnParticle(Particle.LAVA, loc, 15, 0.4, 0.4, 0.4, 0.0)
+            world.playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 0.6f, 1.2f)
         }
     }
 }

@@ -51,6 +51,42 @@ magic:
   no_mana: "<red>Not enough mana."
   out_of_range: "<red>Target is out of range."
   interrupted: "<red>Spell interrupted!"
+  # Buff spells
+  agility_cast: "<green>You feel more agile!"
+  strength_cast: "<green>You feel stronger!"
+  cunning_cast: "<green>Your mind sharpens!"
+  # Debuff spells
+  clumsy_cast: "<dark_purple>{target} becomes clumsy!"
+  weaken_cast: "<dark_purple>{target} has been weakened!"
+  curse_cast: "<dark_purple>Cursed {target}!"
+  mass_curse_cast: "<dark_purple>Cursed {count} enemies!"
+  poison_cast: "<dark_green>Poisoned {target}!"
+  # Utility spells
+  mana_drain_cast: "<dark_purple>Drained {amount} mana from {target}!"
+  mana_vampire_cast: "<dark_purple>Absorbed {amount} mana from {target}!"
+  dispel_cast: "<yellow>Dispelled magical effects from {target}!"
+  mass_dispel_cast: "<yellow>Dispelled {count} targets!"
+  reveal_cast: "<yellow>Revealing hidden creatures..."
+  reveal_found: "<gold>Revealed {count} hidden players!"
+  reveal_none: "<gray>No hidden players found."
+  arch_cure_cast: "<green>Cured {count} allies!"
+  # Field spells
+  wall_of_stone_cast: "<gray>A wall of stone appears!"
+  energy_field_cast: "<aqua>An energy field crackles to life!"
+  paralyze_field_cast: "<dark_purple>A paralyzing field forms!"
+  # Attack spells
+  flamestrike_cast: "<gold>A pillar of flame descends upon {target}!"
+  chain_lightning_cast: "<aqua>Lightning chains through {count} targets!"
+  earthquake_cast: "<gray>The ground shakes violently!"
+  # Summon spells
+  summon_creature_cast: "<green>You summoned a {creature}!"
+  summon_despawned: "<gray>Your summoned creature vanished."
+  summon_limit: "<red>You cannot summon more creatures. (Max: {max})"
+  # 8th Circle special
+  word_of_death_cast: "<dark_red>{target} was struck down by the Word of Death!"
+  word_of_death_failed: "<red>The target is too strong for the Word of Death."
+  word_of_death_immune: "<red>This creature is immune to the Word of Death."
+  mass_sleep_cast: "<dark_purple>A wave of drowsiness washes over {count} enemies!"
 
 # Heal messages
 heal:

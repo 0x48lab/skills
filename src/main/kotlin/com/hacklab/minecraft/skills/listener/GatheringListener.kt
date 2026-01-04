@@ -149,6 +149,14 @@ class GatheringListener(private val plugin: Skills) : Listener {
     fun onBlockBreak(event: BlockBreakEvent) {
         val player = event.player
 
+        // Breaking blocks breaks hiding/invisibility
+        if (plugin.hidingManager.isHidden(player.uniqueId)) {
+            plugin.hidingManager.breakHiding(player, "block_break")
+        } else if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+            // Magic invisibility - remove it on block break
+            player.removePotionEffect(PotionEffectType.INVISIBILITY)
+        }
+
         // Skip skill processing in Creative mode
         if (player.gameMode == GameMode.CREATIVE) return
 

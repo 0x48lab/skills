@@ -104,6 +104,8 @@ class Skills : JavaPlugin() {
         private set
     lateinit var runebookManager: RunebookManager
         private set
+    lateinit var summonManager: SummonManager
+        private set
 
     // Crafting
     lateinit var craftingManager: CraftingManager
@@ -277,6 +279,7 @@ class Skills : JavaPlugin() {
         runeManager = RuneManager(this)
         gateManager = GateManager(this)
         runebookManager = RunebookManager(this)
+        summonManager = SummonManager(this)
         castingManager = CastingManager(this)
         spellManager = SpellManager(this)
 
