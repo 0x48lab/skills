@@ -83,4 +83,16 @@ class PlayerDataManager(
     fun getOnlinePlayerData(): Collection<PlayerData> = playerDataCache.values
 
     fun isPlayerLoaded(uuid: UUID): Boolean = playerDataCache.containsKey(uuid)
+
+    /**
+     * Load player data for offline player (does not cache)
+     * Returns null if player has never joined
+     */
+    fun loadOfflinePlayerData(uuid: UUID): PlayerData? {
+        // Check cache first (player might be online)
+        playerDataCache[uuid]?.let { return it }
+
+        // Load from database
+        return database.loadPlayerData(uuid)?.also { it.updateMaxStats() }
+    }
 }

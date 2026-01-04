@@ -59,17 +59,26 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
             return
         }
 
-        val target = Bukkit.getPlayer(args[0])
-        if (target == null) {
-            sender.sendMessage("Player not found: ${args[0]}")
+        // Try online player first, then offline
+        val onlinePlayer = Bukkit.getPlayer(args[0])
+        val offlinePlayer = Bukkit.getOfflinePlayer(args[0])
+
+        val data = if (onlinePlayer != null) {
+            plugin.playerDataManager.getPlayerData(onlinePlayer)
+        } else {
+            plugin.playerDataManager.loadOfflinePlayerData(offlinePlayer.uniqueId)
+        }
+
+        if (data == null) {
+            sender.sendMessage("Player not found or has never joined: ${args[0]}")
             return
         }
 
-        val data = plugin.playerDataManager.getPlayerData(target)
+        val playerName = onlinePlayer?.name ?: offlinePlayer.name ?: args[0]
 
         // Header with player name and title
-        val title = plugin.skillTitleManager.getPlayerTitle(target)
-        sender.sendMessage(Component.text("═══ ${target.name}'s Skills ═══").color(NamedTextColor.GOLD))
+        val title = plugin.skillTitleManager.getTitleFromData(data)
+        sender.sendMessage(Component.text("═══ ${playerName}'s Skills ═══").color(NamedTextColor.GOLD))
         sender.sendMessage(Component.text("Title: $title").color(NamedTextColor.YELLOW))
         sender.sendMessage(Component.text(""))
 

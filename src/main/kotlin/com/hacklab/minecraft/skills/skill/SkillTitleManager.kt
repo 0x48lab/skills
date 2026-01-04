@@ -106,7 +106,13 @@ class SkillTitleManager(private val plugin: Skills) {
      */
     fun getPlayerTitle(player: Player, useJapanese: Boolean = false): String {
         val data = plugin.playerDataManager.getPlayerData(player)
+        return getTitleFromData(data, useJapanese)
+    }
 
+    /**
+     * Get title from PlayerData (for offline players)
+     */
+    fun getTitleFromData(data: com.hacklab.minecraft.skills.data.PlayerData, useJapanese: Boolean = false): String {
         // Find highest skill
         var highestSkill: SkillType? = null
         var highestValue = 0.0
