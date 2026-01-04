@@ -6,21 +6,31 @@ import com.hacklab.minecraft.skills.skill.SkillType
 import com.hacklab.minecraft.skills.skill.StatCalculator
 import org.bukkit.Location
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.Particle
 import org.bukkit.Sound
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
+import org.bukkit.entity.SmallFireball
+import org.bukkit.persistence.PersistentDataType
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import org.bukkit.scheduler.BukkitRunnable
+import org.bukkit.util.Vector
 import kotlin.random.Random
 
 class SpellManager(private val plugin: Skills) {
 
+    // PDC keys for spell projectiles
+    val spellCasterKey = NamespacedKey(plugin, "spell_caster")
+    val spellDamageKey = NamespacedKey(plugin, "spell_damage")
+    val spellTypeKey = NamespacedKey(plugin, "spell_type")
+
     /**
      * Attempt to cast a spell
+     * @param targetPlayer For PLAYER_OR_SELF spells, the pre-selected target player (from command argument)
      */
-    fun castSpell(player: Player, spell: SpellType, useScroll: Boolean = false): CastResult {
+    fun castSpell(player: Player, spell: SpellType, useScroll: Boolean = false, targetPlayer: Player? = null): CastResult {
         val data = plugin.playerDataManager.getPlayerData(player)
 
         // Check if using scroll
@@ -60,14 +70,14 @@ class SpellManager(private val plugin: Skills) {
         val castTime = baseCastTime + (spell.circle.number * 500L)
 
         // Start cast sequence
-        startCastSequence(player, spell, castTime, useScroll)
+        startCastSequence(player, spell, castTime, useScroll, targetPlayer)
 
         return CastResult.CASTING
     }
 
-    private fun startCastSequence(player: Player, spell: SpellType, castTime: Long, useScroll: Boolean) {
+    private fun startCastSequence(player: Player, spell: SpellType, castTime: Long, useScroll: Boolean, targetPlayer: Player? = null) {
         // Use the new CastingManager for casting with BossBar display
-        plugin.castingManager.startCasting(player, spell, useScroll)
+        plugin.castingManager.startCasting(player, spell, useScroll, targetPlayer)
     }
 
     /**
@@ -291,7 +301,7 @@ class SpellManager(private val plugin: Skills) {
                     val damage = StatCalculator.calculateMagicDamage(spell.baseDamage, magerySkill, evalIntSkill)
                     applyMagicDamage(caster, target, damage)
                     // Visual: Dark damage effect
-                    target.world.spawnParticle(Particle.DAMAGE_INDICATOR, target.location.add(0.0, 1.0, 0.0), 15, 0.3, 0.5, 0.3, 0.1)
+                    target.world.spawnParticle(Particle.CRIT, target.location.add(0.0, 1.0, 0.0), 15, 0.3, 0.5, 0.3, 0.1)
                     target.world.spawnParticle(Particle.SMOKE, target.location.add(0.0, 1.0, 0.0), 10, 0.3, 0.5, 0.3, 0.05)
                     target.world.playSound(target.location, Sound.ENTITY_PLAYER_HURT, 1.0f, 0.8f)
                 }
@@ -313,82 +323,35 @@ class SpellManager(private val plugin: Skills) {
             }
 
             SpellType.FIREBALL -> {
-                // Fire a fireball projectile towards the target location
+                // Spawn a real SmallFireball entity (like Blaze)
                 val targetLoc = locationTarget ?: return
                 val eyeLoc = caster.eyeLocation
                 val world = eyeLoc.world ?: return
 
                 // Calculate direction from caster to target
                 val direction = targetLoc.clone().subtract(eyeLoc).toVector().normalize()
-                val maxDistance = 40.0
-                val speed = 0.8  // blocks per tick (slower than magic arrow)
                 val calculatedDamage = StatCalculator.calculateMagicDamage(spell.baseDamage, magerySkill, evalIntSkill)
 
                 // Play launch sound
                 world.playSound(eyeLoc, Sound.ENTITY_BLAZE_SHOOT, 1.0f, 1.0f)
 
-                // Spawn initial fire burst at caster
-                world.spawnParticle(Particle.FLAME, eyeLoc, 15, 0.3, 0.3, 0.3, 0.05)
+                // Spawn the fireball slightly in front of the caster
+                val spawnDir = direction.clone()
+                val spawnLoc = eyeLoc.clone().add(spawnDir.clone().multiply(1.5))
+                val fireball = world.spawn(spawnLoc, SmallFireball::class.java) { fb ->
+                    fb.shooter = caster
+                    fb.setDirection(spawnDir)
+                    fb.setYield(0f)  // No block destruction
+                    fb.setIsIncendiary(false)  // Don't set blocks on fire
 
-                // Create projectile task with captured values
-                val startX = eyeLoc.x
-                val startY = eyeLoc.y
-                val startZ = eyeLoc.z
-                val dirX = direction.x
-                val dirY = direction.y
-                val dirZ = direction.z
-                val casterRef = caster
+                    // Store spell data in PDC
+                    fb.persistentDataContainer.set(spellCasterKey, PersistentDataType.STRING, caster.uniqueId.toString())
+                    fb.persistentDataContainer.set(spellDamageKey, PersistentDataType.DOUBLE, calculatedDamage)
+                    fb.persistentDataContainer.set(spellTypeKey, PersistentDataType.STRING, spell.name)
+                }
 
-                object : BukkitRunnable() {
-                    var traveled = 0.0
-
-                    override fun run() {
-                        traveled += speed
-
-                        // Calculate current position
-                        val currentX = startX + dirX * traveled
-                        val currentY = startY + dirY * traveled
-                        val currentZ = startZ + dirZ * traveled
-                        val currentLoc = Location(world, currentX, currentY, currentZ)
-
-                        // Spawn fire trail particles
-                        world.spawnParticle(Particle.FLAME, currentLoc, 8, 0.2, 0.2, 0.2, 0.03)
-                        world.spawnParticle(Particle.SMOKE, currentLoc, 3, 0.1, 0.1, 0.1, 0.01)
-                        world.spawnParticle(Particle.LAVA, currentLoc, 1, 0.1, 0.1, 0.1, 0.0)
-
-                        // Check for entity collision
-                        val nearbyEntities = world.getNearbyEntities(currentLoc, 1.0, 1.0, 1.0)
-                            .filterIsInstance<LivingEntity>()
-                            .filter { it.uniqueId != casterRef.uniqueId }
-
-                        if (nearbyEntities.isNotEmpty()) {
-                            val hitTarget = nearbyEntities.first()
-                            applyMagicDamage(casterRef, hitTarget, calculatedDamage)
-                            hitTarget.fireTicks = 60  // 3 seconds fire
-                            // Impact explosion effect
-                            world.spawnParticle(Particle.FLAME, hitTarget.location.add(0.0, 1.0, 0.0), 40, 0.6, 0.6, 0.6, 0.1)
-                            world.spawnParticle(Particle.LAVA, hitTarget.location.add(0.0, 1.0, 0.0), 20, 0.4, 0.4, 0.4, 0.0)
-                            world.playSound(hitTarget.location, Sound.ENTITY_GENERIC_EXPLODE, 0.8f, 1.2f)
-                            cancel()
-                            return
-                        }
-
-                        // Check for block collision
-                        if (currentLoc.block.type.isSolid) {
-                            // Hit a block - explosion effect
-                            world.spawnParticle(Particle.FLAME, currentLoc, 30, 0.5, 0.5, 0.5, 0.1)
-                            world.spawnParticle(Particle.LAVA, currentLoc, 15, 0.4, 0.4, 0.4, 0.0)
-                            world.playSound(currentLoc, Sound.ENTITY_GENERIC_EXPLODE, 0.6f, 1.2f)
-                            cancel()
-                            return
-                        }
-
-                        // Check max distance
-                        if (traveled >= maxDistance) {
-                            cancel()
-                        }
-                    }
-                }.runTaskTimer(plugin, 1L, 1L)  // Start after 1 tick delay
+                // Set velocity for faster travel
+                fireball.velocity = spawnDir.clone().multiply(1.5)
             }
 
             SpellType.LIGHTNING -> {
@@ -513,8 +476,11 @@ class SpellManager(private val plugin: Skills) {
 
             SpellType.EXPLOSION -> {
                 val targetLoc = locationTarget ?: entityTarget?.location ?: return
+                val world = targetLoc.world ?: return
                 val radius = 5.0
-                targetLoc.world?.getNearbyEntities(targetLoc, radius, radius, radius)?.forEach { entity ->
+
+                // Apply magic damage to nearby entities (before explosion visual)
+                world.getNearbyEntities(targetLoc, radius, radius, radius).forEach { entity ->
                     if (entity is LivingEntity && entity != caster) {
                         val distance = entity.location.distance(targetLoc)
                         val falloff = 1.0 - (distance / radius)
@@ -522,24 +488,82 @@ class SpellManager(private val plugin: Skills) {
                         applyMagicDamage(caster, entity, damage)
                     }
                 }
-                // Visual effect
-                targetLoc.world?.createExplosion(targetLoc, 0f, false, false)
+
+                // TNT-style explosion visual (no block damage, no fire)
+                // Power 2.0 gives good visual without destroying blocks when setBlockBreak is false
+                world.createExplosion(targetLoc, 2.0f, false, false, caster)
+
+                // Extra particles for magical effect
+                world.spawnParticle(Particle.FLASH, targetLoc, 1, 0.0, 0.0, 0.0, 0.0)
+                world.spawnParticle(Particle.SMOKE, targetLoc, 30, 1.5, 1.5, 1.5, 0.1)
             }
 
             SpellType.METEOR_SWARM -> {
                 val targetLoc = locationTarget ?: entityTarget?.location ?: return
+                val world = targetLoc.world ?: return
                 val radius = 8.0
-                targetLoc.world?.getNearbyEntities(targetLoc, radius, radius, radius)?.forEach { entity ->
-                    if (entity is LivingEntity && entity != caster) {
-                        val distance = entity.location.distance(targetLoc)
-                        val falloff = 1.0 - (distance / radius)
-                        val damage = StatCalculator.calculateMagicDamage(spell.baseDamage * falloff, magerySkill, evalIntSkill)
-                        applyMagicDamage(caster, entity, damage)
-                        entity.fireTicks = 100
+                val baseDamage = spell.baseDamage
+                val casterRef = caster
+
+                // Play initial sound
+                world.playSound(targetLoc, Sound.ENTITY_BLAZE_SHOOT, 2.0f, 0.5f)
+
+                // Spawn falling meteors from the sky
+                val meteorCount = 5 + (magerySkill / 20).toInt()  // 5-10 meteors
+                object : BukkitRunnable() {
+                    var meteorsSpawned = 0
+
+                    override fun run() {
+                        if (meteorsSpawned >= meteorCount) {
+                            cancel()
+                            return
+                        }
+
+                        // Random position within radius
+                        val offsetX = (Random.nextDouble() - 0.5) * radius * 2
+                        val offsetZ = (Random.nextDouble() - 0.5) * radius * 2
+                        val impactLoc = targetLoc.clone().add(offsetX, 0.0, offsetZ)
+                        val startLoc = impactLoc.clone().add(0.0, 15.0, 0.0)
+
+                        // Spawn falling fireball entity
+                        val fireball = world.spawn(startLoc, SmallFireball::class.java) { fb ->
+                            fb.shooter = casterRef
+                            fb.setDirection(Vector(0.0, -1.0, 0.0))
+                            fb.setYield(0f)
+                            fb.setIsIncendiary(false)
+                            // Mark as meteor
+                            fb.persistentDataContainer.set(spellCasterKey, PersistentDataType.STRING, casterRef.uniqueId.toString())
+                            fb.persistentDataContainer.set(spellDamageKey, PersistentDataType.DOUBLE,
+                                StatCalculator.calculateMagicDamage(baseDamage * 0.3, magerySkill, evalIntSkill))
+                            fb.persistentDataContainer.set(spellTypeKey, PersistentDataType.STRING, "METEOR")
+                        }
+                        fireball.velocity = Vector(0.0, -1.5, 0.0)
+
+                        // Trailing particles
+                        world.spawnParticle(Particle.FLAME, startLoc, 10, 0.3, 0.3, 0.3, 0.05)
+                        world.playSound(startLoc, Sound.ENTITY_FIREWORK_ROCKET_LAUNCH, 0.5f, 0.5f)
+
+                        meteorsSpawned++
                     }
-                }
-                // Visual effects
-                targetLoc.world?.createExplosion(targetLoc, 0f, false, false)
+                }.runTaskTimer(plugin, 0L, 4L)  // Spawn meteor every 4 ticks (0.2 sec)
+
+                // Apply main damage after short delay
+                object : BukkitRunnable() {
+                    override fun run() {
+                        world.getNearbyEntities(targetLoc, radius, radius, radius).forEach { entity ->
+                            if (entity is LivingEntity && entity != casterRef) {
+                                val distance = entity.location.distance(targetLoc)
+                                val falloff = 1.0 - (distance / radius)
+                                val damage = StatCalculator.calculateMagicDamage(baseDamage * falloff, magerySkill, evalIntSkill)
+                                applyMagicDamage(casterRef, entity, damage)
+                                entity.fireTicks = 100
+                            }
+                        }
+                        // Final explosion effect
+                        world.createExplosion(targetLoc, 0f, false, false)
+                        world.playSound(targetLoc, Sound.ENTITY_GENERIC_EXPLODE, 2.0f, 0.8f)
+                    }
+                }.runTaskLater(plugin, 40L)  // 2 seconds after cast
             }
 
             // === Healing Spells (can target self or other players) ===
@@ -637,11 +661,12 @@ class SpellManager(private val plugin: Skills) {
             }
 
             SpellType.NIGHT_SIGHT -> {
+                val target = (entityTarget as? Player) ?: caster
                 val duration = 6000 + (magerySkill * 60).toInt()  // 5-10 minutes
-                caster.addPotionEffect(PotionEffect(PotionEffectType.NIGHT_VISION, duration, 0))
+                target.addPotionEffect(PotionEffect(PotionEffectType.NIGHT_VISION, duration, 0))
                 // Visual: Eye glow
-                caster.world.spawnParticle(Particle.END_ROD, caster.eyeLocation, 10, 0.1, 0.1, 0.1, 0.02)
-                caster.world.playSound(caster.location, Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 1.5f)
+                target.world.spawnParticle(Particle.END_ROD, target.eyeLocation, 10, 0.1, 0.1, 0.1, 0.02)
+                target.world.playSound(target.location, Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 1.5f)
             }
 
             SpellType.FEATHER_FALL -> {
@@ -768,6 +793,605 @@ class SpellManager(private val plugin: Skills) {
                         "duration" to durationSeconds.toString())
                 }
             }
+
+            // === 1st Circle - Debuff Spells ===
+            SpellType.CLUMSY -> {
+                entityTarget?.let { target ->
+                    val duration = 200 + (magerySkill * 4).toInt()  // 10-30 seconds
+                    (target as? LivingEntity)?.addPotionEffect(
+                        PotionEffect(PotionEffectType.SLOWNESS, duration, 0)
+                    )
+                    plugin.messageSender.send(caster, MessageKey.MAGIC_CLUMSY_CAST, "target" to target.name)
+                    // Visual: Purple debuff effect
+                    target.world.spawnParticle(Particle.WITCH, target.location.add(0.0, 1.0, 0.0), 20, 0.3, 0.5, 0.3, 0.05)
+                    target.world.playSound(target.location, Sound.ENTITY_ILLUSIONER_CAST_SPELL, 0.8f, 0.6f)
+                }
+            }
+
+            SpellType.WEAKEN -> {
+                entityTarget?.let { target ->
+                    val duration = 200 + (magerySkill * 4).toInt()  // 10-30 seconds
+                    (target as? LivingEntity)?.addPotionEffect(
+                        PotionEffect(PotionEffectType.WEAKNESS, duration, 0)
+                    )
+                    plugin.messageSender.send(caster, MessageKey.MAGIC_WEAKEN_CAST, "target" to target.name)
+                    // Visual: Dark debuff effect
+                    target.world.spawnParticle(Particle.SMOKE, target.location.add(0.0, 1.0, 0.0), 20, 0.3, 0.5, 0.3, 0.05)
+                    target.world.playSound(target.location, Sound.ENTITY_ILLUSIONER_CAST_SPELL, 0.8f, 0.5f)
+                }
+            }
+
+            // === 2nd Circle - Buff Spells ===
+            SpellType.AGILITY -> {
+                val target = (entityTarget as? Player) ?: caster
+                val duration = 400 + (magerySkill * 8).toInt()  // 20-60 seconds
+                target.addPotionEffect(PotionEffect(PotionEffectType.SPEED, duration, 0))
+                plugin.messageSender.send(caster, MessageKey.MAGIC_AGILITY_CAST)
+                // Visual: Swift wind effect
+                target.world.spawnParticle(Particle.CLOUD, target.location.add(0.0, 1.0, 0.0), 15, 0.3, 0.5, 0.3, 0.05)
+                target.world.spawnParticle(Particle.SWEEP_ATTACK, target.location.add(0.0, 0.5, 0.0), 5, 0.5, 0.2, 0.5, 0.0)
+                target.world.playSound(target.location, Sound.ENTITY_BREEZE_WIND_BURST, 0.8f, 1.5f)
+            }
+
+            SpellType.STRENGTH -> {
+                val target = (entityTarget as? Player) ?: caster
+                val duration = 400 + (magerySkill * 8).toInt()  // 20-60 seconds
+                target.addPotionEffect(PotionEffect(PotionEffectType.STRENGTH, duration, 0))
+                plugin.messageSender.send(caster, MessageKey.MAGIC_STRENGTH_CAST)
+                // Visual: Power aura
+                target.world.spawnParticle(Particle.CRIT, target.location.add(0.0, 1.0, 0.0), 20, 0.4, 0.6, 0.4, 0.1)
+                target.world.spawnParticle(Particle.FLAME, target.location.add(0.0, 0.5, 0.0), 10, 0.3, 0.3, 0.3, 0.02)
+                target.world.playSound(target.location, Sound.ENTITY_PLAYER_ATTACK_STRONG, 1.0f, 0.8f)
+            }
+
+            SpellType.CUNNING -> {
+                val target = (entityTarget as? Player) ?: caster
+                val duration = 400 + (magerySkill * 8).toInt()  // 20-60 seconds
+                target.addPotionEffect(PotionEffect(PotionEffectType.LUCK, duration, 0))
+                plugin.messageSender.send(caster, MessageKey.MAGIC_CUNNING_CAST)
+                // Visual: Mind sharpening
+                target.world.spawnParticle(Particle.ENCHANT, target.eyeLocation, 30, 0.3, 0.3, 0.3, 0.5)
+                target.world.spawnParticle(Particle.END_ROD, target.eyeLocation, 10, 0.2, 0.2, 0.2, 0.02)
+                target.world.playSound(target.location, Sound.BLOCK_BEACON_ACTIVATE, 0.8f, 1.8f)
+            }
+
+            // === 3rd Circle - Debuff Spells ===
+            SpellType.POISON -> {
+                entityTarget?.let { target ->
+                    val duration = 100 + (magerySkill * 2).toInt()  // 5-15 seconds
+                    val amplifier = (magerySkill / 40).toInt().coerceIn(0, 2)  // Level 0-2
+                    (target as? LivingEntity)?.addPotionEffect(
+                        PotionEffect(PotionEffectType.POISON, duration, amplifier)
+                    )
+                    plugin.messageSender.send(caster, MessageKey.MAGIC_POISON_CAST, "target" to target.name)
+                    // Visual: Poison cloud
+                    target.world.spawnParticle(Particle.ITEM_SLIME, target.location.add(0.0, 1.0, 0.0), 25, 0.4, 0.5, 0.4, 0.05)
+                    target.world.spawnParticle(Particle.HAPPY_VILLAGER, target.location.add(0.0, 1.0, 0.0), 10, 0.3, 0.4, 0.3, 0.0)
+                    target.world.playSound(target.location, Sound.ENTITY_PUFFER_FISH_BLOW_UP, 0.8f, 0.6f)
+                }
+            }
+
+            // === 4th Circle - Debuff Spells ===
+            SpellType.CURSE -> {
+                entityTarget?.let { target ->
+                    val duration = 200 + (magerySkill * 4).toInt()  // 10-30 seconds
+                    (target as? LivingEntity)?.let { living ->
+                        living.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, duration, 0))
+                        living.addPotionEffect(PotionEffect(PotionEffectType.WEAKNESS, duration, 0))
+                        living.addPotionEffect(PotionEffect(PotionEffectType.MINING_FATIGUE, duration, 0))
+                    }
+                    plugin.messageSender.send(caster, MessageKey.MAGIC_CURSE_CAST, "target" to target.name)
+                    // Visual: Dark curse effect
+                    target.world.spawnParticle(Particle.WITCH, target.location.add(0.0, 1.0, 0.0), 30, 0.4, 0.6, 0.4, 0.08)
+                    target.world.spawnParticle(Particle.SOUL, target.location.add(0.0, 1.0, 0.0), 15, 0.3, 0.5, 0.3, 0.03)
+                    target.world.playSound(target.location, Sound.ENTITY_ELDER_GUARDIAN_CURSE, 0.8f, 0.6f)
+                }
+            }
+
+            // === 4th Circle - Utility Spells ===
+            SpellType.ARCH_CURE -> {
+                val center = caster.location
+                val range = 5.0
+                var curedCount = 0
+                caster.world.getNearbyEntities(center, range, range, range)
+                    .filterIsInstance<Player>()
+                    .forEach { target ->
+                        target.removePotionEffect(PotionEffectType.POISON)
+                        target.removePotionEffect(PotionEffectType.WITHER)
+                        target.removePotionEffect(PotionEffectType.WEAKNESS)
+                        target.removePotionEffect(PotionEffectType.SLOWNESS)
+                        target.removePotionEffect(PotionEffectType.NAUSEA)
+                        target.removePotionEffect(PotionEffectType.BLINDNESS)
+                        curedCount++
+                        // Visual per target
+                        target.world.spawnParticle(Particle.END_ROD, target.location.add(0.0, 1.0, 0.0), 15, 0.3, 0.5, 0.3, 0.03)
+                    }
+                plugin.messageSender.send(caster, MessageKey.MAGIC_ARCH_CURE_CAST, "count" to curedCount)
+                // Visual: Large healing wave
+                caster.world.spawnParticle(Particle.HAPPY_VILLAGER, center.add(0.0, 1.0, 0.0), 50, range, 1.0, range, 0.0)
+                caster.world.playSound(center, Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.5f)
+            }
+
+            SpellType.MANA_DRAIN -> {
+                entityTarget?.let { target ->
+                    if (target is Player) {
+                        val targetData = plugin.playerDataManager.getPlayerData(target)
+                        val drainAmount = 2.0 + (magerySkill / 20.0)  // 2-7 mana
+                        val actualDrain = minOf(drainAmount, targetData.mana)
+
+                        targetData.mana = (targetData.mana - actualDrain).coerceAtLeast(0.0)
+                        casterData.mana = (casterData.mana + actualDrain).coerceAtMost(20.0)
+
+                        StatCalculator.syncManaToVanilla(target, targetData)
+                        StatCalculator.syncManaToVanilla(caster, casterData)
+
+                        plugin.messageSender.send(caster, MessageKey.MAGIC_MANA_DRAIN_CAST,
+                            "target" to target.name, "amount" to actualDrain.toInt())
+                        // Visual: Mana drain effect
+                        target.world.spawnParticle(Particle.WITCH, target.location.add(0.0, 1.0, 0.0), 20, 0.3, 0.5, 0.3, 0.05)
+                        caster.world.spawnParticle(Particle.ENCHANT, caster.location.add(0.0, 1.0, 0.0), 20, 0.3, 0.5, 0.3, 0.3)
+                        target.world.playSound(target.location, Sound.ENTITY_ILLUSIONER_CAST_SPELL, 0.8f, 0.5f)
+                    }
+                }
+            }
+
+            // === 6th Circle - Utility Spells ===
+            SpellType.REVEAL -> {
+                val center = caster.location
+                val range = 8.0
+                val revealed = plugin.hidingManager.revealInArea(center, range, caster)
+                if (revealed.isNotEmpty()) {
+                    plugin.messageSender.send(caster, MessageKey.MAGIC_REVEAL_FOUND, "count" to revealed.size)
+                } else {
+                    plugin.messageSender.send(caster, MessageKey.MAGIC_REVEAL_NONE)
+                }
+                // Visual: Detection pulse
+                caster.world.spawnParticle(Particle.END_ROD, center.add(0.0, 1.0, 0.0), 100, range, 2.0, range, 0.0)
+                caster.world.playSound(center, Sound.BLOCK_BEACON_POWER_SELECT, 1.0f, 1.5f)
+            }
+
+            SpellType.MASS_CURSE -> {
+                val center = caster.location
+                val range = 5.0
+                val duration = 200 + (magerySkill * 4).toInt()
+                var cursedCount = 0
+                caster.world.getNearbyEntities(center, range, range, range)
+                    .filterIsInstance<LivingEntity>()
+                    .filter { it != caster }
+                    .forEach { target ->
+                        target.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, duration, 0))
+                        target.addPotionEffect(PotionEffect(PotionEffectType.WEAKNESS, duration, 0))
+                        cursedCount++
+                        // Visual per target
+                        target.world.spawnParticle(Particle.WITCH, target.location.add(0.0, 1.0, 0.0), 15, 0.3, 0.5, 0.3, 0.05)
+                    }
+                plugin.messageSender.send(caster, MessageKey.MAGIC_MASS_CURSE_CAST, "count" to cursedCount)
+                // Visual: Dark wave
+                caster.world.spawnParticle(Particle.SOUL, center.add(0.0, 1.0, 0.0), 80, range, 1.0, range, 0.02)
+                caster.world.playSound(center, Sound.ENTITY_ELDER_GUARDIAN_CURSE, 1.0f, 0.5f)
+            }
+
+            SpellType.DISPEL -> {
+                entityTarget?.let { target ->
+                    val buffsToRemove = listOf(
+                        PotionEffectType.STRENGTH,
+                        PotionEffectType.SPEED,
+                        PotionEffectType.RESISTANCE,
+                        PotionEffectType.INVISIBILITY,
+                        PotionEffectType.REGENERATION,
+                        PotionEffectType.FIRE_RESISTANCE,
+                        PotionEffectType.LUCK
+                    )
+                    (target as? LivingEntity)?.let { living ->
+                        buffsToRemove.forEach { effect -> living.removePotionEffect(effect) }
+                        // If target is summoned creature, remove it
+                        if (plugin.summonManager.isSummoned(living)) {
+                            plugin.summonManager.dispelSummon(living)
+                        }
+                    }
+                    plugin.messageSender.send(caster, MessageKey.MAGIC_DISPEL_CAST, "target" to target.name)
+                    // Visual: Dispel effect
+                    target.world.spawnParticle(Particle.ELECTRIC_SPARK, target.location.add(0.0, 1.0, 0.0), 30, 0.4, 0.6, 0.4, 0.1)
+                    target.world.playSound(target.location, Sound.BLOCK_BEACON_DEACTIVATE, 1.0f, 1.5f)
+                }
+            }
+
+            // === 7th Circle - Utility Spells ===
+            SpellType.MANA_VAMPIRE -> {
+                entityTarget?.let { target ->
+                    if (target is Player) {
+                        val targetData = plugin.playerDataManager.getPlayerData(target)
+                        val drainAmount = 4.0 + (magerySkill / 15.0)  // 4-10 mana (stronger than Mana Drain)
+                        val actualDrain = minOf(drainAmount, targetData.mana)
+
+                        targetData.mana = (targetData.mana - actualDrain).coerceAtLeast(0.0)
+                        casterData.mana = (casterData.mana + actualDrain).coerceAtMost(20.0)
+
+                        StatCalculator.syncManaToVanilla(target, targetData)
+                        StatCalculator.syncManaToVanilla(caster, casterData)
+
+                        plugin.messageSender.send(caster, MessageKey.MAGIC_MANA_VAMPIRE_CAST,
+                            "target" to target.name, "amount" to actualDrain.toInt())
+                        // Visual: Intense mana drain
+                        spawnParticleLine(target.location.add(0.0, 1.0, 0.0), caster.location.add(0.0, 1.0, 0.0), Particle.WITCH, 20)
+                        target.world.spawnParticle(Particle.SOUL, target.location.add(0.0, 1.0, 0.0), 25, 0.3, 0.5, 0.3, 0.05)
+                        caster.world.spawnParticle(Particle.ENCHANT, caster.location.add(0.0, 1.0, 0.0), 30, 0.3, 0.5, 0.3, 0.5)
+                        target.world.playSound(target.location, Sound.ENTITY_WARDEN_HEARTBEAT, 0.8f, 0.3f)
+                    }
+                }
+            }
+
+            SpellType.MASS_DISPEL -> {
+                val center = caster.location
+                val range = 6.0
+                val buffsToRemove = listOf(
+                    PotionEffectType.STRENGTH,
+                    PotionEffectType.SPEED,
+                    PotionEffectType.RESISTANCE,
+                    PotionEffectType.INVISIBILITY,
+                    PotionEffectType.REGENERATION,
+                    PotionEffectType.FIRE_RESISTANCE
+                )
+                var dispelledCount = 0
+                caster.world.getNearbyEntities(center, range, range, range)
+                    .filterIsInstance<LivingEntity>()
+                    .filter { it != caster }
+                    .forEach { target ->
+                        buffsToRemove.forEach { effect -> target.removePotionEffect(effect) }
+                        if (plugin.summonManager.isSummoned(target)) {
+                            plugin.summonManager.dispelSummon(target)
+                        }
+                        dispelledCount++
+                        target.world.spawnParticle(Particle.ELECTRIC_SPARK, target.location.add(0.0, 1.0, 0.0), 15, 0.3, 0.5, 0.3, 0.05)
+                    }
+                plugin.messageSender.send(caster, MessageKey.MAGIC_MASS_DISPEL_CAST, "count" to dispelledCount)
+                // Visual: Dispel wave
+                caster.world.spawnParticle(Particle.END_ROD, center.add(0.0, 1.0, 0.0), 100, range, 2.0, range, 0.0)
+                caster.world.playSound(center, Sound.BLOCK_BEACON_DEACTIVATE, 1.0f, 1.2f)
+            }
+
+            // === 7th Circle - Attack Spells ===
+            SpellType.FLAMESTRIKE -> {
+                entityTarget?.let { target ->
+                    val damage = StatCalculator.calculateMagicDamage(spell.baseDamage, magerySkill, evalIntSkill)
+                    applyMagicDamage(caster, target, damage)
+                    target.fireTicks = 60  // 3 seconds fire
+
+                    plugin.messageSender.send(caster, MessageKey.MAGIC_FLAMESTRIKE_CAST, "target" to target.name)
+                    // Visual: Vertical flame pillar
+                    val world = target.world
+                    val loc = target.location
+                    for (y in 0..4) {
+                        world.spawnParticle(Particle.FLAME, loc.clone().add(0.0, y.toDouble(), 0.0), 25, 0.4, 0.2, 0.4, 0.05)
+                        world.spawnParticle(Particle.LAVA, loc.clone().add(0.0, y.toDouble(), 0.0), 5, 0.3, 0.1, 0.3, 0.0)
+                    }
+                    world.playSound(loc, Sound.ENTITY_BLAZE_SHOOT, 1.0f, 0.5f)
+                    world.playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 0.6f, 1.5f)
+                }
+            }
+
+            SpellType.CHAIN_LIGHTNING -> {
+                entityTarget?.let { initialTarget ->
+                    val maxChains = 5
+                    val chainRange = 5.0
+                    val damageDecay = 0.8
+                    val hitTargets = mutableSetOf<LivingEntity>()
+                    var currentTarget = initialTarget as? LivingEntity ?: return@let
+                    var currentDamage = StatCalculator.calculateMagicDamage(spell.baseDamage, magerySkill, evalIntSkill)
+                    var chainCount = 0
+
+                    for (i in 0 until maxChains) {
+                        if (currentTarget in hitTargets) break
+                        hitTargets.add(currentTarget)
+                        chainCount++
+
+                        applyMagicDamage(caster, currentTarget, currentDamage)
+
+                        // Lightning effect to target
+                        currentTarget.world.strikeLightningEffect(currentTarget.location)
+
+                        // Find next target
+                        val nextTarget = currentTarget.getNearbyEntities(chainRange, chainRange, chainRange)
+                            .filterIsInstance<LivingEntity>()
+                            .filter { it !in hitTargets && it != caster }
+                            .minByOrNull { it.location.distance(currentTarget.location) }
+                            ?: break
+
+                        // Draw lightning line between targets
+                        spawnParticleLine(currentTarget.location.add(0.0, 1.0, 0.0),
+                            nextTarget.location.add(0.0, 1.0, 0.0), Particle.ELECTRIC_SPARK, 15)
+
+                        currentTarget = nextTarget
+                        currentDamage *= damageDecay
+                    }
+                    plugin.messageSender.send(caster, MessageKey.MAGIC_CHAIN_LIGHTNING_CAST, "count" to chainCount)
+                }
+            }
+
+            SpellType.EARTHQUAKE -> {
+                val center = caster.location
+                val range = 8.0
+                val damage = StatCalculator.calculateMagicDamage(spell.baseDamage, magerySkill, evalIntSkill)
+
+                caster.world.getNearbyEntities(center, range, range, range)
+                    .filterIsInstance<LivingEntity>()
+                    .filter { it != caster }
+                    .forEach { target ->
+                        val distance = target.location.distance(center)
+                        val distanceMultiplier = 1.0 - (distance / range) * 0.5  // Closer = more damage
+                        applyMagicDamage(caster, target, damage * distanceMultiplier)
+                        // Shake effect (knockback)
+                        val direction = target.location.subtract(center).toVector().normalize()
+                        target.velocity = direction.multiply(0.3).setY(0.2)
+                    }
+
+                plugin.messageSender.send(caster, MessageKey.MAGIC_EARTHQUAKE_CAST)
+                // Visual: Ground shake
+                for (x in -range.toInt()..range.toInt()) {
+                    for (z in -range.toInt()..range.toInt()) {
+                        if (Random.nextDouble() < 0.3) {
+                            val loc = center.clone().add(x.toDouble(), 0.0, z.toDouble())
+                            caster.world.spawnParticle(Particle.BLOCK, loc, 5, 0.2, 0.0, 0.2, 0.0,
+                                org.bukkit.Material.DIRT.createBlockData())
+                        }
+                    }
+                }
+                caster.world.playSound(center, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.3f)
+                caster.world.playSound(center, Sound.ENTITY_RAVAGER_ROAR, 0.8f, 0.5f)
+            }
+
+            // === 3rd Circle - Field Spells ===
+            SpellType.WALL_OF_STONE -> {
+                val targetLoc = locationTarget ?: return
+                val world = targetLoc.world ?: return
+
+                val yawRadians = Math.toRadians(caster.location.yaw.toDouble())
+                val perpX = kotlin.math.cos(yawRadians)
+                val perpZ = kotlin.math.sin(yawRadians)
+
+                val wallWidth = 5
+                val wallHeight = 3
+                val durationSeconds = 5 + (magerySkill / 20).toInt()  // 5-10 seconds
+                val durationTicks = durationSeconds * 20L
+
+                // Track placed blocks for restoration
+                val placedBlocks = mutableListOf<Pair<Location, Material>>()
+
+                // Place stone blocks
+                for (w in -wallWidth / 2..wallWidth / 2) {
+                    for (h in 0 until wallHeight) {
+                        val x = targetLoc.blockX + (perpX * w).toInt()
+                        val z = targetLoc.blockZ + (perpZ * w).toInt()
+                        val y = targetLoc.blockY + h
+                        val blockLoc = Location(world, x.toDouble(), y.toDouble(), z.toDouble())
+                        val block = blockLoc.block
+
+                        // Only replace air or replaceable blocks
+                        if (block.type.isAir || block.type == Material.WATER ||
+                            block.type == Material.TALL_GRASS || block.type == Material.SHORT_GRASS) {
+                            placedBlocks.add(Pair(blockLoc.clone(), block.type))
+                            block.type = Material.STONE
+                        }
+                    }
+                }
+
+                plugin.messageSender.send(caster, MessageKey.MAGIC_WALL_OF_STONE_CAST)
+                world.playSound(targetLoc, Sound.BLOCK_STONE_PLACE, 1.0f, 0.8f)
+
+                // Schedule block removal
+                object : BukkitRunnable() {
+                    override fun run() {
+                        placedBlocks.forEach { (loc, originalType) ->
+                            if (loc.block.type == Material.STONE) {
+                                loc.block.type = originalType
+                                world.spawnParticle(Particle.BLOCK, loc.clone().add(0.5, 0.5, 0.5), 10, 0.3, 0.3, 0.3, 0.0,
+                                    Material.STONE.createBlockData())
+                            }
+                        }
+                        world.playSound(targetLoc, Sound.BLOCK_STONE_BREAK, 1.0f, 0.8f)
+                    }
+                }.runTaskLater(plugin, durationTicks)
+            }
+
+            // === 6th Circle - Field Spells ===
+            SpellType.PARALYZE_FIELD -> {
+                val targetLoc = locationTarget ?: return
+                val world = targetLoc.world ?: return
+
+                val fieldSize = 3
+                val durationSeconds = 10 + (magerySkill / 10).toInt()  // 10-20 seconds
+                val durationTicks = durationSeconds * 20
+                val paralyzeDuration = 40 + (magerySkill / 2).toInt()  // 2-4.5 seconds
+
+                val fieldPositions = mutableListOf<Triple<Double, Double, Double>>()
+                for (x in -fieldSize / 2..fieldSize / 2) {
+                    for (z in -fieldSize / 2..fieldSize / 2) {
+                        fieldPositions.add(Triple(targetLoc.x + x, targetLoc.y, targetLoc.z + z))
+                    }
+                }
+
+                plugin.messageSender.send(caster, MessageKey.MAGIC_PARALYZE_FIELD_CAST)
+                world.playSound(targetLoc, Sound.BLOCK_GLASS_BREAK, 1.0f, 0.5f)
+
+                object : BukkitRunnable() {
+                    var ticksRemaining = durationTicks
+
+                    override fun run() {
+                        if (ticksRemaining <= 0) {
+                            cancel()
+                            return
+                        }
+
+                        // Spawn field particles
+                        fieldPositions.forEach { (x, y, z) ->
+                            world.spawnParticle(Particle.ELECTRIC_SPARK, Location(world, x, y + 0.3, z), 2, 0.3, 0.1, 0.3, 0.01)
+                        }
+
+                        // Apply paralyze to entities in field every 10 ticks
+                        if (ticksRemaining % 10 == 0) {
+                            fieldPositions.forEach { (x, y, z) ->
+                                val pos = Location(world, x, y + 0.5, z)
+                                world.getNearbyEntities(pos, 0.6, 1.0, 0.6)
+                                    .filterIsInstance<LivingEntity>()
+                                    .forEach { entity ->
+                                        entity.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, paralyzeDuration, 100))
+                                        entity.addPotionEffect(PotionEffect(PotionEffectType.JUMP_BOOST, paralyzeDuration, 128))
+                                    }
+                            }
+                        }
+                        ticksRemaining--
+                    }
+                }.runTaskTimer(plugin, 0L, 1L)
+            }
+
+            // === 7th Circle - Field Spells ===
+            SpellType.ENERGY_FIELD -> {
+                val targetLoc = locationTarget ?: return
+                val world = targetLoc.world ?: return
+
+                val yawRadians = Math.toRadians(caster.location.yaw.toDouble())
+                val perpX = kotlin.math.cos(yawRadians)
+                val perpZ = kotlin.math.sin(yawRadians)
+
+                val wallWidth = 5
+                val wallHeight = 3
+                val durationSeconds = 15 + (magerySkill / 10).toInt()  // 15-25 seconds
+                val durationTicks = durationSeconds * 20
+
+                val wallPositions = mutableListOf<Triple<Double, Double, Double>>()
+                for (w in -wallWidth / 2..wallWidth / 2) {
+                    for (h in 0 until wallHeight) {
+                        val x = targetLoc.x + perpX * w
+                        val z = targetLoc.z + perpZ * w
+                        val y = targetLoc.y + h
+                        wallPositions.add(Triple(x, y, z))
+                    }
+                }
+
+                plugin.messageSender.send(caster, MessageKey.MAGIC_ENERGY_FIELD_CAST)
+                world.playSound(targetLoc, Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.5f)
+
+                val casterRef = caster
+                object : BukkitRunnable() {
+                    var ticksRemaining = durationTicks
+
+                    override fun run() {
+                        if (ticksRemaining <= 0) {
+                            world.playSound(targetLoc, Sound.BLOCK_BEACON_DEACTIVATE, 1.0f, 1.5f)
+                            cancel()
+                            return
+                        }
+
+                        // Spawn energy particles
+                        wallPositions.forEach { (x, y, z) ->
+                            world.spawnParticle(Particle.END_ROD, Location(world, x, y + 0.5, z), 1, 0.1, 0.1, 0.1, 0.0)
+                            if (Random.nextDouble() < 0.1) {
+                                world.spawnParticle(Particle.ELECTRIC_SPARK, Location(world, x, y + 0.5, z), 3, 0.2, 0.2, 0.2, 0.02)
+                            }
+                        }
+
+                        // Block passage every 5 ticks
+                        if (ticksRemaining % 5 == 0) {
+                            wallPositions.forEach { (x, y, z) ->
+                                val pos = Location(world, x, y + 0.5, z)
+                                world.getNearbyEntities(pos, 0.5, 0.5, 0.5)
+                                    .filterIsInstance<LivingEntity>()
+                                    .filter { it != casterRef }
+                                    .forEach { entity ->
+                                        val pushDir = entity.location.subtract(pos).toVector().normalize()
+                                        entity.velocity = pushDir.multiply(0.6).setY(0.1)
+                                        world.playSound(pos, Sound.BLOCK_GLASS_HIT, 0.5f, 1.5f)
+                                    }
+                            }
+                        }
+                        ticksRemaining--
+                    }
+                }.runTaskTimer(plugin, 0L, 1L)
+            }
+
+            // === 5th Circle - Summon Spells ===
+            SpellType.SUMMON_CREATURE -> {
+                // Summon a creature based on Magery skill
+                val summoned = plugin.summonManager.summonCreature(caster)
+                if (summoned != null) {
+                    // Visual: Summoning effect
+                    val loc = summoned.location
+                    caster.world.spawnParticle(Particle.ENCHANT, loc.add(0.0, 1.0, 0.0), 50, 0.5, 1.0, 0.5, 0.5)
+                    caster.world.spawnParticle(Particle.PORTAL, loc, 30, 0.4, 0.8, 0.4, 0.3)
+                    caster.world.playSound(loc, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 0.8f)
+                    caster.world.playSound(loc, Sound.ENTITY_EVOKER_PREPARE_SUMMON, 0.8f, 1.0f)
+                }
+            }
+
+            // === 8th Circle - Special Spells ===
+            SpellType.WORD_OF_DEATH -> {
+                entityTarget?.let { target ->
+                    if (target is LivingEntity) {
+                        // Word of Death only works on targets below 50% HP
+                        val maxHealth = target.maxHealth
+                        val currentHealth = target.health
+                        val healthPercent = currentHealth / maxHealth
+
+                        // Check if target is immune (bosses and some entities)
+                        val immuneTypes = listOf(
+                            org.bukkit.entity.EntityType.WARDEN,
+                            org.bukkit.entity.EntityType.ENDER_DRAGON,
+                            org.bukkit.entity.EntityType.WITHER
+                        )
+
+                        if (immuneTypes.contains(target.type)) {
+                            plugin.messageSender.send(caster, MessageKey.MAGIC_WORD_OF_DEATH_IMMUNE)
+                            target.world.spawnParticle(Particle.SMOKE, target.location.add(0.0, 1.0, 0.0), 20, 0.3, 0.5, 0.3, 0.05)
+                            target.world.playSound(target.location, Sound.ENTITY_WITHER_AMBIENT, 0.8f, 0.5f)
+                        } else if (healthPercent <= 0.5) {
+                            // Instant kill
+                            target.health = 0.0
+                            plugin.messageSender.send(caster, MessageKey.MAGIC_WORD_OF_DEATH_CAST, "target" to target.name)
+                            // Visual: Death effect
+                            target.world.spawnParticle(Particle.SOUL, target.location.add(0.0, 1.0, 0.0), 50, 0.4, 0.8, 0.4, 0.1)
+                            target.world.spawnParticle(Particle.WITCH, target.location.add(0.0, 1.0, 0.0), 30, 0.3, 0.6, 0.3, 0.08)
+                            target.world.playSound(target.location, Sound.ENTITY_WITHER_SPAWN, 0.6f, 0.3f)
+                            target.world.playSound(target.location, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.8f, 0.5f)
+                        } else {
+                            // Target is above 50% HP
+                            plugin.messageSender.send(caster, MessageKey.MAGIC_WORD_OF_DEATH_FAILED)
+                            target.world.spawnParticle(Particle.SMOKE, target.location.add(0.0, 1.0, 0.0), 15, 0.3, 0.5, 0.3, 0.05)
+                            target.world.playSound(target.location, Sound.ENTITY_GHAST_SCREAM, 0.5f, 2.0f)
+                        }
+                    }
+                }
+            }
+
+            SpellType.MASS_SLEEP -> {
+                val center = caster.location
+                val range = 6.0
+                var sleepCount = 0
+                // Sleep duration based on Magery skill - 5-15 seconds
+                val sleepDuration = 100 + (magerySkill * 2).toInt()
+
+                caster.world.getNearbyEntities(center, range, range, range)
+                    .filterIsInstance<LivingEntity>()
+                    .filter { it != caster }
+                    .forEach { target ->
+                        // Apply sleep effect (slowness + blindness + weakness)
+                        target.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, sleepDuration, 100))
+                        target.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, sleepDuration, 0))
+                        target.addPotionEffect(PotionEffect(PotionEffectType.WEAKNESS, sleepDuration, 2))
+                        target.addPotionEffect(PotionEffect(PotionEffectType.JUMP_BOOST, sleepDuration, 128))
+
+                        sleepCount++
+
+                        // Visual per target
+                        target.world.spawnParticle(Particle.CLOUD, target.location.add(0.0, 1.5, 0.0), 10, 0.3, 0.3, 0.3, 0.02)
+                    }
+
+                plugin.messageSender.send(caster, MessageKey.MAGIC_MASS_SLEEP_CAST, "count" to sleepCount)
+                // Visual: Sleep wave
+                caster.world.spawnParticle(Particle.CLOUD, center.add(0.0, 1.0, 0.0), 80, range, 1.5, range, 0.01)
+                caster.world.spawnParticle(Particle.END_ROD, center, 40, range, 2.0, range, 0.0)
+                caster.world.playSound(center, Sound.ENTITY_CAT_AMBIENT, 1.0f, 0.3f)
+                caster.world.playSound(center, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 0.5f)
+            }
         }
     }
 
@@ -787,7 +1411,7 @@ class SpellManager(private val plugin: Skills) {
         }
     }
 
-    private fun applyMagicDamage(caster: Player, target: LivingEntity, damage: Double) {
+    fun applyMagicDamage(caster: Player?, target: LivingEntity, damage: Double) {
         if (target is Player) {
             // Process through combat manager for player targets
             val defenseResult = plugin.combatManager.processPlayerDefense(
@@ -795,8 +1419,10 @@ class SpellManager(private val plugin: Skills) {
             )
             plugin.combatManager.applyInternalDamage(target, defenseResult.damage)
 
-            // Try eval int skill gain for caster
-            plugin.skillManager.tryGainSkill(caster, SkillType.EVALUATING_INTELLIGENCE, 50)
+            // Try eval int skill gain for caster (if online)
+            caster?.let {
+                plugin.skillManager.tryGainSkill(it, SkillType.EVALUATING_INTELLIGENCE, 50)
+            }
 
             // Try resisting spells skill gain for target (when taking magic damage)
             plugin.skillManager.tryGainSkill(target, SkillType.RESISTING_SPELLS, 50)

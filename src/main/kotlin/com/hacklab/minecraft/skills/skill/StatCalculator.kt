@@ -191,8 +191,8 @@ object StatCalculator {
         // Low EvalInt reduces damage, High EvalInt boosts damage
         val evalIntModifier = 0.5 + (evalIntSkill / 100.0)
 
-        // Target resistance reduces damage: 0-50% reduction at skill 100
-        val resistReduction = (targetResistSkill / 200.0).coerceIn(0.0, 0.5)
+        // Target resistance reduces damage: 0-70% reduction at skill 100
+        val resistReduction = (targetResistSkill * 0.7 / 100.0).coerceIn(0.0, 0.7)
 
         return baseDamage * mageryModifier * evalIntModifier * (1.0 - resistReduction)
     }

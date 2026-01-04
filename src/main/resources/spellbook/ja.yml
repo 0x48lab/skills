@@ -18,36 +18,92 @@ circles:
 
 # Spell descriptions
 spells:
-  # 攻撃
+  # 第1サークル - 攻撃
   MAGIC_ARROW: "魔法の矢を放つ（小ダメージ）"
-  HARM: "直接ダメージ（中ダメージ）"
-  FIREBALL: "火球を放ち、対象を燃やす"
-  LIGHTNING: "雷撃（大ダメージ）"
-  FIRE_WALL: "炎の壁を作り継続ダメージ"
-  MIND_BLAST: "対象のマナ（空腹）を減少"
-  EXPLOSION: "範囲ダメージ"
-  METEOR_SWARM: "大範囲ダメージ"
-
-  # 回復
+  # 第1サークル - 回復
   HEAL: "少量のHPを回復"
-  CURE: "状態異常を解除"
-  GREATER_HEAL: "大量のHPを回復"
-
-  # バフ
-  BLESS: "攻撃力UP"
-  PROTECTION: "防御力UP"
-  INVISIBILITY: "透明化"
-
-  # ユーティリティ
+  # 第1サークル - ユーティリティ
   CREATE_FOOD: "合成肉を生成"
   NIGHT_SIGHT: "暗視を付与"
+  # 第1サークル - デバフ
+  CLUMSY: "対象の移動速度を低下"
+  WEAKEN: "対象の攻撃力を低下"
+
+  # 第2サークル - 攻撃
+  HARM: "直接ダメージ（中ダメージ）"
+  # 第2サークル - 回復
+  CURE: "状態異常を解除"
+  # 第2サークル - ユーティリティ
   FEATHER_FALL: "落下速度を遅くする"
+  # 第2サークル - バフ
+  AGILITY: "移動速度UP"
+  STRENGTH: "攻撃力を一時的に上昇"
+  CUNNING: "頭脳を研ぎ澄ます（幸運効果）"
+
+  # 第3サークル - 攻撃
+  FIREBALL: "火球を放ち、対象を燃やす"
+  # 第3サークル - バフ
+  BLESS: "攻撃力UP"
+  # 第3サークル - ユーティリティ
   WATER_BREATHING: "水中呼吸を付与"
   TELEPORT: "クリック地点へ短距離TP"
+  # 第3サークル - デバフ
+  POISON: "対象に継続毒ダメージ"
+  # 第3サークル - フィールド
+  WALL_OF_STONE: "一時的な石の障壁を生成"
+
+  # 第4サークル - 攻撃
+  LIGHTNING: "雷撃（大ダメージ）"
+  FIRE_WALL: "炎の壁を作り継続ダメージ"
+  # 第4サークル - 回復
+  GREATER_HEAL: "大量のHPを回復"
+  # 第4サークル - ユーティリティ
+  ARCH_CURE: "範囲内の味方を治療"
+  # 第4サークル - デバフ
+  CURSE: "対象の全ステータスを低下"
+  MANA_DRAIN: "対象のマナを吸収"
+
+  # 第5サークル - 攻撃
+  ENERGY_BOLT: "強力な魔法ダメージ"
+  MIND_BLAST: "対象のマナ（空腹）を減少"
+  # 第5サークル - バフ
+  PROTECTION: "防御力UP"
+  # 第5サークル - ユーティリティ
   MARK: "現在地をルーンに記録"
   RECALL: "ルーンへ移動"
   PARALYZE: "対象を移動不可にする"
+  # 第5サークル - 召喚
+  SUMMON_CREATURE: "スキルに応じた生物を召喚"
+
+  # 第6サークル - 攻撃
+  EXPLOSION: "範囲ダメージ"
+  # 第6サークル - バフ
+  INVISIBILITY: "透明化"
+  # 第6サークル - ユーティリティ
+  DISPEL: "対象のバフを解除"
+  REVEAL: "範囲内の隠れているプレイヤーを発見"
+  # 第6サークル - デバフ
+  MASS_CURSE: "範囲内の敵全員を呪う"
+  # 第6サークル - フィールド
+  PARALYZE_FIELD: "麻痺フィールドを生成"
+
+  # 第7サークル - ユーティリティ
   GATE_TRAVEL: "ルーンへゲートを開く"
+  # 第7サークル - 攻撃
+  CHAIN_LIGHTNING: "対象間を連鎖する雷撃"
+  FLAMESTRIKE: "炎上を伴う炎の柱"
+  # 第7サークル - フィールド
+  ENERGY_FIELD: "通過不可のエネルギー壁"
+  # 第7サークル - ユーティリティ
+  MANA_VAMPIRE: "大量のマナを吸収"
+  MASS_DISPEL: "範囲内の全対象をディスペル"
+
+  # 第8サークル - 攻撃
+  METEOR_SWARM: "大範囲ダメージ"
+  EARTHQUAKE: "地震で周囲にダメージ"
+  # 第8サークル - 特殊
+  WORD_OF_DEATH: "HPが50%以下なら即死"
+  MASS_SLEEP: "範囲内の敵を眠らせる"
 
 # マテリアル名（マイクラアイテム）
 materials:

@@ -52,6 +52,9 @@ class SkillsConfig(private val plugin: Skills) {
     // Debug
     val debugMode: Boolean get() = config.getBoolean("debug", false)
 
+    // Sleep settings
+    val sleepEnabled: Boolean get() = config.getBoolean("sleep.enabled", true)
+
     // Economy settings
     val economyEnabled: Boolean get() = config.getBoolean("economy.enabled", true)
     val economyChunkLimitEnabled: Boolean get() = config.getBoolean("economy.chunk_limit.enabled", true)

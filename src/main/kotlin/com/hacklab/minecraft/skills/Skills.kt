@@ -104,6 +104,8 @@ class Skills : JavaPlugin() {
         private set
     lateinit var runebookManager: RunebookManager
         private set
+    lateinit var summonManager: SummonManager
+        private set
 
     // Crafting
     lateinit var craftingManager: CraftingManager
@@ -178,6 +180,10 @@ class Skills : JavaPlugin() {
     lateinit var survivalListener: SurvivalListener
         private set
     lateinit var runebookListener: RunebookListener
+        private set
+
+    // Sleep
+    lateinit var sleepCommand: SleepCommand
         private set
 
     override fun onEnable() {
@@ -273,6 +279,7 @@ class Skills : JavaPlugin() {
         runeManager = RuneManager(this)
         gateManager = GateManager(this)
         runebookManager = RunebookManager(this)
+        summonManager = SummonManager(this)
         castingManager = CastingManager(this)
         spellManager = SpellManager(this)
 
@@ -365,6 +372,9 @@ class Skills : JavaPlugin() {
         // Runebook GUI
         runebookListener = RunebookListener(this)
         pm.registerEvents(runebookListener, this)
+
+        // Sleep
+        pm.registerEvents(SleepListener(this), this)
     }
 
     private fun registerCommands() {
@@ -396,6 +406,9 @@ class Skills : JavaPlugin() {
         getCommand("arms")?.setExecutor(ArmsCommand(this))
         getCommand("scribe")?.setExecutor(ScribeCommand(this))
 
+        // Sleep command
+        sleepCommand = SleepCommand(this)
+        getCommand("sleep")?.setExecutor(sleepCommand)
     }
 
     private fun startScheduledTasks() {

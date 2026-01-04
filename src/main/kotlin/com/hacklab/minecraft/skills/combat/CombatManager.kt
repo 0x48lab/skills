@@ -475,7 +475,7 @@ class CombatManager(private val plugin: Skills) {
                 0.0
             }
 
-            val resistReduction = resistSkill / 2.0 / 100.0  // Max 50% reduction
+            val resistReduction = resistSkill * 0.7 / 100.0  // Max 70% reduction at skill 100
             finalDamage *= (1.0 - resistReduction)
 
             if (resistReduction > 0.1) {

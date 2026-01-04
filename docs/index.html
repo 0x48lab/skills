@@ -663,6 +663,7 @@ Final = Base × STR × Tactics × Anatomy × Quality × Enchant</pre>
                 <tr><td><code>/cast &lt;spell&gt;</code></td><td>Cast a spell</td></tr>
                 <tr><td><code>/language &lt;en|ja&gt;</code></td><td>Change display language</td></tr>
                 <tr><td><code>/arms</code></td><td>Examine held weapon/armor</td></tr>
+                <tr><td><code>/sleep</code></td><td>Count as sleeping without a bed (requires night + someone in bed)</td></tr>
             </table>
 
             <h3>Thief Commands</h3>
@@ -702,6 +703,26 @@ Final = Base × STR × Tactics × Anatomy × Quality × Enchant</pre>
         <!-- Changelog -->
         <section id="changelog">
             <h2>Changelog</h2>
+
+            <div class="changelog-entry">
+                <h4>v0.4.0</h4>
+                <span class="date">2026-01-04</span>
+                <ul>
+                    <li><strong>Expanded Magery Spells</strong> - Added 23 new spells across all circles (Clumsy, Weaken, Agility, Strength, Cunning, Poison, Wall of Stone, Arch Cure, Curse, Mana Drain, Dispel, Mass Curse, Reveal, Paralyze Field, Chain Lightning, Flamestrike, Energy Field, Mana Vampire, Mass Dispel, Summon Creature, Earthquake, Word of Death, Mass Sleep)</li>
+                    <li><strong>Summoning System</strong> - New SummonManager for summoned creatures with skill-based creature selection</li>
+                    <li><strong>Improved Spell Visuals</strong> - Fireball uses real SmallFireball entity, Meteor Swarm spawns falling meteors, Wall of Stone creates actual blocks, Explosion uses TNT-style effect</li>
+                    <li><strong>Resisting Spells Buff</strong> - Max damage reduction increased from 50% to 70% at skill 100</li>
+                    <li><strong>Fixed:</strong> Invisibility/Hide now breaks on attack and block breaking</li>
+                </ul>
+            </div>
+
+            <div class="changelog-entry">
+                <h4>v0.3.1</h4>
+                <span class="date">2026-01-04</span>
+                <ul>
+                    <li><strong>Sleep Skip Command</strong> - /sleep lets you count as sleeping without a bed (requires night + someone in bed)</li>
+                </ul>
+            </div>
 
             <div class="changelog-entry">
                 <h4>v0.3.0</h4>

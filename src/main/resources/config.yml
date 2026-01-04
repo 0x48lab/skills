@@ -92,6 +92,11 @@ economy:
   # Show balance on scoreboard
   show_on_scoreboard: true
 
+# Sleep Skip settings - Allows players to skip night with /sleep command
+sleep:
+  # Enable/disable the sleep skip feature
+  enabled: true
+
 # VengefulMobs settings - Makes passive mobs fight back when attacked
 # Inspired by VengefulMobs plugin (https://modrinth.com/plugin/vengefulmobs)
 vengeful_mobs:

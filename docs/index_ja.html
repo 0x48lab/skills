@@ -652,6 +652,7 @@ Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
                 <tr><td><code>/cast &lt;魔法名&gt;</code></td><td>魔法を詠唱</td></tr>
                 <tr><td><code>/language &lt;en|ja&gt;</code></td><td>表示言語を変更</td></tr>
                 <tr><td><code>/arms</code></td><td>手持ちの武器・防具を鑑定</td></tr>
+                <tr><td><code>/sleep</code></td><td>ベッドなしで睡眠中としてカウント（夜＋誰かがベッドで寝ている時のみ）</td></tr>
             </table>
 
             <h3>シーフコマンド</h3>
@@ -691,6 +692,26 @@ Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
         <!-- 変更履歴 -->
         <section id="changelog">
             <h2>変更履歴</h2>
+
+            <div class="changelog-entry">
+                <h4>v0.4.0</h4>
+                <span class="date">2026-01-04</span>
+                <ul>
+                    <li><strong>魔法拡張</strong> - 23種類の新魔法を追加（Clumsy, Weaken, Agility, Strength, Cunning, Poison, Wall of Stone, Arch Cure, Curse, Mana Drain, Dispel, Mass Curse, Reveal, Paralyze Field, Chain Lightning, Flamestrike, Energy Field, Mana Vampire, Mass Dispel, Summon Creature, Earthquake, Word of Death, Mass Sleep）</li>
+                    <li><strong>召喚システム</strong> - スキルに応じたクリーチャーを召喚するSummonManager追加</li>
+                    <li><strong>魔法ビジュアル改善</strong> - FireballはSmallFireballエンティティ使用、Meteor Swarmは落下する隕石、Wall of Stoneは実際のブロック生成、ExplosionはTNT爆発エフェクト</li>
+                    <li><strong>Resisting Spells強化</strong> - スキル100での最大ダメージ軽減を50%から70%に増加</li>
+                    <li><strong>修正:</strong> 透明化（Invisibility/Hide）が攻撃とブロック破壊で解除されるように</li>
+                </ul>
+            </div>
+
+            <div class="changelog-entry">
+                <h4>v0.3.1</h4>
+                <span class="date">2026-01-04</span>
+                <ul>
+                    <li><strong>睡眠スキップコマンド</strong> - /sleep でベッドなしでも睡眠中としてカウント（夜＋誰かがベッドで寝ている時のみ使用可能）</li>
+                </ul>
+            </div>
 
             <div class="changelog-entry">
                 <h4>v0.3.0</h4>

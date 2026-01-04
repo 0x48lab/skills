@@ -138,4 +138,33 @@ class HidingManager(private val plugin: Skills) {
     fun removePlayer(playerId: UUID) {
         hiddenPlayers.remove(playerId)
     }
+
+    /**
+     * Reveal all hidden players in a specified radius
+     * Returns the list of revealed players
+     * @param caster Optional caster to exclude from reveal (for self-cast spells)
+     */
+    fun revealInArea(center: org.bukkit.Location, radius: Double, caster: Player? = null): List<Player> {
+        val revealed = mutableListOf<Player>()
+        val radiusSquared = radius * radius
+
+        // Find all hidden players within radius
+        for ((uuid, _) in hiddenPlayers.toMap()) {
+            // Skip caster
+            if (caster != null && uuid == caster.uniqueId) continue
+
+            val player = plugin.server.getPlayer(uuid) ?: continue
+
+            // Must be in same world
+            if (player.world != center.world) continue
+
+            // Check distance
+            if (player.location.distanceSquared(center) <= radiusSquared) {
+                breakHiding(player, "revealed")
+                revealed.add(player)
+            }
+        }
+
+        return revealed
+    }
 }

@@ -72,6 +72,10 @@ commands:
     usage: /scribe [list|spell name]
     aliases: [inscribe]
 
+  sleep:
+    description: Count as sleeping without being in a bed
+    usage: /sleep
+
 permissions:
   skills.admin:
     description: Access to admin commands

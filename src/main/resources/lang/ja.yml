@@ -51,6 +51,42 @@ magic:
   no_mana: "<red>マナが足りません。"
   out_of_range: "<red>ターゲットが範囲外です。"
   interrupted: "<red>詠唱が中断されました！"
+  # バフ魔法
+  agility_cast: "<green>身のこなしが軽くなった！"
+  strength_cast: "<green>力が漲ってきた！"
+  cunning_cast: "<green>頭脳が冴え渡る！"
+  # デバフ魔法
+  clumsy_cast: "<dark_purple>{target}の動きが鈍くなった！"
+  weaken_cast: "<dark_purple>{target}は弱体化した！"
+  curse_cast: "<dark_purple>{target}を呪った！"
+  mass_curse_cast: "<dark_purple>{count}体の敵を呪った！"
+  poison_cast: "<dark_green>{target}を毒に侵した！"
+  # ユーティリティ魔法
+  mana_drain_cast: "<dark_purple>{target}から{amount}マナを吸い取った！"
+  mana_vampire_cast: "<dark_purple>{target}から{amount}マナを吸収した！"
+  dispel_cast: "<yellow>{target}の魔法効果を解除した！"
+  mass_dispel_cast: "<yellow>{count}体の魔法効果を解除した！"
+  reveal_cast: "<yellow>隠れている者を探知中..."
+  reveal_found: "<gold>{count}人の隠れたプレイヤーを発見！"
+  reveal_none: "<gray>隠れているプレイヤーは見つかりませんでした。"
+  arch_cure_cast: "<green>{count}人の味方を治療した！"
+  # フィールド魔法
+  wall_of_stone_cast: "<gray>石の壁が出現した！"
+  energy_field_cast: "<aqua>エネルギーフィールドが展開された！"
+  paralyze_field_cast: "<dark_purple>麻痺のフィールドが形成された！"
+  # 攻撃魔法
+  flamestrike_cast: "<gold>{target}に炎の柱が降り注いだ！"
+  chain_lightning_cast: "<aqua>稲妻が{count}体を貫いた！"
+  earthquake_cast: "<gray>大地が激しく揺れた！"
+  # 召喚魔法
+  summon_creature_cast: "<green>{creature}を召喚した！"
+  summon_despawned: "<gray>召喚した生物が消滅した。"
+  summon_limit: "<red>これ以上召喚できません。（上限: {max}）"
+  # 8thサークル特殊魔法
+  word_of_death_cast: "<dark_red>{target}は死の言葉に倒れた！"
+  word_of_death_failed: "<red>対象は死の言葉に抵抗した。"
+  word_of_death_immune: "<red>この生物は死の言葉が効かない。"
+  mass_sleep_cast: "<dark_purple>{count}体の敵が眠りに落ちた！"
 
 # 回復メッセージ
 heal:
@@ -214,6 +250,21 @@ cooldown:
 economy:
   mob_reward: "<yellow>{amount} を てにいれた！"
   chunk_limit_reached: "<yellow>このエリアでの報酬上限に達しました。（リセットまで{minutes}分）"
+
+# 睡眠メッセージ
+sleep:
+  disabled: "<red>睡眠スキップ機能はこのサーバーで無効になっています。"
+  not_night: "<red>/sleep は夜の間だけ使用できます。"
+  wrong_dimension: "<red>/sleep はオーバーワールドでのみ使用できます。"
+  no_sleeping_players: "<red>まず誰かがベッドで寝ている必要があります。"
+  already_sleeping: "<yellow>既に睡眠中です。"
+  started: "<green>睡眠中としてカウントされます。"
+  cancelled: "<gray>睡眠がキャンセルされました。"
+  percentage: "<gray>{count}/{total} 人が睡眠中 ({percentage}%)"
+  night_skipped: "<green>おはようございます！夜がスキップされました。"
+  notify: "{player} が寝ています。"
+  click_to_sleep: "一緒に寝る"
+  click_hover: "クリックして夜をスキップ"
 
 # 共通
 common:
