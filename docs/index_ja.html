@@ -370,16 +370,163 @@ Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
                 <tr>
                     <th>サークル</th>
                     <th>マナ消費</th>
+                    <th>魔法数</th>
                     <th>代表的な魔法</th>
                 </tr>
-                <tr><td>1st</td><td>1</td><td>Magic Arrow, Heal, Night Sight</td></tr>
-                <tr><td>2nd</td><td>2</td><td>Harm, Cure, Feather Fall</td></tr>
-                <tr><td>3rd</td><td>3</td><td>Fireball, Teleport, Bless</td></tr>
-                <tr><td>4th</td><td>4</td><td>Lightning, Greater Heal, Fire Wall</td></tr>
-                <tr><td>5th</td><td>5</td><td>Energy Bolt, Mark, Recall, Paralyze</td></tr>
-                <tr><td>6th</td><td>6</td><td>Explosion, Invisibility</td></tr>
-                <tr><td>7th</td><td>7</td><td>Gate Travel</td></tr>
-                <tr><td>8th</td><td>8</td><td>Meteor Swarm</td></tr>
+                <tr><td>1st</td><td>1</td><td>6</td><td>Magic Arrow, Heal, Night Sight, Clumsy, Weaken</td></tr>
+                <tr><td>2nd</td><td>2</td><td>6</td><td>Harm, Cure, Feather Fall, Agility, Strength, Cunning</td></tr>
+                <tr><td>3rd</td><td>3</td><td>6</td><td>Fireball, Teleport, Bless, Poison, Wall of Stone</td></tr>
+                <tr><td>4th</td><td>4</td><td>6</td><td>Lightning, Greater Heal, Fire Wall, Curse, Mana Drain</td></tr>
+                <tr><td>5th</td><td>5</td><td>7</td><td>Energy Bolt, Mark, Recall, Paralyze, Summon Creature</td></tr>
+                <tr><td>6th</td><td>6</td><td>6</td><td>Explosion, Invisibility, Dispel, Reveal, Mass Curse</td></tr>
+                <tr><td>7th</td><td>7</td><td>6</td><td>Gate Travel, Chain Lightning, Flamestrike, Mana Vampire</td></tr>
+                <tr><td>8th</td><td>8</td><td>4</td><td>Meteor Swarm, Earthquake, Word of Death, Mass Sleep</td></tr>
+            </table>
+
+            <h3>魔法一覧</h3>
+
+            <h4>1stサークル（マナ1）</h4>
+            <table>
+                <tr>
+                    <th>魔法名</th>
+                    <th>パワーワード</th>
+                    <th>触媒</th>
+                    <th>効果</th>
+                </tr>
+                <tr><td>Magic Arrow</td><td><em>In Por Ylem</em></td><td>糸</td><td>投射体で20ダメージ</td></tr>
+                <tr><td>Heal</td><td><em>In Mani</em></td><td>金のニンジン</td><td>対象を小回復（3+Magery/25）</td></tr>
+                <tr><td>Create Food</td><td><em>In Mani Ylem</em></td><td>小麦</td><td>食料を生成</td></tr>
+                <tr><td>Night Sight</td><td><em>In Lor</em></td><td>グロウストーンダスト</td><td>暗視効果を付与</td></tr>
+                <tr><td>Clumsy</td><td><em>Uus Jux</em></td><td>スパイダーアイ</td><td>対象に鈍足効果</td></tr>
+                <tr><td>Weaken</td><td><em>Des Mani</em></td><td>スパイダーアイ</td><td>対象に弱体化効果</td></tr>
+            </table>
+
+            <h4>2ndサークル（マナ2）</h4>
+            <table>
+                <tr>
+                    <th>魔法名</th>
+                    <th>パワーワード</th>
+                    <th>触媒</th>
+                    <th>効果</th>
+                </tr>
+                <tr><td>Harm</td><td><em>An Mani</em></td><td>スパイダーアイ</td><td>対象に35ダメージ</td></tr>
+                <tr><td>Cure</td><td><em>An Nox</em></td><td>金のニンジン + 毒じゃがいも</td><td>状態異常を解除</td></tr>
+                <tr><td>Feather Fall</td><td><em>Rel Des Por</em></td><td>羽</td><td>落下ダメージ軽減</td></tr>
+                <tr><td>Agility</td><td><em>Ex Uus</em></td><td>ネザーウォート</td><td>移動速度+20%</td></tr>
+                <tr><td>Strength</td><td><em>Uus Mani</em></td><td>スパイダーアイ</td><td>攻撃力+20%</td></tr>
+                <tr><td>Cunning</td><td><em>Uus Wis</em></td><td>スパイダーアイ</td><td>採掘速度上昇</td></tr>
+            </table>
+
+            <h4>3rdサークル（マナ3）</h4>
+            <table>
+                <tr>
+                    <th>魔法名</th>
+                    <th>パワーワード</th>
+                    <th>触媒</th>
+                    <th>効果</th>
+                </tr>
+                <tr><td>Fireball</td><td><em>Vas Flam</em></td><td>火薬 + スパイダーアイ</td><td>火の玉で50ダメージ + 炎上3秒</td></tr>
+                <tr><td>Bless</td><td><em>Rel Sanct</em></td><td>ネザーウォート</td><td>攻撃力上昇</td></tr>
+                <tr><td>Water Breathing</td><td><em>Vas An Ort</em></td><td>フグ</td><td>水中呼吸効果</td></tr>
+                <tr><td>Teleport</td><td><em>Rel Por</em></td><td>エンダーパール</td><td>指定地点へ短距離テレポート（15ブロック）</td></tr>
+                <tr><td>Poison</td><td><em>In Nox</em></td><td>スパイダーアイ</td><td>対象に毒効果（10秒）</td></tr>
+                <tr><td>Wall of Stone</td><td><em>In Sanct Ylem</em></td><td>ネザーウォート + 毒じゃがいも</td><td>石壁を召喚（5秒後消滅）</td></tr>
+            </table>
+
+            <h4>4thサークル（マナ4）</h4>
+            <table>
+                <tr>
+                    <th>魔法名</th>
+                    <th>パワーワード</th>
+                    <th>触媒</th>
+                    <th>効果</th>
+                </tr>
+                <tr><td>Lightning</td><td><em>Por Ort Grav</em></td><td>火薬 + ブレイズパウダー</td><td>雷撃で65ダメージ</td></tr>
+                <tr><td>Fire Wall</td><td><em>Kal Vas Flam</em></td><td>ブレイズパウダー×2 + スパイダーアイ</td><td>炎の壁で40ダメージ + 範囲炎上</td></tr>
+                <tr><td>Greater Heal</td><td><em>In Vas Mani</em></td><td>金のニンジン×2</td><td>対象を大回復（8+Magery/15）</td></tr>
+                <tr><td>Arch Cure</td><td><em>Vas An Nox</em></td><td>金のニンジン + 毒じゃがいも</td><td>範囲内の状態異常解除</td></tr>
+                <tr><td>Curse</td><td><em>Des Sanct</em></td><td>スパイダーアイ + 毒じゃがいも</td><td>対象にスロー+弱体化+採掘疲労</td></tr>
+                <tr><td>Mana Drain</td><td><em>Ort Rel</em></td><td>ブレイズパウダー + エンダーパール</td><td>対象のマナ3を奪う</td></tr>
+            </table>
+
+            <h4>5thサークル（マナ5）</h4>
+            <table>
+                <tr>
+                    <th>魔法名</th>
+                    <th>パワーワード</th>
+                    <th>触媒</th>
+                    <th>効果</th>
+                </tr>
+                <tr><td>Energy Bolt</td><td><em>Corp Por</em></td><td>スパイダーアイ + ブレイズパウダー</td><td>対象に80ダメージ</td></tr>
+                <tr><td>Mind Blast</td><td><em>Por Corp Wis</em></td><td>スパイダーアイ + ネザーウォート</td><td>対象のマナを3減少</td></tr>
+                <tr><td>Protection</td><td><em>Uus Sanct</em></td><td>ネザーウォート + 糸</td><td>防御力上昇</td></tr>
+                <tr><td>Mark</td><td><em>Kal Por Ylem</em></td><td>エンダーパール + ブレイズパウダー</td><td>現在地をルーンに記録</td></tr>
+                <tr><td>Recall</td><td><em>Kal Ort Por</em></td><td>エンダーパール</td><td>ルーンの場所へテレポート</td></tr>
+                <tr><td>Paralyze</td><td><em>An Ex Por</em></td><td>スパイダーアイ + 糸</td><td>対象を2秒間移動不可</td></tr>
+                <tr><td>Summon Creature</td><td><em>Kal Xen</em></td><td>ネザーウォート + ブレイズパウダー</td><td>スキルに応じた召喚獣を召喚</td></tr>
+            </table>
+
+            <h4>6thサークル（マナ6）</h4>
+            <table>
+                <tr>
+                    <th>魔法名</th>
+                    <th>パワーワード</th>
+                    <th>触媒</th>
+                    <th>効果</th>
+                </tr>
+                <tr><td>Explosion</td><td><em>Vas Ort Flam</em></td><td>火薬 + ブレイズパウダー</td><td>TNT爆発で90ダメージ（範囲3ブロック）</td></tr>
+                <tr><td>Invisibility</td><td><em>An Lor Xen</em></td><td>ネザーウォート + ブレイズパウダー</td><td>透明化（攻撃/ブロック破壊で解除）</td></tr>
+                <tr><td>Dispel</td><td><em>An Ort</em></td><td>毒じゃがいも + 火薬</td><td>対象のバフ効果を解除</td></tr>
+                <tr><td>Reveal</td><td><em>Wis Quas</em></td><td>ネザーウォート + 火薬</td><td>範囲内の隠れた対象を発見</td></tr>
+                <tr><td>Mass Curse</td><td><em>Vas Des Sanct</em></td><td>スパイダーアイ + ブレイズパウダー</td><td>範囲内にスロー+弱体化</td></tr>
+                <tr><td>Paralyze Field</td><td><em>In Ex Grav</em></td><td>エンダーパール + 金のニンジン</td><td>麻痺フィールドを設置（10秒）</td></tr>
+            </table>
+
+            <h4>7thサークル（マナ7）</h4>
+            <table>
+                <tr>
+                    <th>魔法名</th>
+                    <th>パワーワード</th>
+                    <th>触媒</th>
+                    <th>効果</th>
+                </tr>
+                <tr><td>Gate Travel</td><td><em>Vas Rel Por</em></td><td>エンダーパール×2 + ブレイズパウダー</td><td>ルーンの場所へゲートを開く（30秒）</td></tr>
+                <tr><td>Chain Lightning</td><td><em>Vas Ort Grav</em></td><td>エンダーパール + 火薬 + ブレイズパウダー</td><td>連鎖雷撃（最大5体）</td></tr>
+                <tr><td>Flamestrike</td><td><em>Kal Vas Flam</em></td><td>火薬 + 糸</td><td>上空から火柱で85ダメージ + 炎上</td></tr>
+                <tr><td>Energy Field</td><td><em>In Sanct Grav</em></td><td>エンダーパール + ブレイズパウダー + 糸</td><td>エネルギーフィールドを設置（15秒）</td></tr>
+                <tr><td>Mana Vampire</td><td><em>Ort Sanct</em></td><td>エンダーパール + ネザーウォート + ブレイズパウダー</td><td>対象のマナを5吸収</td></tr>
+                <tr><td>Mass Dispel</td><td><em>Vas An Ort</em></td><td>エンダーパール + 毒じゃがいも + ブレイズパウダー</td><td>範囲内の全バフを解除</td></tr>
+            </table>
+
+            <h4>8thサークル（マナ8）</h4>
+            <table>
+                <tr>
+                    <th>魔法名</th>
+                    <th>パワーワード</th>
+                    <th>触媒</th>
+                    <th>効果</th>
+                </tr>
+                <tr><td>Meteor Swarm</td><td><em>Kal Des Flam Ylem</em></td><td>火薬 + ブレイズパウダー×3</td><td>流星群で130ダメージ（範囲5ブロック）</td></tr>
+                <tr><td>Earthquake</td><td><em>In Vas Por</em></td><td>ネザーウォート + 金のニンジン + ブレイズパウダー + 火薬</td><td>地震で100ダメージ + 浮遊</td></tr>
+                <tr><td>Word of Death</td><td><em>Kal Vas An Mani</em></td><td>スパイダーアイ + 火薬 + ブレイズパウダー + ネザーウォート</td><td>対象HP50%以下で即死（失敗時80ダメージ）</td></tr>
+                <tr><td>Mass Sleep</td><td><em>Vas Zu</em></td><td>ネザーウォート + スパイダーアイ + 糸 + ブレイズパウダー</td><td>範囲内を暗闘+スロー（4秒）</td></tr>
+            </table>
+
+            <h3>触媒対応表</h3>
+            <table>
+                <tr>
+                    <th>UO名</th>
+                    <th>マインクラフトアイテム</th>
+                    <th>主な用途</th>
+                </tr>
+                <tr><td>Black Pearl</td><td>エンダーパール</td><td>移動系魔法（Teleport, Mark, Recall, Gate）</td></tr>
+                <tr><td>Blood Moss</td><td>ネザーウォート</td><td>バフ・強化系魔法</td></tr>
+                <tr><td>Garlic</td><td>毒じゃがいも</td><td>解毒・防御系魔法</td></tr>
+                <tr><td>Ginseng</td><td>金のニンジン</td><td>回復系魔法</td></tr>
+                <tr><td>Mandrake Root</td><td>ブレイズパウダー</td><td>強力な魔法の触媒</td></tr>
+                <tr><td>Nightshade</td><td>スパイダーアイ</td><td>攻撃・毒系魔法</td></tr>
+                <tr><td>Spider's Silk</td><td>糸</td><td>束縛・防御系魔法</td></tr>
+                <tr><td>Sulphurous Ash</td><td>火薬</td><td>火・爆発系魔法</td></tr>
             </table>
 
             <h3>ルーンの書</h3>
