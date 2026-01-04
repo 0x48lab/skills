@@ -41,9 +41,18 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         // Try to gain skill
         plugin.skillManager.tryGainSkill(player, SkillType.ATHLETICS, difficulty)
 
-        // Apply damage reduction: skill / 2 % (max 50%)
-        val reductionPercent = (athleticsSkill / 2.0).coerceAtMost(50.0)
-        val damageMultiplier = 1.0 - (reductionPercent / 100.0)
+        // GM (skill 100) - completely immune, no screen shake
+        if (athleticsSkill >= 100.0) {
+            event.isCancelled = true
+            return
+        }
+
+        // Compensate for internal HP system (x10 multiplier)
+        // Base: 90% reduction to match vanilla feel
+        // Skill: additional reduction up to 90% at skill 100
+        val baseReduction = 0.1  // 90% base reduction
+        val skillReductionPercent = (athleticsSkill * 0.9).coerceAtMost(90.0)
+        val damageMultiplier = baseReduction * (1.0 - (skillReductionPercent / 100.0))
         event.damage = event.damage * damageMultiplier
 
         // At very high skill (90+), chance to completely negate small falls
@@ -117,9 +126,18 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         // Try to gain skill
         plugin.skillManager.tryGainSkill(player, SkillType.SWIMMING, difficulty)
 
-        // Apply damage reduction: skill / 2 % (max 50%)
-        val reductionPercent = (swimmingSkill / 2.0).coerceAtMost(50.0)
-        val damageMultiplier = 1.0 - (reductionPercent / 100.0)
+        // GM (skill 100) - completely immune, no screen shake
+        if (swimmingSkill >= 100.0) {
+            event.isCancelled = true
+            return
+        }
+
+        // Compensate for internal HP system (x10 multiplier)
+        // Base: 90% reduction to match vanilla feel
+        // Skill: additional reduction up to 90% at skill 100
+        val baseReduction = 0.1  // 90% base reduction
+        val skillReductionPercent = (swimmingSkill * 0.9).coerceAtMost(90.0)
+        val damageMultiplier = baseReduction * (1.0 - (skillReductionPercent / 100.0))
         event.damage = event.damage * damageMultiplier
     }
 
@@ -157,9 +175,19 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         // Try to gain skill
         plugin.skillManager.tryGainSkill(player, SkillType.HEAT_RESISTANCE, difficulty)
 
-        // Apply damage reduction: skill / 2 % (max 50%)
-        val reductionPercent = (heatResistSkill / 2.0).coerceAtMost(50.0)
-        val damageMultiplier = 1.0 - (reductionPercent / 100.0)
+        // GM (skill 100) - completely immune, no screen shake, extinguish fire
+        if (heatResistSkill >= 100.0) {
+            event.isCancelled = true
+            player.fireTicks = 0  // Extinguish any fire
+            return
+        }
+
+        // Compensate for internal HP system (x10 multiplier)
+        // Base: 90% reduction to match vanilla feel
+        // Skill: additional reduction up to 90% at skill 100
+        val baseReduction = 0.1  // 90% base reduction
+        val skillReductionPercent = (heatResistSkill * 0.9).coerceAtMost(90.0)
+        val damageMultiplier = baseReduction * (1.0 - (skillReductionPercent / 100.0))
         event.damage = event.damage * damageMultiplier
 
         // Reduce fire ticks (burn time) based on skill
@@ -196,9 +224,19 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         // Try to gain skill (difficulty 40 for freeze damage)
         plugin.skillManager.tryGainSkill(player, SkillType.COLD_RESISTANCE, 40)
 
-        // Apply damage reduction: skill / 2 % (max 50%)
-        val reductionPercent = (coldResistSkill / 2.0).coerceAtMost(50.0)
-        val damageMultiplier = 1.0 - (reductionPercent / 100.0)
+        // GM (skill 100) - completely immune, no screen shake, clear freeze
+        if (coldResistSkill >= 100.0) {
+            event.isCancelled = true
+            player.freezeTicks = 0  // Clear freeze
+            return
+        }
+
+        // Compensate for internal HP system (x10 multiplier)
+        // Base: 90% reduction to match vanilla feel
+        // Skill: additional reduction up to 90% at skill 100
+        val baseReduction = 0.1  // 90% base reduction
+        val skillReductionPercent = (coldResistSkill * 0.9).coerceAtMost(90.0)
+        val damageMultiplier = baseReduction * (1.0 - (skillReductionPercent / 100.0))
         event.damage = event.damage * damageMultiplier
 
         // Reduce freeze ticks based on skill
@@ -238,9 +276,18 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         // Try to gain skill
         plugin.skillManager.tryGainSkill(player, SkillType.ENDURANCE, difficulty)
 
-        // Apply damage reduction: skill / 2 % (max 50%)
-        val reductionPercent = (enduranceSkill / 2.0).coerceAtMost(50.0)
-        val damageMultiplier = 1.0 - (reductionPercent / 100.0)
+        // GM (skill 100) - completely immune, no screen shake
+        if (enduranceSkill >= 100.0) {
+            event.isCancelled = true
+            return
+        }
+
+        // Compensate for internal HP system (x10 multiplier)
+        // Base: 90% reduction to match vanilla feel
+        // Skill: additional reduction up to 90% at skill 100
+        val baseReduction = 0.1  // 90% base reduction
+        val skillReductionPercent = (enduranceSkill * 0.9).coerceAtMost(90.0)
+        val damageMultiplier = baseReduction * (1.0 - (skillReductionPercent / 100.0))
         event.damage = event.damage * damageMultiplier
 
         // At very high skill (90+), chance to resist damage completely for this tick
@@ -251,6 +298,43 @@ class SurvivalListener(private val plugin: Skills) : Listener {
                 plugin.messageSender.sendActionBar(player, MessageKey.SURVIVAL_ENDURED)
             }
         }
+    }
+
+    /**
+     * Endurance skill - reduces contact damage (cactus, berry bush, etc.)
+     * Effect: Contact damage reduced by (skill / 2)% - max 50% at skill 100
+     * Additionally, base contact damage is reduced by 50% to account for frequent ticks
+     * Skill gain: When taking contact damage
+     * Note: Runs at NORMAL priority so CombatListener (HIGH) can apply to internal HP
+     */
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    fun onContactDamage(event: EntityDamageEvent) {
+        if (event.cause != DamageCause.CONTACT) return
+        val player = event.entity as? Player ?: return
+
+        val data = plugin.playerDataManager.getPlayerData(player)
+        val enduranceSkill = data.getSkillValue(SkillType.ENDURANCE)
+
+        // Difficulty for contact damage (cactus is easy to avoid)
+        val difficulty = 15
+
+        // Try to gain skill
+        plugin.skillManager.tryGainSkill(player, SkillType.ENDURANCE, difficulty)
+
+        // GM (skill 100) - completely immune, no screen shake
+        if (enduranceSkill >= 100.0) {
+            event.isCancelled = true
+            return
+        }
+
+        // Contact damage needs heavy reduction to compensate for internal HP system (x10 multiplier)
+        // Base: 90% reduction to match vanilla feel
+        // Skill: additional reduction up to 90% at skill 100
+        // Result: Skill 0 = ~vanilla damage, Skill 100 = nearly immune
+        val baseReduction = 0.1  // 90% base reduction
+        val skillReductionPercent = (enduranceSkill * 0.9).coerceAtMost(90.0)  // up to 90% more
+        val damageMultiplier = baseReduction * (1.0 - (skillReductionPercent / 100.0))
+        event.damage = event.damage * damageMultiplier
     }
 
     /**

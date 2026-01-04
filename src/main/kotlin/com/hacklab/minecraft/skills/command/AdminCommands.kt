@@ -107,6 +107,7 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
     private fun handleSet(sender: CommandSender, args: List<String>) {
         if (args.size < 3) {
             sender.sendMessage("Usage: /skilladmin set <player> <skill> <value>")
+            sender.sendMessage("Note: For skills with spaces, use underscores (e.g., Heat_Resistance)")
             return
         }
 
@@ -116,18 +117,23 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
             return
         }
 
-        val skillName = args[1]
-        val skill = SkillType.fromDisplayName(skillName)
-            ?: SkillType.entries.find { it.name.equals(skillName.replace(" ", "_"), ignoreCase = true) }
-
-        if (skill == null) {
-            sender.sendMessage("Unknown skill: $skillName")
+        // Value is the last argument, skill name is everything in between
+        val valueStr = args.last()
+        val value = valueStr.toDoubleOrNull()
+        if (value == null || value < 0 || value > 100) {
+            sender.sendMessage("Invalid value: $valueStr (must be 0-100)")
             return
         }
 
-        val value = args[2].toDoubleOrNull()
-        if (value == null || value < 0 || value > 100) {
-            sender.sendMessage("Invalid value: ${args[2]} (must be 0-100)")
+        // Join all arguments between player and value as skill name
+        val skillName = args.drop(1).dropLast(1).joinToString(" ")
+        val skill = SkillType.fromDisplayName(skillName)
+            ?: SkillType.entries.find { it.name.equals(skillName.replace(" ", "_"), ignoreCase = true) }
+            ?: SkillType.entries.find { it.displayName.equals(skillName, ignoreCase = true) }
+
+        if (skill == null) {
+            sender.sendMessage("Unknown skill: $skillName")
+            sender.sendMessage("Available skills: ${SkillType.entries.joinToString(", ") { it.displayName }}")
             return
         }
 

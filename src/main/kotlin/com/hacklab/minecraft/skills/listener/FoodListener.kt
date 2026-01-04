@@ -2,12 +2,15 @@ package com.hacklab.minecraft.skills.listener
 
 import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.crafting.CookingDifficulty
+import com.hacklab.minecraft.skills.crafting.QualityType
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerItemConsumeEvent
+import org.bukkit.potion.PotionEffect
+import org.bukkit.potion.PotionEffectType
 
 /**
  * Listener for food consumption events
@@ -23,6 +26,7 @@ class FoodListener(private val plugin: Skills) : Listener {
         // Check if the food has a cooking bonus
         val foodBonusManager = plugin.craftingManager.foodBonusManager
         val bonus = foodBonusManager.getFoodBonus(item)
+        val quality = foodBonusManager.getFoodQuality(item)
 
         if (bonus != 0.0) {
             // Get base healing from the food
@@ -37,6 +41,34 @@ class FoodListener(private val plugin: Skills) : Listener {
                     applyFoodBonus(player, bonusHealing, bonusSaturation)
                 }, 1L)
             }
+        }
+
+        // Apply Health Boost for HQ/EX quality food
+        // Balanced to not overshadow golden apples (which give Absorption + Regeneration)
+        when (quality) {
+            QualityType.HIGH_QUALITY -> {
+                // HQ: Health Boost I (+2 hearts) for 30 seconds
+                player.addPotionEffect(PotionEffect(
+                    PotionEffectType.HEALTH_BOOST,
+                    20 * 30,  // 30 seconds
+                    0,        // Level I (amplifier 0 = +4 HP = +2 hearts)
+                    true,     // ambient (subtle particles)
+                    true,     // show particles
+                    true      // show icon
+                ))
+            }
+            QualityType.EXCEPTIONAL -> {
+                // EX: Health Boost I (+2 hearts) for 1 minute
+                player.addPotionEffect(PotionEffect(
+                    PotionEffectType.HEALTH_BOOST,
+                    20 * 60,  // 60 seconds
+                    0,        // Level I
+                    true,
+                    true,
+                    true
+                ))
+            }
+            else -> { /* No Health Boost for LQ/NQ */ }
         }
     }
 
