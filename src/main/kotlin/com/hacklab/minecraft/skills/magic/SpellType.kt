@@ -15,6 +15,7 @@ enum class SpellCircle(val number: Int, val baseMana: Int) {
 
 enum class SpellTargetType {
     SELF,           // Self only (instant cast)
+    PLAYER_OR_SELF, // Target player or self (click player = target, click block/air = self)
     TARGET_ENTITY,  // Target entity (player or mob)
     TARGET_LOCATION,// Target location
     TARGET_ITEM,    // Target item in hand
@@ -70,7 +71,7 @@ enum class SpellType(
     // Utility spells
     CREATE_FOOD("Create Food", SpellCircle.FIRST, SpellTargetType.SELF,
         listOf(Material.WHEAT), "In Mani Ylem"),
-    NIGHT_SIGHT("Night Sight", SpellCircle.FIRST, SpellTargetType.SELF,
+    NIGHT_SIGHT("Night Sight", SpellCircle.FIRST, SpellTargetType.PLAYER_OR_SELF,
         listOf(Material.GLOWSTONE_DUST), "In Lor"),
     FEATHER_FALL("Feather Fall", SpellCircle.SECOND, SpellTargetType.TARGET_ENTITY,
         listOf(Material.FEATHER), "Rel Des Por"),

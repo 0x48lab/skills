@@ -167,9 +167,6 @@ class StackBonusManager(private val plugin: Skills) {
         if (item.type.isEdible) {
             plugin.craftingManager.foodBonusManager.normalizeBonus(item)
             normalizeFoodBonusInInventory(player.inventory, item.type)
-
-            // Debug: Log item comparison
-            debugItemComparison(player, item)
         }
 
         val calculatedMax = calculateMaxStackSize(player)
@@ -200,47 +197,6 @@ class StackBonusManager(private val plugin: Skills) {
                 }
             }
         }
-    }
-
-    /**
-     * Debug: Compare picked up item with inventory items to find differences
-     */
-    private fun debugItemComparison(player: Player, pickedItem: ItemStack) {
-        val logger = plugin.logger
-        val bonusKey = org.bukkit.NamespacedKey(plugin, "cooking_bonus")
-        val cookerKey = org.bukkit.NamespacedKey(plugin, "cooker")
-
-        logger.info("=== DEBUG: Item Comparison for ${player.name} ===")
-        logger.info("Picked item: ${pickedItem.type}")
-
-        val pickedMeta = pickedItem.itemMeta
-        if (pickedMeta != null) {
-            logger.info("  MaxStackSize: ${if (pickedMeta.hasMaxStackSize()) pickedMeta.maxStackSize else "not set"}")
-            val pdc = pickedMeta.persistentDataContainer
-            val cookingBonus = pdc.get(bonusKey, org.bukkit.persistence.PersistentDataType.DOUBLE)
-            val cooker = pdc.get(cookerKey, org.bukkit.persistence.PersistentDataType.STRING)
-            logger.info("  cooking_bonus: $cookingBonus")
-            logger.info("  cooker: $cooker")
-        }
-
-        // Compare with first matching item in inventory
-        for (i in 0 until player.inventory.size) {
-            val invItem = player.inventory.getItem(i) ?: continue
-            if (invItem.type == pickedItem.type && invItem !== pickedItem) {
-                logger.info("--- Comparing with inventory slot $i (amount: ${invItem.amount}) ---")
-                val invMeta = invItem.itemMeta
-                if (invMeta != null) {
-                    logger.info("  MaxStackSize: ${if (invMeta.hasMaxStackSize()) invMeta.maxStackSize else "not set"}")
-                    val pdc = invMeta.persistentDataContainer
-                    val cookingBonus = pdc.get(bonusKey, org.bukkit.persistence.PersistentDataType.DOUBLE)
-                    val cooker = pdc.get(cookerKey, org.bukkit.persistence.PersistentDataType.STRING)
-                    logger.info("  cooking_bonus: $cookingBonus")
-                    logger.info("  cooker: $cooker")
-                }
-                logger.info("  isSimilar: ${pickedItem.isSimilar(invItem)}")
-            }
-        }
-        logger.info("=== END DEBUG ===")
     }
 
     /**

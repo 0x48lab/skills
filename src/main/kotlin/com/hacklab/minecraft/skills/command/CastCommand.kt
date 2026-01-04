@@ -38,9 +38,33 @@ class CastCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
             return true
         }
 
-        val spellName = args.joinToString(" ")
-        val spell = SpellType.fromDisplayName(spellName)
+        // Try to match spell name (with optional player argument for PLAYER_OR_SELF spells)
+        var spellName = args.joinToString(" ")
+        var spell = SpellType.fromDisplayName(spellName)
             ?: SpellType.entries.find { it.name.equals(spellName.replace(" ", "_"), ignoreCase = true) }
+
+        var targetPlayer: Player? = null
+
+        // If no match and multiple args, try with last arg as player name
+        if (spell == null && args.size > 1) {
+            val spellArgs = args.dropLast(1)
+            val playerArg = args.last()
+            spellName = spellArgs.joinToString(" ")
+            spell = SpellType.fromDisplayName(spellName)
+                ?: SpellType.entries.find { it.name.equals(spellName.replace(" ", "_"), ignoreCase = true) }
+
+            if (spell != null && spell.targetType == com.hacklab.minecraft.skills.magic.SpellTargetType.PLAYER_OR_SELF) {
+                targetPlayer = plugin.server.getPlayer(playerArg)
+                if (targetPlayer == null) {
+                    sender.sendMessage("Player not found: $playerArg")
+                    return true
+                }
+            } else if (spell != null) {
+                // Spell matched but doesn't support player argument
+                spell = null  // Reset to show "unknown spell" with full args
+                spellName = args.joinToString(" ")
+            }
+        }
 
         if (spell == null) {
             sender.sendMessage("Unknown spell: $spellName")
@@ -49,7 +73,7 @@ class CastCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
         }
 
         // Cast spell and set cooldown
-        plugin.spellManager.castSpell(sender, spell)
+        plugin.spellManager.castSpell(sender, spell, targetPlayer = targetPlayer)
         plugin.cooldownManager.setCooldown(sender.uniqueId, CooldownAction.CAST_SPELL)
         return true
     }

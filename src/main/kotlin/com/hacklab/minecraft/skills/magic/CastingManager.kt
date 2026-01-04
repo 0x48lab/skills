@@ -24,7 +24,8 @@ class CastingManager(private val plugin: Skills) {
         val startLocation: Location,
         val bossBar: BossBar,
         var phase: CastPhase = CastPhase.CASTING,
-        var taskId: Int = -1
+        var taskId: Int = -1,
+        val preSelectedTarget: Player? = null  // For PLAYER_OR_SELF spells with command argument
     )
 
     enum class CastPhase {
@@ -34,8 +35,9 @@ class CastingManager(private val plugin: Skills) {
 
     /**
      * Start casting a spell
+     * @param targetPlayer For PLAYER_OR_SELF spells, pre-selected target from command argument
      */
-    fun startCasting(player: Player, spell: SpellType, useScroll: Boolean): Boolean {
+    fun startCasting(player: Player, spell: SpellType, useScroll: Boolean, targetPlayer: Player? = null): Boolean {
         // Cancel any existing casting
         cancelCasting(player.uniqueId, silent = true)
 
@@ -66,7 +68,8 @@ class CastingManager(private val plugin: Skills) {
             startTime = System.currentTimeMillis(),
             castDuration = castTime,
             startLocation = player.location.clone(),
-            bossBar = bossBar
+            bossBar = bossBar,
+            preSelectedTarget = targetPlayer
         )
         castingStates[player.uniqueId] = state
 
@@ -138,6 +141,12 @@ class CastingManager(private val plugin: Skills) {
             return
         }
 
+        // PLAYER_OR_SELF: if pre-selected target exists, cast immediately on that target
+        if (state.spell.targetType == SpellTargetType.PLAYER_OR_SELF && state.preSelectedTarget != null) {
+            finishCasting(player, state, state.preSelectedTarget, null)
+            return
+        }
+
         // Switch to targeting phase
         state.phase = CastPhase.TARGETING
         state.bossBar.color(BossBar.Color.RED)
@@ -199,6 +208,16 @@ class CastingManager(private val plugin: Skills) {
             }
             SpellTargetType.TARGET_LOCATION, SpellTargetType.AREA -> {
                 plugin.spellManager.raycastForLocation(player, 30.0)
+            }
+            SpellTargetType.PLAYER_OR_SELF -> {
+                // For PLAYER_OR_SELF: raycast for player, if not found use self
+                val rayResult = plugin.spellManager.raycastForEntity(player, 30.0)
+                if (rayResult.entity is Player) {
+                    rayResult
+                } else {
+                    // No player hit - target self
+                    SpellManager.RaycastResult(player, player.location)
+                }
             }
             else -> return false
         }

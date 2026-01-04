@@ -19,8 +19,9 @@ class SpellManager(private val plugin: Skills) {
 
     /**
      * Attempt to cast a spell
+     * @param targetPlayer For PLAYER_OR_SELF spells, the pre-selected target player (from command argument)
      */
-    fun castSpell(player: Player, spell: SpellType, useScroll: Boolean = false): CastResult {
+    fun castSpell(player: Player, spell: SpellType, useScroll: Boolean = false, targetPlayer: Player? = null): CastResult {
         val data = plugin.playerDataManager.getPlayerData(player)
 
         // Check if using scroll
@@ -60,14 +61,14 @@ class SpellManager(private val plugin: Skills) {
         val castTime = baseCastTime + (spell.circle.number * 500L)
 
         // Start cast sequence
-        startCastSequence(player, spell, castTime, useScroll)
+        startCastSequence(player, spell, castTime, useScroll, targetPlayer)
 
         return CastResult.CASTING
     }
 
-    private fun startCastSequence(player: Player, spell: SpellType, castTime: Long, useScroll: Boolean) {
+    private fun startCastSequence(player: Player, spell: SpellType, castTime: Long, useScroll: Boolean, targetPlayer: Player? = null) {
         // Use the new CastingManager for casting with BossBar display
-        plugin.castingManager.startCasting(player, spell, useScroll)
+        plugin.castingManager.startCasting(player, spell, useScroll, targetPlayer)
     }
 
     /**
@@ -637,11 +638,12 @@ class SpellManager(private val plugin: Skills) {
             }
 
             SpellType.NIGHT_SIGHT -> {
+                val target = (entityTarget as? Player) ?: caster
                 val duration = 6000 + (magerySkill * 60).toInt()  // 5-10 minutes
-                caster.addPotionEffect(PotionEffect(PotionEffectType.NIGHT_VISION, duration, 0))
+                target.addPotionEffect(PotionEffect(PotionEffectType.NIGHT_VISION, duration, 0))
                 // Visual: Eye glow
-                caster.world.spawnParticle(Particle.END_ROD, caster.eyeLocation, 10, 0.1, 0.1, 0.1, 0.02)
-                caster.world.playSound(caster.location, Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 1.5f)
+                target.world.spawnParticle(Particle.END_ROD, target.eyeLocation, 10, 0.1, 0.1, 0.1, 0.02)
+                target.world.playSound(target.location, Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 1.5f)
             }
 
             SpellType.FEATHER_FALL -> {
