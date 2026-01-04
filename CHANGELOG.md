@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-01-04
+
+### Added
+- **Sleep Skip Command**
+  - `/sleep` command allows players to be counted as sleeping without being in a bed
+  - Requirements: night time, in Overworld, at least one player already sleeping in a bed
+  - When enough players are sleeping (including /sleep users), night will be skipped
+  - Respects `playersSleepingPercentage` game rule
+  - Auto-cancels on world change, logout, or when night is skipped
+  - Bilingual support (English/Japanese)
+
+- **Sleep Notification System**
+  - When a player enters a bed, awake players receive a clickable notification
+  - Notification includes a clickable button that runs `/sleep` command
+  - Hover text explains the action
+  - Messages localized in English and Japanese
+
+- **Sleep Feature Configuration**
+  - Added `sleep.enabled` config option to enable/disable the sleep skip feature
+  - Enabled by default
+  - When disabled, `/sleep` command shows disabled message and bed notifications are not sent
+
 ## [0.3.0] - 2026-01-04
 
 ### Added

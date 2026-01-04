@@ -215,6 +215,21 @@ economy:
   mob_reward: "<yellow>{amount} を てにいれた！"
   chunk_limit_reached: "<yellow>このエリアでの報酬上限に達しました。（リセットまで{minutes}分）"
 
+# 睡眠メッセージ
+sleep:
+  disabled: "<red>睡眠スキップ機能はこのサーバーで無効になっています。"
+  not_night: "<red>/sleep は夜の間だけ使用できます。"
+  wrong_dimension: "<red>/sleep はオーバーワールドでのみ使用できます。"
+  no_sleeping_players: "<red>まず誰かがベッドで寝ている必要があります。"
+  already_sleeping: "<yellow>既に睡眠中です。"
+  started: "<green>睡眠中としてカウントされます。"
+  cancelled: "<gray>睡眠がキャンセルされました。"
+  percentage: "<gray>{count}/{total} 人が睡眠中 ({percentage}%)"
+  night_skipped: "<green>おはようございます！夜がスキップされました。"
+  notify: "{player} が寝ています。"
+  click_to_sleep: "一緒に寝る"
+  click_hover: "クリックして夜をスキップ"
+
 # 共通
 common:
   "yes": "はい"

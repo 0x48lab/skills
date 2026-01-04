@@ -189,6 +189,20 @@ enum class MessageKey(val path: String) {
     ECONOMY_MOB_REWARD("economy.mob_reward"),
     ECONOMY_CHUNK_LIMIT_REACHED("economy.chunk_limit_reached"),
 
+    // Sleep
+    SLEEP_DISABLED("sleep.disabled"),
+    SLEEP_NOT_NIGHT("sleep.not_night"),
+    SLEEP_WRONG_DIMENSION("sleep.wrong_dimension"),
+    SLEEP_NO_SLEEPING_PLAYERS("sleep.no_sleeping_players"),
+    SLEEP_ALREADY_SLEEPING("sleep.already_sleeping"),
+    SLEEP_STARTED("sleep.started"),
+    SLEEP_CANCELLED("sleep.cancelled"),
+    SLEEP_PERCENTAGE("sleep.percentage"),
+    SLEEP_NIGHT_SKIPPED("sleep.night_skipped"),
+    SLEEP_NOTIFY("sleep.notify"),
+    SLEEP_CLICK_TO_SLEEP("sleep.click_to_sleep"),
+    SLEEP_CLICK_HOVER("sleep.click_hover"),
+
     // Common
     COMMON_YES("common.yes"),
     COMMON_NO("common.no"),

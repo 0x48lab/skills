@@ -342,7 +342,25 @@ Price: 40-60 emeralds
 /tame - Tame animal
 /arms - Evaluate gear
 /scribe - Make scroll
+/sleep - Sleep skip
 /skills guide - This guide
+
+---PAGE---
+
+=== Sleep Skip ===
+
+Use /sleep to be counted as
+sleeping without a bed.
+
+Requirements:
+- Must be night time
+- Must be in Overworld
+- Someone must already be
+  sleeping in a bed
+
+When enough players sleep
+(including /sleep users),
+night will skip!
 
 ---PAGE---
 

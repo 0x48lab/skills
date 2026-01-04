@@ -23,10 +23,17 @@ class MessageSender(private val plugin: Skills) {
     }
 
     /**
-     * Send a raw string message
+     * Send a raw string message to a player
      */
     fun sendRaw(player: Player, message: String) {
         player.sendMessage(Component.text(message))
+    }
+
+    /**
+     * Send a raw string message to a command sender (player or console)
+     */
+    fun sendRaw(sender: org.bukkit.command.CommandSender, message: String) {
+        sender.sendMessage(Component.text(message))
     }
 
     /**

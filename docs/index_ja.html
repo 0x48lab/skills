@@ -652,6 +652,7 @@ Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
                 <tr><td><code>/cast &lt;魔法名&gt;</code></td><td>魔法を詠唱</td></tr>
                 <tr><td><code>/language &lt;en|ja&gt;</code></td><td>表示言語を変更</td></tr>
                 <tr><td><code>/arms</code></td><td>手持ちの武器・防具を鑑定</td></tr>
+                <tr><td><code>/sleep</code></td><td>ベッドなしで睡眠中としてカウント（夜＋誰かがベッドで寝ている時のみ）</td></tr>
             </table>
 
             <h3>シーフコマンド</h3>
@@ -691,6 +692,14 @@ Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
         <!-- 変更履歴 -->
         <section id="changelog">
             <h2>変更履歴</h2>
+
+            <div class="changelog-entry">
+                <h4>v0.3.1</h4>
+                <span class="date">2026-01-04</span>
+                <ul>
+                    <li><strong>睡眠スキップコマンド</strong> - /sleep でベッドなしでも睡眠中としてカウント（夜＋誰かがベッドで寝ている時のみ使用可能）</li>
+                </ul>
+            </div>
 
             <div class="changelog-entry">
                 <h4>v0.3.0</h4>

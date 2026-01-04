@@ -215,6 +215,21 @@ economy:
   mob_reward: "<yellow>You received {amount}!"
   chunk_limit_reached: "<yellow>Reward limit reached in this area. (Resets in {minutes} minutes)"
 
+# Sleep messages
+sleep:
+  disabled: "<red>Sleep skip feature is disabled on this server."
+  not_night: "<red>You can only use /sleep at night."
+  wrong_dimension: "<red>You can only use /sleep in the Overworld."
+  no_sleeping_players: "<red>Someone must be sleeping in a bed first."
+  already_sleeping: "<yellow>You are already sleeping."
+  started: "<green>You are now counted as sleeping."
+  cancelled: "<gray>You are no longer counted as sleeping."
+  percentage: "<gray>{count}/{total} players sleeping ({percentage}%)"
+  night_skipped: "<green>Good morning! The night has been skipped."
+  notify: "{player} is sleeping."
+  click_to_sleep: "Sleep too"
+  click_hover: "Click to skip the night together"
+
 # Common words
 common:
   "yes": "Yes"

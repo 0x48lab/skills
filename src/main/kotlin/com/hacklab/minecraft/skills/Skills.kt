@@ -180,6 +180,10 @@ class Skills : JavaPlugin() {
     lateinit var runebookListener: RunebookListener
         private set
 
+    // Sleep
+    lateinit var sleepCommand: SleepCommand
+        private set
+
     override fun onEnable() {
         // Save default config
         saveDefaultConfig()
@@ -365,6 +369,9 @@ class Skills : JavaPlugin() {
         // Runebook GUI
         runebookListener = RunebookListener(this)
         pm.registerEvents(runebookListener, this)
+
+        // Sleep
+        pm.registerEvents(SleepListener(this), this)
     }
 
     private fun registerCommands() {
@@ -396,6 +403,9 @@ class Skills : JavaPlugin() {
         getCommand("arms")?.setExecutor(ArmsCommand(this))
         getCommand("scribe")?.setExecutor(ScribeCommand(this))
 
+        // Sleep command
+        sleepCommand = SleepCommand(this)
+        getCommand("sleep")?.setExecutor(sleepCommand)
     }
 
     private fun startScheduledTasks() {
