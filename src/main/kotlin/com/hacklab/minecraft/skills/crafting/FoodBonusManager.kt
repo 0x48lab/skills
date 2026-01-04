@@ -8,6 +8,7 @@ import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
+import kotlin.math.roundToInt
 
 /**
  * Manages food bonus from Cooking skill
@@ -22,6 +23,7 @@ class FoodBonusManager(private val plugin: Skills) {
 
     private val bonusKey = NamespacedKey(plugin, "cooking_bonus")
     private val cookerKey = NamespacedKey(plugin, "cooker")
+    private val qualityKey = NamespacedKey(plugin, "food_quality")
 
     /**
      * Apply cooking bonus to a food item
@@ -44,9 +46,12 @@ class FoodBonusManager(private val plugin: Skills) {
 
         val meta = item.itemMeta ?: return item
 
-        // Store bonus in persistent data
-        meta.persistentDataContainer.set(bonusKey, PersistentDataType.DOUBLE, bonusPercent)
+        // Store bonus in persistent data (rounded to 1% precision to match Lore display)
+        // This ensures items with same displayed percentage will stack
+        val roundedBonus = (bonusPercent * 100).roundToInt() / 100.0
+        meta.persistentDataContainer.set(bonusKey, PersistentDataType.DOUBLE, roundedBonus)
         meta.persistentDataContainer.set(cookerKey, PersistentDataType.STRING, cookerName)
+        meta.persistentDataContainer.set(qualityKey, PersistentDataType.STRING, quality.name)
 
         // Update lore to show bonus
         val lore = meta.lore()?.toMutableList() ?: mutableListOf()
@@ -71,8 +76,8 @@ class FoodBonusManager(private val plugin: Skills) {
             }
         }
 
-        // Add bonus lore
-        val bonusDisplay = if (bonusPercent >= 0) "+${(bonusPercent * 100).toInt()}%" else "${(bonusPercent * 100).toInt()}%"
+        // Add bonus lore (use roundedBonus to match stored value)
+        val bonusDisplay = if (roundedBonus >= 0) "+${(roundedBonus * 100).toInt()}%" else "${(roundedBonus * 100).toInt()}%"
         val bonusColor = when {
             bonusPercent > 0.1 -> NamedTextColor.GREEN
             bonusPercent > 0 -> NamedTextColor.DARK_GREEN
@@ -140,12 +145,88 @@ class FoodBonusManager(private val plugin: Skills) {
     }
 
     /**
+     * Normalize the cooking bonus value to fix floating point precision issues.
+     * This allows old items (before the fix) to stack with new items.
+     * Also updates the Lore to match the normalized value.
+     *
+     * @param item The food item to normalize
+     * @return true if the item was modified, false otherwise
+     */
+    fun normalizeBonus(item: ItemStack): Boolean {
+        if (!hasFoodBonus(item)) return false
+
+        val meta = item.itemMeta ?: return false
+        val currentBonus = meta.persistentDataContainer.get(bonusKey, PersistentDataType.DOUBLE) ?: return false
+
+        // Round to 1% precision to match Lore display
+        val roundedBonus = (currentBonus * 100).roundToInt() / 100.0
+
+        // Calculate expected Lore display
+        val expectedDisplay = if (roundedBonus >= 0) "+${(roundedBonus * 100).toInt()}%" else "${(roundedBonus * 100).toInt()}%"
+
+        // Check if Lore needs updating
+        val lore = meta.lore()?.toMutableList() ?: mutableListOf()
+        val recoveryIndex = lore.indexOfFirst { component ->
+            val plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(component)
+            plain.contains("Recovery:")
+        }
+
+        val currentLoreText = if (recoveryIndex >= 0) {
+            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(lore[recoveryIndex])
+        } else {
+            ""
+        }
+
+        val needsUpdate = currentBonus != roundedBonus || !currentLoreText.contains(expectedDisplay)
+
+        if (needsUpdate) {
+            // Update PDC value
+            meta.persistentDataContainer.set(bonusKey, PersistentDataType.DOUBLE, roundedBonus)
+
+            // Update Lore
+            val bonusColor = when {
+                roundedBonus > 0.1 -> NamedTextColor.GREEN
+                roundedBonus > 0 -> NamedTextColor.DARK_GREEN
+                roundedBonus < 0 -> NamedTextColor.RED
+                else -> NamedTextColor.GRAY
+            }
+
+            val newRecoveryLine = Component.text("Recovery: $expectedDisplay")
+                .color(bonusColor)
+                .decoration(TextDecoration.ITALIC, false)
+
+            if (recoveryIndex >= 0) {
+                lore[recoveryIndex] = newRecoveryLine
+            } else {
+                lore.add(newRecoveryLine)
+            }
+
+            meta.lore(lore)
+            item.itemMeta = meta
+            return true
+        }
+        return false
+    }
+
+    /**
      * Get the cooker name from a food item
      */
     fun getCookerName(item: ItemStack?): String? {
         if (item == null) return null
         return item.itemMeta?.persistentDataContainer
             ?.get(cookerKey, PersistentDataType.STRING)
+    }
+
+    /**
+     * Get the quality from a food item
+     */
+    fun getFoodQuality(item: ItemStack?): QualityType {
+        if (item == null) return QualityType.NORMAL_QUALITY
+        val qualityName = item.itemMeta?.persistentDataContainer
+            ?.get(qualityKey, PersistentDataType.STRING)
+        return qualityName?.let {
+            try { QualityType.valueOf(it) } catch (e: Exception) { QualityType.NORMAL_QUALITY }
+        } ?: QualityType.NORMAL_QUALITY
     }
 
     /**

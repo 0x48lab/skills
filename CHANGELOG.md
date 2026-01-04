@@ -5,6 +5,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-01-04
+
+### Added
+- **Health Boost for High Quality Food**
+  - HQ food grants Health Boost I (+2 hearts) for 30 seconds when eaten
+  - EX food grants Health Boost I (+2 hearts) for 1 minute when eaten
+  - Balanced to not overshadow golden apples (which give Absorption + Regeneration)
+  - Food quality is now stored in PersistentDataContainer
+
+- **GM (Skill 100) Complete Immunity**
+  - All survival skills at level 100 now grant complete damage immunity
+  - Uses `event.isCancelled = true` to prevent damage AND screen shake effect
+  - Applies to: Athletics, Swimming, Heat Resistance, Cold Resistance, Endurance
+  - Heat Resistance GM: Also immediately extinguishes fire (`fireTicks = 0`)
+  - Cold Resistance GM: Also immediately clears freeze (`freezeTicks = 0`)
+
+### Fixed
+- **Item Stacking Bug**
+  - Fixed items with same name/quality not stacking when picked up
+  - Root cause: `setMaxStackSize()` created different ItemMeta preventing stacking
+  - Solution: Synchronize MaxStackSize across all items of same type using highest value
+  - Applies when picking up items, taking from containers, and on login
+
+- **Food Item Stacking Issue (Floating Point Precision)**
+  - Fixed same-quality food items not stacking due to floating point precision differences
+  - Root cause: Cooking skill increases during cooking, causing slightly different bonus values
+  - Solution: Cooking bonus now rounded to 1% precision (matching Lore display)
+  - Both PDC value AND Lore are now updated consistently using the same rounded value
+  - Existing items are automatically normalized when picking up food items
+  - Old and new items can now stack together after picking up any food item
+
+- **Survival Skills Damage Rebalancing** (Breaking Change)
+  - All survival skills now compensate for internal HP system (x10 damage multiplier)
+  - New formula: 90% base reduction + up to 90% skill-based reduction
+  - Skill 0: ~vanilla damage (10% of internal damage)
+  - Skill 100: 1% damage (effectively immune, but with screen shake)
+  - Affected skills: Athletics, Swimming, Heat Resistance, Cold Resistance, Endurance
+  - Contact damage (cactus/berry bush) now uses same formula via Endurance skill
+
+- **Admin Command Skill Name Parsing**
+  - Fixed `/skilladmin set <player> <skill> <value>` failing for skills with spaces
+  - Example: `/skilladmin set player Heat Resistance 100` now works correctly
+  - Skill name is parsed by joining all arguments between player and value
+
+### Changed
+- **Endurance Skill Expanded**
+  - Now covers both suffocation damage and contact damage (cactus, berry bush, etc.)
+  - Skill gains from both suffocation (difficulty 50) and contact damage (difficulty 15)
+
 ## [0.2.9] - 2026-01-04
 
 ### Added

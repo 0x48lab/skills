@@ -2,8 +2,10 @@ package com.hacklab.minecraft.skills.crafting
 
 import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.skill.SkillType
+import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.PlayerInventory
 import org.bukkit.inventory.meta.ItemMeta
 
 /**
@@ -143,5 +145,148 @@ class StackBonusManager(private val plugin: Skills) {
         } else {
             item.type.maxStackSize
         }
+    }
+
+    /**
+     * Apply stack bonus with inventory synchronization.
+     * Finds existing items of the same type and uses the higher MaxStackSize.
+     * This ensures items can stack properly by maintaining consistent MaxStackSize.
+     *
+     * @param item The item to modify
+     * @param player The player whose skills determine the stack size
+     * @return The modified item (same instance)
+     */
+    fun applyStackBonusWithSync(item: ItemStack, player: Player): ItemStack {
+        // Only apply to stackable items (original max > 1)
+        if (item.type.maxStackSize <= 1) {
+            return item
+        }
+
+        // Normalize food bonus values to fix floating point precision issues
+        // This allows old items to stack with new items
+        if (item.type.isEdible) {
+            plugin.craftingManager.foodBonusManager.normalizeBonus(item)
+            normalizeFoodBonusInInventory(player.inventory, item.type)
+
+            // Debug: Log item comparison
+            debugItemComparison(player, item)
+        }
+
+        val calculatedMax = calculateMaxStackSize(player)
+        val existingMax = findHighestMaxStackSize(player.inventory, item.type)
+        val targetMax = maxOf(calculatedMax, existingMax, BASE_STACK_SIZE)
+
+        if (targetMax > BASE_STACK_SIZE) {
+            // Update picked up item
+            setMaxStackSize(item, targetMax)
+
+            // Update existing items in inventory to match
+            updateInventoryItems(player.inventory, item.type, targetMax)
+        }
+
+        return item
+    }
+
+    /**
+     * Normalize food bonus values for all items of a given type in the inventory.
+     * This fixes floating point precision issues that prevent stacking.
+     */
+    private fun normalizeFoodBonusInInventory(inventory: PlayerInventory, type: Material) {
+        for (i in 0 until inventory.size) {
+            val invItem = inventory.getItem(i) ?: continue
+            if (invItem.type == type) {
+                if (plugin.craftingManager.foodBonusManager.normalizeBonus(invItem)) {
+                    inventory.setItem(i, invItem)
+                }
+            }
+        }
+    }
+
+    /**
+     * Debug: Compare picked up item with inventory items to find differences
+     */
+    private fun debugItemComparison(player: Player, pickedItem: ItemStack) {
+        val logger = plugin.logger
+        val bonusKey = org.bukkit.NamespacedKey(plugin, "cooking_bonus")
+        val cookerKey = org.bukkit.NamespacedKey(plugin, "cooker")
+
+        logger.info("=== DEBUG: Item Comparison for ${player.name} ===")
+        logger.info("Picked item: ${pickedItem.type}")
+
+        val pickedMeta = pickedItem.itemMeta
+        if (pickedMeta != null) {
+            logger.info("  MaxStackSize: ${if (pickedMeta.hasMaxStackSize()) pickedMeta.maxStackSize else "not set"}")
+            val pdc = pickedMeta.persistentDataContainer
+            val cookingBonus = pdc.get(bonusKey, org.bukkit.persistence.PersistentDataType.DOUBLE)
+            val cooker = pdc.get(cookerKey, org.bukkit.persistence.PersistentDataType.STRING)
+            logger.info("  cooking_bonus: $cookingBonus")
+            logger.info("  cooker: $cooker")
+        }
+
+        // Compare with first matching item in inventory
+        for (i in 0 until player.inventory.size) {
+            val invItem = player.inventory.getItem(i) ?: continue
+            if (invItem.type == pickedItem.type && invItem !== pickedItem) {
+                logger.info("--- Comparing with inventory slot $i (amount: ${invItem.amount}) ---")
+                val invMeta = invItem.itemMeta
+                if (invMeta != null) {
+                    logger.info("  MaxStackSize: ${if (invMeta.hasMaxStackSize()) invMeta.maxStackSize else "not set"}")
+                    val pdc = invMeta.persistentDataContainer
+                    val cookingBonus = pdc.get(bonusKey, org.bukkit.persistence.PersistentDataType.DOUBLE)
+                    val cooker = pdc.get(cookerKey, org.bukkit.persistence.PersistentDataType.STRING)
+                    logger.info("  cooking_bonus: $cookingBonus")
+                    logger.info("  cooker: $cooker")
+                }
+                logger.info("  isSimilar: ${pickedItem.isSimilar(invItem)}")
+            }
+        }
+        logger.info("=== END DEBUG ===")
+    }
+
+    /**
+     * Find the highest MaxStackSize among items of a given type in the inventory.
+     *
+     * @param inventory The player's inventory
+     * @param type The material type to search for
+     * @return The highest MaxStackSize found, or BASE_STACK_SIZE if none found
+     */
+    private fun findHighestMaxStackSize(inventory: PlayerInventory, type: Material): Int {
+        var highest = BASE_STACK_SIZE
+        for (i in 0 until inventory.size) {
+            val invItem = inventory.getItem(i) ?: continue
+            if (invItem.type == type) {
+                highest = maxOf(highest, getMaxStackSize(invItem))
+            }
+        }
+        return highest
+    }
+
+    /**
+     * Update all items of a given type in the inventory to have the target MaxStackSize.
+     *
+     * @param inventory The player's inventory
+     * @param type The material type to update
+     * @param targetMax The target MaxStackSize
+     */
+    private fun updateInventoryItems(inventory: PlayerInventory, type: Material, targetMax: Int) {
+        for (i in 0 until inventory.size) {
+            val invItem = inventory.getItem(i) ?: continue
+            if (invItem.type == type && getMaxStackSize(invItem) < targetMax) {
+                setMaxStackSize(invItem, targetMax)
+                inventory.setItem(i, invItem)
+            }
+        }
+    }
+
+    /**
+     * Set the MaxStackSize on an item.
+     *
+     * @param item The item to modify
+     * @param size The MaxStackSize to set
+     */
+    private fun setMaxStackSize(item: ItemStack, size: Int) {
+        val meta = item.itemMeta ?: return
+        meta.setMaxStackSize(size)
+        item.itemMeta = meta
     }
 }

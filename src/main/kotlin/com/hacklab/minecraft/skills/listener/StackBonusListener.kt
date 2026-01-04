@@ -22,14 +22,15 @@ class StackBonusListener(private val plugin: Skills) : Listener {
 
     /**
      * Apply stack bonus when player picks up items from the ground.
+     * Uses sync version to ensure items can stack with existing inventory items.
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun onPickupItem(event: EntityPickupItemEvent) {
         val player = event.entity as? Player ?: return
         val item = event.item.itemStack
 
-        // Apply stack bonus to the picked up item
-        plugin.stackBonusManager.applyStackBonus(item, player)
+        // Apply stack bonus with inventory sync to maintain stacking compatibility
+        plugin.stackBonusManager.applyStackBonusWithSync(item, player)
 
         // Update the dropped item entity
         event.item.itemStack = item
@@ -37,6 +38,7 @@ class StackBonusListener(private val plugin: Skills) : Listener {
 
     /**
      * Apply stack bonus when player takes items from containers.
+     * Uses sync version to ensure items can stack with existing inventory items.
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun onInventoryClick(event: InventoryClickEvent) {
@@ -52,14 +54,14 @@ class StackBonusListener(private val plugin: Skills) : Listener {
             // Player is clicking on a container inventory
             val item = event.currentItem ?: return
 
-            // Apply stack bonus to the item being taken
-            plugin.stackBonusManager.applyStackBonus(item, player)
+            // Apply stack bonus with inventory sync to maintain stacking compatibility
+            plugin.stackBonusManager.applyStackBonusWithSync(item, player)
         }
 
         // Also handle shift-click from container to player inventory
         if (event.isShiftClick && clickedInventory.type != InventoryType.PLAYER) {
             val item = event.currentItem ?: return
-            plugin.stackBonusManager.applyStackBonus(item, player)
+            plugin.stackBonusManager.applyStackBonusWithSync(item, player)
         }
     }
 
