@@ -104,42 +104,16 @@ class RunebookListener(private val plugin: Skills) : Listener {
             // Always cancel clicks in the runebook GUI
             event.isCancelled = true
 
-            when {
-                // Close button
-                clickedSlot == RunebookManager.CLOSE_SLOT -> {
-                    player.closeInventory()
-                    player.world.playSound(player.location, Sound.UI_BUTTON_CLICK, 0.5f, 1.0f)
-                }
-
-                // Info slot - do nothing
-                clickedSlot == RunebookManager.INFO_SLOT -> {
-                    // No action
-                }
-
-                // Drop zone (row 3) - add rune if player is holding a marked rune
-                clickedSlot in RunebookManager.DROP_ZONE_START..RunebookManager.DROP_ZONE_END -> {
-                    if (cursorItem.type != Material.AIR) {
-                        handleRuneDrop(player, runebook, cursorItem, useJapanese)
-                    }
-                }
-
-                // Rune slots (row 1-2, excluding info and close buttons)
-                else -> {
-                    // If clicking on empty slot (gray glass)
-                    if (clickedItem?.type == Material.GRAY_STAINED_GLASS_PANE) {
-                        // If player is holding a rune on cursor, add it to runebook
-                        if (cursorItem.type != Material.AIR) {
-                            handleRuneDrop(player, runebook, cursorItem, useJapanese)
-                        }
-                        // Either way, don't allow picking up the glass
-                        return
-                    }
-                    val runeIndex = plugin.runebookManager.getRuneIndex(clickedItem)
-                    if (runeIndex != null) {
-                        handleRuneSlotClick(player, runebook, runeIndex, event.click, useJapanese)
-                    }
-                }
+            // Check if clicking on a registered rune
+            val runeIndex = plugin.runebookManager.getRuneIndex(clickedItem)
+            if (runeIndex != null) {
+                // Handle rune operations (Recall, Gate Travel, Remove)
+                handleRuneSlotClick(player, runebook, runeIndex, event.click, useJapanese)
+            } else if (cursorItem.type != Material.AIR) {
+                // Clicking on empty slot with a rune on cursor - try to add it
+                handleRuneDrop(player, runebook, cursorItem, useJapanese)
             }
+            // Empty slot clicked with nothing on cursor - do nothing
         }
         // Normal clicks in player inventory are allowed (to pick up runes)
     }
@@ -180,12 +154,13 @@ class RunebookListener(private val plugin: Skills) : Listener {
 
         val success = plugin.runebookManager.addRune(runebook, rune, useJapanese)
         if (success) {
-            // Clear the cursor (rune is consumed)
-            player.setItemOnCursor(null)
             player.world.playSound(player.location, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 1.2f)
             plugin.messageSender.send(player, MessageKey.RUNEBOOK_RUNE_ADDED)
-            // Refresh GUI
-            plugin.runebookManager.openGUI(player, runebook)
+            // Refresh GUI and clear cursor in next tick to avoid timing issues
+            plugin.server.scheduler.runTask(plugin, Runnable {
+                player.setItemOnCursor(null)
+                plugin.runebookManager.openGUI(player, runebook)
+            })
         } else {
             plugin.messageSender.send(player, MessageKey.RUNEBOOK_FULL)
         }

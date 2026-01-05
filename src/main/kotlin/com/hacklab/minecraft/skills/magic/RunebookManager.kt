@@ -29,14 +29,8 @@ class RunebookManager(private val plugin: Skills) {
 
     companion object {
         const val MAX_RUNES = 16
-        const val GUI_ROWS = 3
-        const val GUI_SIZE = GUI_ROWS * 9  // 27 slots
-
-        // GUI slot positions
-        const val INFO_SLOT = 8          // Row 1, last slot
-        const val CLOSE_SLOT = 17        // Row 2, last slot
-        const val DROP_ZONE_START = 18   // Row 3 start
-        const val DROP_ZONE_END = 26     // Row 3 end
+        const val GUI_ROWS = 2
+        const val GUI_SIZE = GUI_ROWS * 9  // 18 slots (16 rune slots + 2 unused)
     }
 
     /**
@@ -206,6 +200,7 @@ class RunebookManager(private val plugin: Skills) {
 
     /**
      * Open the runebook GUI for a player
+     * Simple 2-row layout: 16 rune slots, empty slots are just empty (AIR)
      */
     fun openGUI(player: Player, runebook: ItemStack) {
         if (!isRunebook(runebook)) return
@@ -217,30 +212,16 @@ class RunebookManager(private val plugin: Skills) {
 
         val runes = getRunes(runebook)
 
-        // Row 1-2: Rune slots (0-7, 9-16)
+        // Slots 0-15: Rune slots (row 1: 0-7, row 2: 9-16, skip 8 and 17)
         for (i in 0 until MAX_RUNES) {
-            val slot = if (i < 8) i else (i + 1)  // Skip slot 8 (info) and continue at slot 9
+            val slot = if (i < 8) i else (i + 1)  // Skip slot 8, continue at slot 9
 
             if (i < runes.size) {
                 // Filled rune slot
                 val entry = runes[i]
                 inventory.setItem(slot, createRuneSlotItem(entry, i, useJapanese))
-            } else {
-                // Empty slot
-                inventory.setItem(slot, createEmptySlotItem(useJapanese))
             }
-        }
-
-        // Info button (slot 8)
-        inventory.setItem(INFO_SLOT, createInfoItem(runes.size, useJapanese))
-
-        // Close button (slot 17)
-        inventory.setItem(CLOSE_SLOT, createCloseItem(useJapanese))
-
-        // Row 3: Drop zone for adding runes (slots 18-26)
-        val dropZoneItem = createDropZoneItem(useJapanese)
-        for (slot in DROP_ZONE_START..DROP_ZONE_END) {
-            inventory.setItem(slot, dropZoneItem)
+            // Empty slots remain null (AIR) - no glass panes
         }
 
         player.openInventory(inventory)
@@ -283,100 +264,6 @@ class RunebookManager(private val plugin: Skills) {
             index
         )
 
-        item.itemMeta = meta
-        return item
-    }
-
-    /**
-     * Create an item representing an empty rune slot
-     */
-    private fun createEmptySlotItem(useJapanese: Boolean): ItemStack {
-        val item = ItemStack(Material.GRAY_STAINED_GLASS_PANE)
-        val meta = item.itemMeta ?: return item
-
-        val name = if (useJapanese) "空きスロット" else "Empty Slot"
-        meta.displayName(
-            Component.text(name)
-                .color(NamedTextColor.DARK_GRAY)
-                .decoration(TextDecoration.ITALIC, false)
-        )
-
-        item.itemMeta = meta
-        return item
-    }
-
-    /**
-     * Create the info item
-     */
-    private fun createInfoItem(runeCount: Int, useJapanese: Boolean): ItemStack {
-        val item = ItemStack(Material.BOOK)
-        val meta = item.itemMeta ?: return item
-
-        val name = if (useJapanese) "情報" else "Info"
-        meta.displayName(
-            Component.text(name)
-                .color(NamedTextColor.AQUA)
-                .decoration(TextDecoration.ITALIC, false)
-        )
-
-        val lore = mutableListOf<Component>()
-        if (useJapanese) {
-            lore.add(Component.text("登録ルーン: $runeCount/${MAX_RUNES}").color(NamedTextColor.WHITE))
-            lore.add(Component.text(""))
-            lore.add(Component.text("下の行にルーンをドロップして追加").color(NamedTextColor.YELLOW))
-        } else {
-            lore.add(Component.text("Runes: $runeCount/${MAX_RUNES}").color(NamedTextColor.WHITE))
-            lore.add(Component.text(""))
-            lore.add(Component.text("Drop runes on bottom row to add").color(NamedTextColor.YELLOW))
-        }
-
-        meta.lore(lore)
-        item.itemMeta = meta
-        return item
-    }
-
-    /**
-     * Create the close button item
-     */
-    private fun createCloseItem(useJapanese: Boolean): ItemStack {
-        val item = ItemStack(Material.BARRIER)
-        val meta = item.itemMeta ?: return item
-
-        val name = if (useJapanese) "閉じる" else "Close"
-        meta.displayName(
-            Component.text(name)
-                .color(NamedTextColor.RED)
-                .decoration(TextDecoration.ITALIC, false)
-        )
-
-        item.itemMeta = meta
-        return item
-    }
-
-    /**
-     * Create the drop zone indicator item
-     */
-    private fun createDropZoneItem(useJapanese: Boolean): ItemStack {
-        val item = ItemStack(Material.LIGHT_BLUE_STAINED_GLASS_PANE)
-        val meta = item.itemMeta ?: return item
-
-        val name = if (useJapanese) "ルーンをここにドロップ" else "Drop Rune Here"
-        meta.displayName(
-            Component.text(name)
-                .color(NamedTextColor.AQUA)
-                .decoration(TextDecoration.ITALIC, false)
-        )
-
-        val lore = mutableListOf<Component>()
-        if (useJapanese) {
-            lore.add(Component.text("記録済みのルーンをドロップして").color(NamedTextColor.GRAY))
-            lore.add(Component.text("ルーンの書に追加").color(NamedTextColor.GRAY))
-        } else {
-            lore.add(Component.text("Drop a marked rune here to").color(NamedTextColor.GRAY))
-            lore.add(Component.text("add it to the runebook").color(NamedTextColor.GRAY))
-        }
-
-        meta.lore(lore)
         item.itemMeta = meta
         return item
     }
