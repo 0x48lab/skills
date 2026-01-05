@@ -46,28 +46,57 @@ class ScrollLootListener(private val plugin: Skills) : Listener {
     }
 
     /**
-     * Handle loot generation - add scrolls to End city treasure chests
+     * Handle loot generation - add scrolls to End city treasure chests and Trial Chamber vaults
      */
     @EventHandler(priority = EventPriority.NORMAL)
     fun onLootGenerate(event: LootGenerateEvent) {
-        // Check if End chest loot is enabled
+        val lootTableKey = event.lootTable.key.key
+
+        // Handle End city treasure chests
+        if (lootTableKey == "chests/end_city_treasure") {
+            handleEndCityLoot(event)
+            return
+        }
+
+        // Handle Trial Chamber vault rewards
+        if (lootTableKey == "chests/trial_chambers/reward" ||
+            lootTableKey == "chests/trial_chambers/reward_ominous") {
+            handleTrialChamberLoot(event)
+            return
+        }
+    }
+
+    /**
+     * Add scrolls to End city treasure chest loot
+     */
+    private fun handleEndCityLoot(event: LootGenerateEvent) {
         if (!endChestLoot.isEndChestEnabled()) return
 
-        // Check if in The End
-        val world = event.lootContext.location?.world ?: return
+        val world = event.lootContext.location.world ?: return
         if (world.environment != World.Environment.THE_END) return
 
-        // Check if this is an End city treasure chest
-        val lootTableKey = event.lootTable.key.key
-        if (lootTableKey != "chests/end_city_treasure") return
-
-        // Try to get a high-circle scroll
         val scroll = endChestLoot.tryGetEndChestScroll()
         if (scroll != null) {
             event.loot.add(scroll)
 
             if (plugin.skillsConfig.debugMode) {
                 plugin.logger.info("Added scroll to End city chest loot")
+            }
+        }
+    }
+
+    /**
+     * Add scrolls to Trial Chamber vault loot
+     */
+    private fun handleTrialChamberLoot(event: LootGenerateEvent) {
+        if (!endChestLoot.isTrialChamberEnabled()) return
+
+        val scroll = endChestLoot.tryGetTrialChamberScroll()
+        if (scroll != null) {
+            event.loot.add(scroll)
+
+            if (plugin.skillsConfig.debugMode) {
+                plugin.logger.info("Added scroll to Trial Chamber vault loot: ${scroll.type}")
             }
         }
     }

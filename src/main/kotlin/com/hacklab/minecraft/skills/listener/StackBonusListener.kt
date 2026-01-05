@@ -10,6 +10,7 @@ import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.inventory.Inventory
 
 /**
  * Listener for applying stack size bonuses based on production skills.
@@ -46,6 +47,10 @@ class StackBonusListener(private val plugin: Skills) : Listener {
     fun onInventoryClick(event: InventoryClickEvent) {
         val player = event.whoClicked as? Player ?: return
         val clickedInventory = event.clickedInventory ?: return
+
+        // Skip Vault (Trial Chamber treasure vault) to preserve vanilla behavior
+        // Vault generates loot on first open and consumes Trial Key - we must not interfere
+        if (isVaultInventory(clickedInventory)) return
 
         // Handle taking items from containers (non-player inventory)
         if (clickedInventory.type != InventoryType.PLAYER &&
@@ -139,5 +144,16 @@ class StackBonusListener(private val plugin: Skills) : Listener {
                 }
             }
         }
+    }
+
+    /**
+     * Check if the inventory belongs to a Vault block (Trial Chamber treasure vault).
+     * Minecraft 1.21+ introduced Vault blocks that require Trial Keys to open.
+     * We must not interfere with Vault inventory operations to preserve vanilla behavior.
+     */
+    private fun isVaultInventory(inventory: Inventory): Boolean {
+        // Check by block type at inventory location
+        val location = inventory.location ?: return false
+        return location.block.type == Material.VAULT
     }
 }
