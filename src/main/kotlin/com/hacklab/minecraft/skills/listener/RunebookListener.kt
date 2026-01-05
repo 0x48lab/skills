@@ -76,29 +76,6 @@ class RunebookListener(private val plugin: Skills) : Listener {
         val cursorItem = event.cursor
         val useJapanese = plugin.localeManager.getLanguage(player) == Language.JAPANESE
 
-        // Block shift-click and number key transfers that would affect the runebook GUI
-        if (event.click.isShiftClick || event.click == ClickType.NUMBER_KEY) {
-            // If clicking in player inventory with shift, check if it's a rune to add
-            if (clickedSlot >= RunebookManager.GUI_SIZE && event.click.isShiftClick && clickedItem != null) {
-                if (plugin.runeManager.isRune(clickedItem) && plugin.runeManager.isMarked(clickedItem)) {
-                    event.isCancelled = true
-                    val success = plugin.runebookManager.addRune(runebook, clickedItem, useJapanese)
-                    if (success) {
-                        event.currentItem = null
-                        player.world.playSound(player.location, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 1.2f)
-                        plugin.messageSender.send(player, MessageKey.RUNEBOOK_RUNE_ADDED)
-                        plugin.runebookManager.openGUI(player, runebook)
-                    } else {
-                        plugin.messageSender.send(player, MessageKey.RUNEBOOK_FULL)
-                    }
-                    return
-                }
-            }
-            // Block all other shift-clicks and number key transfers
-            event.isCancelled = true
-            return
-        }
-
         // Handle clicks in the runebook inventory (top inventory)
         if (clickedSlot in 0 until RunebookManager.GUI_SIZE) {
             // Always cancel clicks in the runebook GUI
@@ -114,6 +91,33 @@ class RunebookListener(private val plugin: Skills) : Listener {
                 handleRuneDrop(player, runebook, cursorItem, useJapanese)
             }
             // Empty slot clicked with nothing on cursor - do nothing
+            return
+        }
+
+        // Handle clicks in player inventory
+        if (event.click.isShiftClick && clickedItem != null) {
+            // Shift-click a rune in player inventory to add to runebook
+            if (plugin.runeManager.isRune(clickedItem) && plugin.runeManager.isMarked(clickedItem)) {
+                event.isCancelled = true
+                val success = plugin.runebookManager.addRune(runebook, clickedItem, useJapanese)
+                if (success) {
+                    event.currentItem = null
+                    player.world.playSound(player.location, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 1.2f)
+                    plugin.messageSender.send(player, MessageKey.RUNEBOOK_RUNE_ADDED)
+                    plugin.runebookManager.openGUI(player, runebook)
+                } else {
+                    plugin.messageSender.send(player, MessageKey.RUNEBOOK_FULL)
+                }
+            }
+            // Block other shift-clicks from transferring items
+            event.isCancelled = true
+            return
+        }
+
+        // Block number key transfers
+        if (event.click == ClickType.NUMBER_KEY) {
+            event.isCancelled = true
+            return
         }
         // Normal clicks in player inventory are allowed (to pick up runes)
     }
