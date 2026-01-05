@@ -246,13 +246,13 @@ class RunebookManager(private val plugin: Skills) {
         lore.add(Component.text(""))
 
         if (useJapanese) {
-            lore.add(Component.text("左クリック: Recall").color(NamedTextColor.GREEN))
-            lore.add(Component.text("Shift+左: Gate Travel").color(NamedTextColor.LIGHT_PURPLE))
-            lore.add(Component.text("右クリック: 削除").color(NamedTextColor.RED))
+            lore.add(Component.text("左クリック: 移動").color(NamedTextColor.YELLOW))
+            lore.add(Component.text("右クリック: Recall").color(NamedTextColor.GREEN))
+            lore.add(Component.text("Shift+右: Gate Travel").color(NamedTextColor.LIGHT_PURPLE))
         } else {
-            lore.add(Component.text("Left-click: Recall").color(NamedTextColor.GREEN))
-            lore.add(Component.text("Shift+Left: Gate Travel").color(NamedTextColor.LIGHT_PURPLE))
-            lore.add(Component.text("Right-click: Remove").color(NamedTextColor.RED))
+            lore.add(Component.text("Left-click: Move").color(NamedTextColor.YELLOW))
+            lore.add(Component.text("Right-click: Recall").color(NamedTextColor.GREEN))
+            lore.add(Component.text("Shift+Right: Gate Travel").color(NamedTextColor.LIGHT_PURPLE))
         }
 
         meta.lore(lore)

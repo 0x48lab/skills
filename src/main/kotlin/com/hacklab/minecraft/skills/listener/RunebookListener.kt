@@ -186,35 +186,29 @@ class RunebookListener(private val plugin: Skills) : Listener {
         val entry = runes[runeIndex]
 
         when {
-            // Right-click: Remove rune
-            click.isRightClick -> {
-                val removed = plugin.runebookManager.removeRune(runebook, runeIndex, useJapanese)
-                if (removed != null) {
-                    // Create rune item and give to player
-                    val runeItem = plugin.runebookManager.createRuneFromEntry(removed)
-                    val leftover = player.inventory.addItem(runeItem)
-                    if (leftover.isNotEmpty()) {
-                        leftover.values.forEach { item ->
-                            player.world.dropItemNaturally(player.location, item)
-                        }
-                    }
-                    player.world.playSound(player.location, Sound.ENTITY_ITEM_PICKUP, 0.5f, 1.0f)
-                    plugin.messageSender.send(player, MessageKey.RUNEBOOK_RUNE_REMOVED, "name" to removed.name)
-                    // Refresh GUI
-                    plugin.runebookManager.openGUI(player, runebook)
-                }
-            }
-
-            // Shift+Left-click: Gate Travel
-            click.isShiftClick && click.isLeftClick -> {
+            // Shift+Right-click: Gate Travel
+            click.isShiftClick && click.isRightClick -> {
                 player.closeInventory()
                 startGateTravel(player, entry)
             }
 
-            // Left-click: Recall
-            click.isLeftClick -> {
+            // Right-click: Recall
+            click.isRightClick -> {
                 player.closeInventory()
                 startRecall(player, entry)
+            }
+
+            // Left-click: Pick up rune for moving
+            click.isLeftClick -> {
+                val removed = plugin.runebookManager.removeRune(runebook, runeIndex, useJapanese)
+                if (removed != null) {
+                    // Create rune item and put on cursor
+                    val runeItem = plugin.runebookManager.createRuneFromEntry(removed)
+                    player.setItemOnCursor(runeItem)
+                    player.world.playSound(player.location, Sound.ENTITY_ITEM_PICKUP, 0.5f, 1.0f)
+                    // Refresh GUI
+                    plugin.runebookManager.openGUI(player, runebook)
+                }
             }
         }
     }
