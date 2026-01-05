@@ -1,9 +1,15 @@
 package com.hacklab.minecraft.skills.magic
 
 import com.hacklab.minecraft.skills.Skills
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextDecoration
+import org.bukkit.Color
 import org.bukkit.Location
 import org.bukkit.Particle
+import org.bukkit.entity.Display
 import org.bukkit.entity.Player
+import org.bukkit.entity.TextDisplay
 import org.bukkit.scheduler.BukkitRunnable
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -11,34 +17,65 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * Manages enchantment-style particle effects for spell casting
- * Spawns magical glyphs (like enchantment table) around the caster during casting
+ * Manages enchantment-style particle effects and Power Words text display for spell casting
+ * - Spawns magical glyphs (like enchantment table) around the caster during casting
+ * - Shows Power Words text floating above the caster's head
  */
 class FloatingTextManager(private val plugin: Skills) {
 
     data class CastingEffect(
         val spell: SpellType,
         val createdAt: Long,
-        var taskId: Int = -1
+        var taskId: Int = -1,
+        var textDisplay: TextDisplay? = null
     )
 
     private val activeEffects = ConcurrentHashMap<UUID, CastingEffect>()
 
     /**
-     * Start enchantment-style particle effect around the caster
+     * Start enchantment-style particle effect and Power Words text display around the caster
      */
     fun spawnFloatingText(player: Player, spell: SpellType) {
         // Remove any existing effect for this player
         removeFloatingText(player.uniqueId)
 
+        // Spawn TextDisplay showing Power Words above player's head
+        val textDisplay = spawnPowerWordsDisplay(player, spell)
+
         val effect = CastingEffect(
             spell = spell,
-            createdAt = System.currentTimeMillis()
+            createdAt = System.currentTimeMillis(),
+            textDisplay = textDisplay
         )
         activeEffects[player.uniqueId] = effect
 
-        // Start particle animation task
+        // Start particle animation task (also animates TextDisplay)
         startParticleTask(player.uniqueId, effect)
+    }
+
+    /**
+     * Spawn TextDisplay entity showing Power Words above the player's head
+     */
+    private fun spawnPowerWordsDisplay(player: Player, spell: SpellType): TextDisplay? {
+        val location = player.location.clone().add(0.0, 2.2, 0.0)
+
+        return try {
+            player.world.spawn(location, TextDisplay::class.java) { entity ->
+                entity.text(
+                    Component.text(spell.powerWords)
+                        .color(NamedTextColor.LIGHT_PURPLE)
+                        .decorate(TextDecoration.ITALIC)
+                        .decorate(TextDecoration.BOLD)
+                )
+                entity.billboard = Display.Billboard.CENTER
+                entity.backgroundColor = Color.fromARGB(0, 0, 0, 0)
+                entity.isShadowed = true
+                entity.isDefaultBackground = false
+            }
+        } catch (e: Exception) {
+            plugin.logger.warning("Failed to spawn TextDisplay: ${e.message}")
+            null
+        }
     }
 
     /**
@@ -125,6 +162,15 @@ class FloatingTextManager(private val plugin: Skills) {
                     )
                 }
 
+                // Animate TextDisplay with bobbing motion
+                currentEffect.textDisplay?.let { textDisplay ->
+                    if (textDisplay.isValid) {
+                        val bobOffset = sin(ticks * 0.15) * 0.1
+                        val newLocation = playerLoc.clone().add(0.0, 2.2 + bobOffset, 0.0)
+                        textDisplay.teleport(newLocation)
+                    }
+                }
+
                 ticks++
             }
         }
@@ -134,10 +180,17 @@ class FloatingTextManager(private val plugin: Skills) {
     }
 
     /**
-     * Remove particle effect for a player
+     * Remove particle effect and TextDisplay for a player
      */
     fun removeFloatingText(playerId: UUID) {
         val effect = activeEffects.remove(playerId) ?: return
+
+        // Remove TextDisplay entity
+        effect.textDisplay?.let { textDisplay ->
+            if (textDisplay.isValid) {
+                textDisplay.remove()
+            }
+        }
 
         // Cancel animation task
         if (effect.taskId != -1) {
