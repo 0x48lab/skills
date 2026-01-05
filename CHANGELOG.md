@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2026-01-05
+
+### Added
+- **Chunk-Based Mob Limit System**
+  - Prevents server lag from automatic breeding farms and mob spawners
+  - Limits mob count per chunk by category:
+    - Passive (animals): 24 mobs
+    - Hostile (monsters): 32 mobs
+    - Ambient (bats): 8 mobs
+    - Water Creature (squid, dolphin): 8 mobs
+    - Water Ambient (fish): 16 mobs
+  - Protected entities exempt from limits:
+    - Boss mobs: Ender Dragon, Wither, Elder Guardian
+    - System mobs: Villager, Iron Golem, Snow Golem, Wandering Trader, Trader Llama
+  - Protected spawn reasons exempt from limits:
+    - Commands, custom spawns, golem/wither construction
+    - Mob conversions (zombie drowning, piglin zombification, etc.)
+  - Breeding blocked notification sent to players when limit reached
+  - Toggleable via `chunk_mob_limit.enabled` in config.yml
+  - All limits configurable in config.yml
+  - Bilingual support (English/Japanese)
+
+### Technical
+- MobLimitCategory enum mapping Minecraft SpawnCategory to custom limits
+- ProtectedEntityTypes object for exempt entity types and spawn reasons
+- MobLimitManager with ConcurrentHashMap-based chunk caching
+- MobLimitListener handles spawn, breed, death, and chunk load/unload events
+- Cache automatically initialized on chunk load and cleared on chunk unload
+
 ## [0.4.1] - 2026-01-05
 
 ### Fixed
