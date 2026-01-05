@@ -95,13 +95,18 @@ class RunebookListener(private val plugin: Skills) : Listener {
 
                 // Drop zone (row 3) - add rune if player is holding a marked rune
                 clickedSlot in RunebookManager.DROP_ZONE_START..RunebookManager.DROP_ZONE_END -> {
-                    if (cursorItem != null && cursorItem.type != Material.AIR) {
+                    if (cursorItem.type != Material.AIR) {
                         handleRuneDrop(player, runebook, cursorItem, useJapanese)
                     }
                 }
 
                 // Rune slots (row 1-2, excluding info and close buttons)
                 else -> {
+                    // If player is holding a rune on cursor, allow dropping on empty slots too
+                    if (cursorItem.type != Material.AIR && clickedItem?.type == Material.GRAY_STAINED_GLASS_PANE) {
+                        handleRuneDrop(player, runebook, cursorItem, useJapanese)
+                        return
+                    }
                     val runeIndex = plugin.runebookManager.getRuneIndex(clickedItem)
                     if (runeIndex != null) {
                         handleRuneSlotClick(player, runebook, runeIndex, event.click, useJapanese)
