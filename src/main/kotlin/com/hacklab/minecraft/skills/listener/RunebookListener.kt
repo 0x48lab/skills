@@ -2,13 +2,11 @@ package com.hacklab.minecraft.skills.listener
 
 import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.i18n.Language
-import com.hacklab.minecraft.skills.i18n.MessageKey
+import com.hacklab.minecraft.skills.magic.CastResult
 import com.hacklab.minecraft.skills.magic.RunebookManager
 import com.hacklab.minecraft.skills.magic.SpellType
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Location
-import org.bukkit.Material
 import org.bukkit.Sound
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -17,28 +15,30 @@ import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryClickEvent
-import org.bukkit.event.inventory.InventoryDragEvent
+import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.EquipmentSlot
+import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Listener for Runebook interactions and GUI events
+ * Runebook = チェストのようなシンプルなインベントリ
+ * 違いは右クリック/Shift+右クリックでRecall/Gate Travelが発動すること
  */
 class RunebookListener(private val plugin: Skills) : Listener {
 
-    // Track which players have a runebook GUI open and their runebook item
-    private val openRunebooks: MutableMap<UUID, ItemStack> = ConcurrentHashMap()
+    // 開いているルーンブック (プレイヤーUUID -> ルーンブックItemStack)
+    private val openRunebooks = ConcurrentHashMap<UUID, ItemStack>()
 
-    // Track pending rune entries for spell execution (player -> RuneEntry)
-    private val pendingRecall: MutableMap<UUID, RunebookManager.RuneEntry> = ConcurrentHashMap()
-    private val pendingGate: MutableMap<UUID, RunebookManager.RuneEntry> = ConcurrentHashMap()
+    // 魔法発動待ち
+    private val pendingRecall = ConcurrentHashMap<UUID, Location>()
+    private val pendingGate = ConcurrentHashMap<UUID, Location>()
 
     /**
-     * Handle right-click to open runebook
+     * ルーンブックを右クリックで開く
      */
     @EventHandler(priority = EventPriority.NORMAL)
     fun onPlayerInteract(event: PlayerInteractEvent) {
@@ -51,264 +51,142 @@ class RunebookListener(private val plugin: Skills) : Listener {
         event.isCancelled = true
 
         val player = event.player
-        openRunebooks[player.uniqueId] = item
         plugin.runebookManager.openGUI(player, item)
-
+        openRunebooks[player.uniqueId] = item
         player.world.playSound(player.location, Sound.ITEM_BOOK_PAGE_TURN, 0.5f, 1.0f)
     }
 
     /**
-     * Handle clicks in the runebook GUI
+     * クリック処理 - 右クリック系のみ特別処理、それ以外は通常のチェスト動作
+     * ただし、登録済みルーン以外のアイテムは入れられない
      */
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onInventoryClick(event: InventoryClickEvent) {
         val player = event.whoClicked as? Player ?: return
-
-        // Check if this is a runebook GUI
         val runebook = openRunebooks[player.uniqueId] ?: return
 
-        val title = event.view.title()
-        val isRunebookGUI = title.toString().contains("Runebook") || title.toString().contains("ルーンの書")
-        if (!isRunebookGUI) return
+        // ルーンブックGUIかどうか確認
+        if (!isRunebookGUI(event.view.title())) return
 
-        val clickedSlot = event.rawSlot
-        val clickedItem = event.currentItem
-        val cursorItem = event.cursor
-        val useJapanese = plugin.localeManager.getLanguage(player) == Language.JAPANESE
-
-        // Handle clicks in the runebook inventory (top inventory)
-        if (clickedSlot in 0 until RunebookManager.GUI_SIZE) {
-            // Always cancel clicks in the runebook GUI
-            event.isCancelled = true
-
-            // Check if clicking on a registered rune
-            val runeIndex = plugin.runebookManager.getRuneIndex(clickedItem)
-            if (runeIndex != null) {
-                // Handle rune operations (Recall, Gate Travel, Remove)
-                handleRuneSlotClick(player, runebook, runeIndex, event.click, useJapanese)
-            } else if (cursorItem.type != Material.AIR) {
-                // Clicking on empty slot with a rune on cursor - try to add it
-                handleRuneDrop(player, runebook, cursorItem, useJapanese)
-            }
-            // Empty slot clicked with nothing on cursor - do nothing
-            return
-        }
-
-        // Handle clicks in player inventory
-        if (event.click.isShiftClick && clickedItem != null) {
-            // Shift-click a rune in player inventory to add to runebook
-            if (plugin.runeManager.isRune(clickedItem) && plugin.runeManager.isMarked(clickedItem)) {
-                event.isCancelled = true
-                val success = plugin.runebookManager.addRune(runebook, clickedItem, useJapanese)
-                if (success) {
-                    event.currentItem = null
-                    player.world.playSound(player.location, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 1.2f)
-                    plugin.messageSender.send(player, MessageKey.RUNEBOOK_RUNE_ADDED)
-                    plugin.runebookManager.openGUI(player, runebook)
-                } else {
-                    plugin.messageSender.send(player, MessageKey.RUNEBOOK_FULL)
+        // ルーンブックに入れようとしているアイテムをチェック
+        // 1. カーソルにアイテムを持ってルーンブック内をクリック
+        if (event.rawSlot in 0 until RunebookManager.GUI_SIZE) {
+            val cursorItem = event.cursor
+            if (!cursorItem.type.isAir) {
+                // カーソルのアイテムが登録済みルーンでなければキャンセル
+                if (!plugin.runebookManager.isValidMarkedRune(cursorItem)) {
+                    event.isCancelled = true
+                    return
                 }
             }
-            // Block other shift-clicks from transferring items
-            event.isCancelled = true
-            return
         }
 
-        // Block number key transfers
-        if (event.click == ClickType.NUMBER_KEY) {
-            event.isCancelled = true
-            return
-        }
-        // Normal clicks in player inventory are allowed (to pick up runes)
-    }
-
-    /**
-     * Handle dragging items in the runebook GUI
-     */
-    @EventHandler(priority = EventPriority.HIGHEST)
-    fun onInventoryDrag(event: InventoryDragEvent) {
-        val player = event.whoClicked as? Player ?: return
-
-        // Check if this is a runebook GUI
-        if (!openRunebooks.containsKey(player.uniqueId)) return
-
-        val title = event.view.title()
-        val isRunebookGUI = title.toString().contains("Runebook") || title.toString().contains("ルーンの書")
-        if (!isRunebookGUI) return
-
-        // Cancel dragging in the runebook GUI
-        if (event.rawSlots.any { it < RunebookManager.GUI_SIZE }) {
-            event.isCancelled = true
-        }
-    }
-
-    /**
-     * Handle dropping a rune in the drop zone
-     */
-    private fun handleRuneDrop(player: Player, runebook: ItemStack, rune: ItemStack, useJapanese: Boolean) {
-        if (!plugin.runeManager.isRune(rune)) {
-            plugin.messageSender.send(player, MessageKey.RUNEBOOK_NOT_A_RUNE)
-            return
+        // 2. Shift+クリックでプレイヤーインベントリからルーンブックへ
+        if (event.click.isShiftClick && event.rawSlot >= RunebookManager.GUI_SIZE) {
+            val clickedItem = event.currentItem
+            if (clickedItem != null && !clickedItem.type.isAir) {
+                // クリックしたアイテムが登録済みルーンでなければキャンセル
+                if (!plugin.runebookManager.isValidMarkedRune(clickedItem)) {
+                    event.isCancelled = true
+                    return
+                }
+            }
         }
 
-        if (!plugin.runeManager.isMarked(rune)) {
-            plugin.messageSender.send(player, MessageKey.RUNEBOOK_RUNE_NOT_MARKED)
-            return
-        }
+        // 上部インベントリ（ルーンブック）内のクリックのみ魔法発動処理
+        if (event.rawSlot !in 0 until RunebookManager.GUI_SIZE) return
 
-        val success = plugin.runebookManager.addRune(runebook, rune, useJapanese)
-        if (success) {
-            player.world.playSound(player.location, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 1.2f)
-            plugin.messageSender.send(player, MessageKey.RUNEBOOK_RUNE_ADDED)
-            // Refresh GUI and clear cursor in next tick to avoid timing issues
-            plugin.server.scheduler.runTask(plugin, Runnable {
-                player.setItemOnCursor(null)
-                plugin.runebookManager.openGUI(player, runebook)
-            })
-        } else {
-            plugin.messageSender.send(player, MessageKey.RUNEBOOK_FULL)
-        }
-    }
+        val clickedItem = event.currentItem ?: return
+        val runeEntry = plugin.runebookManager.extractRuneEntry(clickedItem) ?: return
 
-    /**
-     * Handle clicking on a rune slot
-     */
-    private fun handleRuneSlotClick(
-        player: Player,
-        runebook: ItemStack,
-        runeIndex: Int,
-        click: ClickType,
-        useJapanese: Boolean
-    ) {
-        val runes = plugin.runebookManager.getRunes(runebook)
-        if (runeIndex < 0 || runeIndex >= runes.size) return
-
-        val entry = runes[runeIndex]
-
+        // 右クリック系のみ特別処理
         when {
-            // Shift+Right-click: Gate Travel
-            click.isShiftClick && click.isRightClick -> {
+            event.click == ClickType.SHIFT_RIGHT -> {
+                event.isCancelled = true
                 player.closeInventory()
-                startGateTravel(player, entry)
+                castGateTravel(player, runeEntry)
             }
-
-            // Right-click: Recall
-            click.isRightClick -> {
+            event.click.isRightClick -> {
+                event.isCancelled = true
                 player.closeInventory()
-                startRecall(player, entry)
+                castRecall(player, runeEntry)
             }
-
-            // Left-click: Pick up rune for moving
-            click.isLeftClick -> {
-                val removed = plugin.runebookManager.removeRune(runebook, runeIndex, useJapanese)
-                if (removed != null) {
-                    // Create rune item and put on cursor
-                    val runeItem = plugin.runebookManager.createRuneFromEntry(removed)
-                    player.setItemOnCursor(runeItem)
-                    player.world.playSound(player.location, Sound.ENTITY_ITEM_PICKUP, 0.5f, 1.0f)
-                    // Refresh GUI
-                    plugin.runebookManager.openGUI(player, runebook)
-                }
-            }
+            // それ以外（左クリック等）は通常のチェスト動作 - 何もしない
         }
     }
 
     /**
-     * Start Recall spell with the given rune entry
-     */
-    private fun startRecall(player: Player, entry: RunebookManager.RuneEntry) {
-        // Validate destination world exists
-        val world = plugin.server.getWorld(entry.world)
-        if (world == null) {
-            plugin.messageSender.send(player, MessageKey.RUNEBOOK_WORLD_NOT_FOUND)
-            return
-        }
-
-        // Store pending entry for when casting completes
-        pendingRecall[player.uniqueId] = entry
-
-        // Cast Recall spell (will check reagents, mana, etc.)
-        val result = plugin.spellManager.castSpell(player, SpellType.RECALL, false)
-
-        if (result != com.hacklab.minecraft.skills.magic.CastResult.CASTING) {
-            // Casting failed at requirements check, clear pending
-            pendingRecall.remove(player.uniqueId)
-        }
-    }
-
-    /**
-     * Start Gate Travel spell with the given rune entry
-     */
-    private fun startGateTravel(player: Player, entry: RunebookManager.RuneEntry) {
-        // Validate destination world exists
-        val world = plugin.server.getWorld(entry.world)
-        if (world == null) {
-            plugin.messageSender.send(player, MessageKey.RUNEBOOK_WORLD_NOT_FOUND)
-            return
-        }
-
-        // Store pending entry for when casting completes
-        pendingGate[player.uniqueId] = entry
-
-        // Cast Gate Travel spell (will check reagents, mana, etc.)
-        val result = plugin.spellManager.castSpell(player, SpellType.GATE_TRAVEL, false)
-
-        if (result != com.hacklab.minecraft.skills.magic.CastResult.CASTING) {
-            // Casting failed at requirements check, clear pending
-            pendingGate.remove(player.uniqueId)
-        }
-    }
-
-    /**
-     * Get pending Recall location for a player (called by CastingManager when spell completes)
-     */
-    fun getPendingRecallLocation(player: Player): Location? {
-        val entry = pendingRecall.remove(player.uniqueId) ?: return null
-        val world = plugin.server.getWorld(entry.world) ?: return null
-        return Location(world, entry.x, entry.y, entry.z)
-    }
-
-    /**
-     * Get pending Gate Travel location for a player (called by CastingManager when spell completes)
-     */
-    fun getPendingGateLocation(player: Player): Location? {
-        val entry = pendingGate.remove(player.uniqueId) ?: return null
-        val world = plugin.server.getWorld(entry.world) ?: return null
-        return Location(world, entry.x, entry.y, entry.z)
-    }
-
-    /**
-     * Check if player has a pending runebook spell
-     */
-    fun hasPendingRunebookSpell(player: Player): Boolean {
-        return pendingRecall.containsKey(player.uniqueId) || pendingGate.containsKey(player.uniqueId)
-    }
-
-    /**
-     * Clear pending spells for a player (when cancelled)
-     */
-    fun clearPending(player: Player) {
-        pendingRecall.remove(player.uniqueId)
-        pendingGate.remove(player.uniqueId)
-    }
-
-    /**
-     * Clean up when player closes inventory
+     * インベントリを閉じた時にルーンブックのデータを保存
      */
     @EventHandler
-    fun onInventoryClose(event: org.bukkit.event.inventory.InventoryCloseEvent) {
+    fun onInventoryClose(event: InventoryCloseEvent) {
         val player = event.player as? Player ?: return
-        openRunebooks.remove(player.uniqueId)
+        val runebook = openRunebooks.remove(player.uniqueId) ?: return
+
+        // インベントリの内容をルーンブックに保存
+        val useJapanese = plugin.localeManager.getLanguage(player) == Language.JAPANESE
+        plugin.runebookManager.saveFromInventory(runebook, event.inventory, useJapanese)
     }
 
-    /**
-     * Clean up when player quits
-     */
     @EventHandler
     fun onPlayerQuit(event: PlayerQuitEvent) {
         val uuid = event.player.uniqueId
         openRunebooks.remove(uuid)
         pendingRecall.remove(uuid)
         pendingGate.remove(uuid)
+    }
+
+    // ==================== 魔法発動 ====================
+
+    private fun castRecall(player: Player, entry: RunebookManager.RuneEntry) {
+        val location = plugin.runebookManager.getLocation(entry)
+        if (location == null) {
+            plugin.messageSender.send(player, com.hacklab.minecraft.skills.i18n.MessageKey.RUNEBOOK_WORLD_NOT_FOUND)
+            return
+        }
+
+        pendingRecall[player.uniqueId] = location
+        val result = plugin.spellManager.castSpell(player, SpellType.RECALL, false)
+        if (result != CastResult.CASTING) {
+            pendingRecall.remove(player.uniqueId)
+        }
+    }
+
+    private fun castGateTravel(player: Player, entry: RunebookManager.RuneEntry) {
+        val location = plugin.runebookManager.getLocation(entry)
+        if (location == null) {
+            plugin.messageSender.send(player, com.hacklab.minecraft.skills.i18n.MessageKey.RUNEBOOK_WORLD_NOT_FOUND)
+            return
+        }
+
+        pendingGate[player.uniqueId] = location
+        val result = plugin.spellManager.castSpell(player, SpellType.GATE_TRAVEL, false)
+        if (result != CastResult.CASTING) {
+            pendingGate.remove(player.uniqueId)
+        }
+    }
+
+    // ==================== Public API ====================
+
+    fun getPendingRecallLocation(player: Player): Location? {
+        return pendingRecall.remove(player.uniqueId)
+    }
+
+    fun getPendingGateLocation(player: Player): Location? {
+        return pendingGate.remove(player.uniqueId)
+    }
+
+    fun hasPendingRunebookSpell(player: Player): Boolean {
+        return pendingRecall.containsKey(player.uniqueId) || pendingGate.containsKey(player.uniqueId)
+    }
+
+    fun clearPending(player: Player) {
+        pendingRecall.remove(player.uniqueId)
+        pendingGate.remove(player.uniqueId)
+    }
+
+    private fun isRunebookGUI(title: Component): Boolean {
+        val titleStr = title.toString()
+        return titleStr.contains("Runebook") || titleStr.contains("ルーンの書")
     }
 }
