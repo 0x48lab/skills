@@ -304,12 +304,17 @@ a rune item.
 
 [Crafting]
 Combine in inventory:
-1. Pick up Paper with cursor
+1. Pick up Mark Scroll
 2. Click on Amethyst Shard
 3. Blank Rune is created!
 (Works in either direction)
 
 No skill required, 100% success
+
+Mark Scroll sources:
+- Mob drops (Evoker, etc.)
+- End City chests
+- Craft with /scribe mark
 
 [How to Use]
 1. Hold blank rune in hand
