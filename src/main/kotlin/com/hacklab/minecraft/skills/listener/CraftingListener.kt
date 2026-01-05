@@ -294,9 +294,11 @@ class CraftingListener(private val plugin: Skills) : Listener {
                     player.setItemOnCursor(null)
                 }
 
-                // Consume one amethyst and give rune
+                // Consume one amethyst from clicked slot
                 if (clicked.amount > 1) {
-                    clicked.amount = clicked.amount - 1
+                    val newClicked = clicked.clone()
+                    newClicked.amount = clicked.amount - 1
+                    event.clickedInventory?.setItem(event.slot, newClicked)
                 } else {
                     event.clickedInventory?.setItem(event.slot, null)
                 }
@@ -315,9 +317,11 @@ class CraftingListener(private val plugin: Skills) : Listener {
                     player.setItemOnCursor(null)
                 }
 
-                // Consume one scroll and give rune
+                // Consume one scroll from clicked slot
                 if (clicked.amount > 1) {
-                    clicked.amount = clicked.amount - 1
+                    val newClicked = clicked.clone()
+                    newClicked.amount = clicked.amount - 1
+                    event.clickedInventory?.setItem(event.slot, newClicked)
                 } else {
                     event.clickedInventory?.setItem(event.slot, null)
                 }
