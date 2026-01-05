@@ -197,8 +197,8 @@ class CraftingListener(private val plugin: Skills) : Listener {
         val player = event.whoClicked as? Player ?: return
 
         // Get cursor item (what player is holding on cursor)
-        val cursor = event.view.cursor
-        if (cursor == null || cursor.type == Material.AIR) return
+        val cursor = event.cursor
+        if (cursor.type == Material.AIR) return
 
         // Get clicked item
         val clicked = event.currentItem
@@ -247,8 +247,8 @@ class CraftingListener(private val plugin: Skills) : Listener {
         val player = event.whoClicked as? Player ?: return
 
         // Get cursor item (what player is holding on cursor)
-        val cursor = event.view.cursor
-        if (cursor == null || cursor.type == Material.AIR) return
+        val cursor = event.cursor
+        if (cursor.type == Material.AIR) return
 
         // Get clicked item
         val clicked = event.currentItem
@@ -259,6 +259,15 @@ class CraftingListener(private val plugin: Skills) : Listener {
         val isScrollClicked = plugin.scrollManager.isScroll(clicked)
         val isAmethystClicked = clicked.type == Material.AMETHYST_SHARD && !plugin.runeManager.isRune(clicked)
         val isAmethystOnCursor = cursor.type == Material.AMETHYST_SHARD && !plugin.runeManager.isRune(cursor)
+
+        // Debug logging
+        if ((isScrollOnCursor && isAmethystClicked) || (isAmethystOnCursor && isScrollClicked)) {
+            val cursorSpell = if (isScrollOnCursor) plugin.scrollManager.getSpell(cursor) else null
+            val clickedSpell = if (isScrollClicked) plugin.scrollManager.getSpell(clicked) else null
+            plugin.logger.info("[Rune Debug] isScrollOnCursor=$isScrollOnCursor, isAmethystClicked=$isAmethystClicked")
+            plugin.logger.info("[Rune Debug] isScrollClicked=$isScrollClicked, isAmethystOnCursor=$isAmethystOnCursor")
+            plugin.logger.info("[Rune Debug] cursorSpell=$cursorSpell, clickedSpell=$clickedSpell")
+        }
 
         // Check if the scroll is a Teleport scroll
         val teleportScrollOnCursor = isScrollOnCursor &&
