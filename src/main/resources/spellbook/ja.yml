@@ -126,4 +126,15 @@ click_hint: "クリックで詠唱"
 click_to_cast: "クリックで詠唱"
 reagents_label: "触媒"
 power_words_label: "詠唱"
+target_label: "対象"
 author: "アルケイン図書館"
+
+# 対象タイプ
+target_types:
+  SELF: "自己"
+  PLAYER_OR_SELF: "対象/自己"
+  TARGET_ENTITY: "単体"
+  TARGET_LOCATION: "地点"
+  TARGET_ITEM: "アイテム"
+  AREA: "範囲"
+  NONE: "なし"

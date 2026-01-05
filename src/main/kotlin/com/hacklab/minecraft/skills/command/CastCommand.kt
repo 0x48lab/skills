@@ -21,6 +21,7 @@ class CastCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
         if (args.isEmpty()) {
             sender.sendMessage("Usage: /cast <spell name>")
             sender.sendMessage("Example: /cast fireball")
+            sender.sendMessage("For Power Words, use: /rune <Power Words>")
             return true
         }
 
@@ -66,7 +67,8 @@ class CastCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
 
         if (spell == null) {
             sender.sendMessage("Unknown spell: $spellName")
-            sender.sendMessage("Use /spellbook to see available spells, or try Power Words (e.g., /cast Vas Flam)")
+            sender.sendMessage("Use /spellbook list to see available spells.")
+            sender.sendMessage("For Power Words, use: /rune <Power Words>")
             return true
         }
 
@@ -79,40 +81,17 @@ class CastCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<String>): List<String> {
         if (sender !is Player) return emptyList()
 
-        // Include "cancel" as first suggestion
-        val suggestions = mutableListOf("cancel")
-
-        // Only suggest spells the player has in their spellbook
-        val spellbook = plugin.spellbookManager.getSpellbook(sender)
-        val availableSpells = if (spellbook != null) {
-            plugin.spellbookManager.getSpells(spellbook)
-        } else {
-            emptySet()
-        }
-
         val input = args.joinToString(" ").lowercase()
 
-        // Add spell display names
-        suggestions.addAll(
-            availableSpells
-                .map { it.displayName }
-                .filter { it.lowercase().startsWith(input) }
-                .sorted()
-        )
-
-        // Add Power Words for available spells
-        suggestions.addAll(
-            availableSpells
-                .map { it.powerWords }
-                .filter { it.lowercase().startsWith(input) }
-                .sorted()
-        )
+        // Include "cancel" and spell display names (Power Words are via /rune)
+        val suggestions = mutableListOf("cancel")
+        suggestions.addAll(plugin.spellbookManager.getSpellNameCompletions(sender, input))
 
         return suggestions.distinct().filter { it.lowercase().startsWith(input) }
     }
 
     /**
-     * Find spell by display name, enum name, or Power Words
+     * Find spell by display name or enum name (not Power Words - use /rune for that)
      */
     private fun findSpell(input: String): SpellType? {
         // 1. Try display name (e.g., "Fireball")
@@ -120,9 +99,6 @@ class CastCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
 
         // 2. Try enum name (e.g., "FIREBALL" or "fire_wall")
         SpellType.entries.find { it.name.equals(input.replace(" ", "_"), ignoreCase = true) }?.let { return it }
-
-        // 3. Try Power Words (e.g., "Vas Flam")
-        SpellType.fromPowerWords(input)?.let { return it }
 
         return null
     }

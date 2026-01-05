@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.4] - 2026-01-06
+
+### Added
+- **`/rune` Command for Power Words Casting**
+  - New command dedicated to UO-style Power Words incantations
+  - Example: `/rune In Mani` (Heal), `/rune Vas Flam` (Fireball)
+  - Aliases: `/powerwords`, `/pw`
+  - Word-by-word tab completion for multi-word incantations
+  - `/cast` command now only accepts English spell names
+
+- **Spellbook Target Type Display**
+  - Each spell page now shows target type (Self, Entity, Location, Area, etc.)
+  - Localized: English and Japanese translations
+
+- **Spellbook Layout Improvements**
+  - One spell per page for stable display (reagents always visible)
+  - Removed "Incantation:" label, Power Words shown directly
+  - Removed redundant "Mana: N" line
+  - Reagents displayed on separate lines with bullet points
+
+### Changed
+- **Command Separation**
+  - `/cast <spell name>` - Cast by English name (e.g., `/cast fireball`)
+  - `/rune <Power Words>` - Cast by Power Words (e.g., `/rune Vas Flam`)
+  - Tab completion logic shared via SpellbookManager helper methods
+
+### Fixed
+- **Tab Completion for Power Words**
+  - Fixed multi-word completion causing text duplication
+  - Now completes word-by-word: `/rune Kal` → Tab → `Vas` → `/rune Kal Vas`
+
 ## [0.4.3] - 2026-01-05
 
 ### Added

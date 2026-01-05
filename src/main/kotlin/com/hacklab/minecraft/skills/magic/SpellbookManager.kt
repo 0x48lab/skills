@@ -77,6 +77,20 @@ class SpellbookManager(private val plugin: Skills) {
             .joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }
     }
 
+    private fun getTargetTypeName(lang: Language, targetType: SpellTargetType): String {
+        val key = "target_types.${targetType.name}"
+        val default = when (targetType) {
+            SpellTargetType.SELF -> "Self"
+            SpellTargetType.PLAYER_OR_SELF -> "Player/Self"
+            SpellTargetType.TARGET_ENTITY -> "Entity"
+            SpellTargetType.TARGET_LOCATION -> "Location"
+            SpellTargetType.TARGET_ITEM -> "Item"
+            SpellTargetType.AREA -> "Area"
+            SpellTargetType.NONE -> "None"
+        }
+        return getLocalized(lang, key, default)
+    }
+
     /**
      * Check if an item is a spellbook
      */
@@ -299,22 +313,32 @@ class SpellbookManager(private val plugin: Skills) {
     }
 
     /**
-     * Create pages for a spell circle with clickable spells (max 2 spells per page)
+     * Group spells into pages - one spell per page for stability
+     */
+    private fun groupSpellsForPages(spells: List<SpellType>): List<List<SpellType>> {
+        return spells.map { listOf(it) }
+    }
+
+    /**
+     * Create pages for a spell circle with clickable spells
+     * Spells with many reagents get their own page
      */
     private fun createCirclePages(circle: SpellCircle, spells: List<SpellType>, lang: Language): List<Component> {
         val pages = mutableListOf<Component>()
-        val spellsPerPage = 2
 
-        spells.chunked(spellsPerPage).forEachIndexed { index, pageSpells ->
+        // Group spells into pages based on reagent count
+        // Spells with 3+ reagents need their own page
+        val pageGroups = groupSpellsForPages(spells)
+
+        pageGroups.forEachIndexed { index, pageSpells ->
             val builder = Component.text()
                 .append(Component.text("${getCircleName(lang, circle)}").color(NamedTextColor.DARK_BLUE).decorate(TextDecoration.BOLD))
 
             // Show page number if multiple pages
-            if (spells.size > spellsPerPage) {
+            if (pageGroups.size > 1) {
                 builder.append(Component.text(" (${index + 1})").color(NamedTextColor.GRAY))
             }
-            builder.append(Component.text("\n"))
-            builder.append(Component.text("Mana: ${circle.baseMana}\n\n").color(NamedTextColor.DARK_BLUE))
+            builder.append(Component.text("\n\n"))
 
             pageSpells.forEach { spell ->
                 // Spell name (clickable)
@@ -336,26 +360,27 @@ class SpellbookManager(private val plugin: Skills) {
                 val description = getSpellDescription(lang, spell)
                 builder.append(Component.text("  $description\n").color(NamedTextColor.BLACK))
 
-                // Power Words (UO-style incantation)
-                val powerWordsLabel = getLocalized(lang, "power_words_label", "Incantation")
+                // Target type
+                val targetLabel = getLocalized(lang, "target_label", "Target")
+                val targetType = getTargetTypeName(lang, spell.targetType)
+                builder.append(Component.text("  $targetLabel: $targetType\n").color(NamedTextColor.DARK_GREEN))
+
+                // Power Words (without label)
                 builder.append(
-                    Component.text("  $powerWordsLabel: ")
-                        .color(NamedTextColor.DARK_PURPLE)
-                        .append(
-                            Component.text(spell.powerWords)
-                                .color(NamedTextColor.LIGHT_PURPLE)
-                                .decorate(TextDecoration.ITALIC)
-                        )
-                        .append(Component.text("\n"))
+                    Component.text("  ${spell.powerWords}\n")
+                        .color(NamedTextColor.LIGHT_PURPLE)
+                        .decorate(TextDecoration.ITALIC)
                 )
 
-                // Reagents (group and count duplicates)
+                // Reagents (each on its own line to avoid overflow)
                 val reagentCounts = spell.reagents.groupingBy { it }.eachCount()
-                val reagentsText = reagentCounts.entries.joinToString(", ") { (material, count) ->
+                reagentCounts.entries.forEachIndexed { idx, (material, count) ->
                     val name = getMaterialName(lang, material)
-                    if (count > 1) "$name x$count" else name
+                    val reagentText = if (count > 1) "$name x$count" else name
+                    val prefix = if (idx == 0) "  * " else "  * "
+                    builder.append(Component.text("$prefix$reagentText\n").color(NamedTextColor.DARK_BLUE))
                 }
-                builder.append(Component.text("  ${getLocalized(lang, "reagents_label", "Reagents")}: $reagentsText\n\n").color(NamedTextColor.DARK_BLUE))
+                builder.append(Component.text("\n"))
             }
 
             pages.add(builder.build())
@@ -402,5 +427,41 @@ class SpellbookManager(private val plugin: Skills) {
     fun reload() {
         localization.clear()
         loadLocalization()
+    }
+
+    // ========== Tab Completion Helpers ==========
+
+    /**
+     * Get available spells for a player from their spellbook
+     */
+    fun getAvailableSpells(player: Player): Set<SpellType> {
+        val spellbook = getSpellbook(player) ?: return emptySet()
+        return getSpells(spellbook)
+    }
+
+    /**
+     * Get spell name completions for /cast command
+     * @param player The player to get completions for
+     * @param input Current input string (lowercase)
+     * @return Filtered list of spell display names
+     */
+    fun getSpellNameCompletions(player: Player, input: String): List<String> {
+        return getAvailableSpells(player)
+            .map { it.displayName }
+            .filter { it.lowercase().startsWith(input) }
+            .sorted()
+    }
+
+    /**
+     * Get Power Words completions for /rune command
+     * @param player The player to get completions for
+     * @param input Current input string (lowercase)
+     * @return Filtered list of Power Words
+     */
+    fun getPowerWordsCompletions(player: Player, input: String): List<String> {
+        return getAvailableSpells(player)
+            .map { it.powerWords }
+            .filter { it.lowercase().startsWith(input) }
+            .sorted()
     }
 }

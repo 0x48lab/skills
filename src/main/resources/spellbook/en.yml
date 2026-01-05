@@ -126,4 +126,15 @@ click_hint: "Click spell to cast"
 click_to_cast: "Click to cast"
 reagents_label: "Reagents"
 power_words_label: "Incantation"
+target_label: "Target"
 author: "Arcane Library"
+
+# Target types
+target_types:
+  SELF: "Self"
+  PLAYER_OR_SELF: "Target/Self"
+  TARGET_ENTITY: "Entity"
+  TARGET_LOCATION: "Location"
+  TARGET_ITEM: "Item"
+  AREA: "Area"
+  NONE: "None"

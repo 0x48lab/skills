@@ -405,7 +405,12 @@ class Skills : JavaPlugin() {
         val statsCmd = StatsCommand(this)
         getCommand("stats")?.setExecutor(statsCmd)
         getCommand("stats")?.tabCompleter = statsCmd
-        getCommand("cast")?.setExecutor(CastCommand(this))
+        val castCmd = CastCommand(this)
+        getCommand("cast")?.setExecutor(castCmd)
+        getCommand("cast")?.tabCompleter = castCmd
+        val runeCmd = RuneCommand(this)
+        getCommand("rune")?.setExecutor(runeCmd)
+        getCommand("rune")?.tabCompleter = runeCmd
         getCommand("language")?.setExecutor(LanguageCommand(this))
 
         // Thief commands

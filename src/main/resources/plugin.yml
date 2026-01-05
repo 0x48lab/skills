@@ -20,8 +20,13 @@ commands:
     usage: /stats
 
   cast:
-    description: Cast a spell from your spellbook
+    description: Cast a spell from your spellbook by name
     usage: /cast <spell name>
+
+  rune:
+    description: Cast a spell using Power Words (UO-style incantations)
+    usage: /rune <Power Words>
+    aliases: [powerwords, pw]
 
   language:
     description: Change your display language
