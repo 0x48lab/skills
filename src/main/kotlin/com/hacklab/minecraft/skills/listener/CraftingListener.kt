@@ -277,6 +277,9 @@ class CraftingListener(private val plugin: Skills) : Listener {
 
         // Either: teleport scroll on cursor + amethyst clicked, or amethyst on cursor + teleport scroll clicked
         if ((teleportScrollOnCursor && isAmethystClicked) || (isAmethystOnCursor && teleportScrollClicked)) {
+            // Cancel the event first to prevent default behavior
+            event.isCancelled = true
+
             // Create a rune
             val rune = plugin.runeManager.createRune()
 
@@ -286,25 +289,43 @@ class CraftingListener(private val plugin: Skills) : Listener {
                 if (cursor.amount > 1) {
                     val newCursor = cursor.clone()
                     newCursor.amount = cursor.amount - 1
-                    event.view.setCursor(newCursor)
+                    player.setItemOnCursor(newCursor)
                 } else {
-                    event.view.setCursor(null)
+                    player.setItemOnCursor(null)
                 }
 
-                // Replace the amethyst with the rune
-                event.currentItem = rune
+                // Consume one amethyst and give rune
+                if (clicked.amount > 1) {
+                    clicked.amount = clicked.amount - 1
+                } else {
+                    event.clickedInventory?.setItem(event.slot, null)
+                }
+                // Give rune to player
+                val leftover = player.inventory.addItem(rune)
+                if (leftover.isNotEmpty()) {
+                    leftover.values.forEach { player.world.dropItemNaturally(player.location, it) }
+                }
             } else {
                 // Consume amethyst from cursor
                 if (cursor.amount > 1) {
                     val newCursor = cursor.clone()
                     newCursor.amount = cursor.amount - 1
-                    event.view.setCursor(newCursor)
+                    player.setItemOnCursor(newCursor)
                 } else {
-                    event.view.setCursor(null)
+                    player.setItemOnCursor(null)
                 }
 
-                // Replace the scroll with the rune
-                event.currentItem = rune
+                // Consume one scroll and give rune
+                if (clicked.amount > 1) {
+                    clicked.amount = clicked.amount - 1
+                } else {
+                    event.clickedInventory?.setItem(event.slot, null)
+                }
+                // Give rune to player
+                val leftover = player.inventory.addItem(rune)
+                if (leftover.isNotEmpty()) {
+                    leftover.values.forEach { player.world.dropItemNaturally(player.location, it) }
+                }
             }
 
             // Send message
@@ -312,8 +333,6 @@ class CraftingListener(private val plugin: Skills) : Listener {
 
             // Play sound
             player.world.playSound(player.location, org.bukkit.Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 1.2f)
-
-            event.isCancelled = true
         }
     }
 }
