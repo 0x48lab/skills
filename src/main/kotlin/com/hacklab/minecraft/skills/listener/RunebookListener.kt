@@ -71,9 +71,6 @@ class RunebookListener(private val plugin: Skills) : Listener {
         val isRunebookGUI = title.toString().contains("Runebook") || title.toString().contains("ルーンの書")
         if (!isRunebookGUI) return
 
-        // Cancel all default actions in the runebook GUI
-        event.isCancelled = true
-
         val clickedSlot = event.rawSlot
         val clickedItem = event.currentItem
         val cursorItem = event.cursor
@@ -81,6 +78,9 @@ class RunebookListener(private val plugin: Skills) : Listener {
 
         // Handle clicks in the runebook inventory (top inventory)
         if (clickedSlot in 0 until RunebookManager.GUI_SIZE) {
+            // Cancel actions in the runebook GUI
+            event.isCancelled = true
+
             when {
                 // Close button
                 clickedSlot == RunebookManager.CLOSE_SLOT -> {
@@ -114,9 +114,11 @@ class RunebookListener(private val plugin: Skills) : Listener {
                 }
             }
         } else {
-            // Click in player inventory - allow shift-click to add runes
+            // Click in player inventory
             if (event.click.isShiftClick && clickedItem != null) {
+                // Shift-click to add runes directly
                 if (plugin.runeManager.isRune(clickedItem) && plugin.runeManager.isMarked(clickedItem)) {
+                    event.isCancelled = true
                     val success = plugin.runebookManager.addRune(runebook, clickedItem, useJapanese)
                     if (success) {
                         // Remove rune from player inventory
@@ -130,6 +132,7 @@ class RunebookListener(private val plugin: Skills) : Listener {
                     }
                 }
             }
+            // Normal clicks in player inventory are allowed (to pick up items)
         }
     }
 
