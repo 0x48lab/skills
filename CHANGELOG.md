@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2026-01-05
+
+### Added
+- **Power Words Casting Support**
+  - Cast spells using UO-style incantations (e.g., `/cast Vas Flam` for Fireball)
+  - Tab completion shows both spell display names and Power Words
+  - Duplicate Power Words (e.g., "Kal Vas Flam") resolve to lower circle spell
+  - All 47 spells have unique Power Words
+
+- **Enchantment-Style Casting Particles**
+  - Magical glyphs (like enchantment table) spiral around caster during chanting
+  - Particles rise and pulse around the player
+  - Intensity scales with spell circle:
+    - C1-C2: Basic ENCHANT particles (3-4 glyphs)
+    - C3-C5: Enhanced effect with foot particles (5-7 glyphs)
+    - C6: Adds END_ROD particles
+    - C7-C8: Adds WITCH particles for dramatic effect
+  - Effects persist until casting completes or is cancelled
+
+- **Spellbook Power Words Display**
+  - Each spell entry now shows its Power Words/incantation
+  - Localized labels: "Incantation" (English) / "詠唱" (Japanese)
+  - Helps players learn the UO-style casting phrases
+
+### Technical
+- FloatingTextManager: Particle-based effect system replacing TextDisplay
+- SpellType.fromPowerWords(): Lookup spell by Power Words with duplicate handling
+- CastCommand: Enhanced parsing to accept spell names, enum names, or Power Words
+
 ## [0.4.2] - 2026-01-05
 
 ### Added
