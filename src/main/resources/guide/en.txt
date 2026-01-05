@@ -303,9 +303,9 @@ Mark/Recall/Gate Travel require
 a rune item.
 
 [Crafting]
-Craft at a crafting table:
-- Teleport Scroll x1
-- Amethyst Shard x1
+Place vertically in crafting table:
+  [Teleport Scroll]
+  [Amethyst Shard]
 = Blank Rune!
 
 No skill required, 100% success

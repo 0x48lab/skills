@@ -240,32 +240,44 @@ class CraftingListener(private val plugin: Skills) : Listener {
 
     /**
      * Handle rune crafting via PrepareItemCraftEvent
-     * Recipe: Teleport Scroll + Amethyst Shard = Blank Rune
+     * Recipe: Teleport Scroll (top) + Amethyst Shard (bottom) = Blank Rune
+     * Vertical pattern only
      */
     @EventHandler(priority = EventPriority.HIGH)
     fun onPrepareRuneCraft(event: org.bukkit.event.inventory.PrepareItemCraftEvent) {
-        val matrix = event.inventory.matrix ?: return
+        val matrix = event.inventory.matrix
 
-        // Check for Teleport Scroll + Amethyst Shard combination (any arrangement)
-        var hasTeleportScroll = false
-        var hasAmethyst = false
+        // Count non-empty items - must be exactly 2
         var itemCount = 0
-
         for (item in matrix) {
-            if (item == null || item.type == Material.AIR) continue
-            itemCount++
-
-            if (plugin.scrollManager.isScroll(item) &&
-                plugin.scrollManager.getSpell(item) == com.hacklab.minecraft.skills.magic.SpellType.TELEPORT) {
-                hasTeleportScroll = true
-            } else if (item.type == Material.AMETHYST_SHARD && !plugin.runeManager.isRune(item)) {
-                hasAmethyst = true
-            }
+            if (item != null && item.type != Material.AIR) itemCount++
         }
+        if (itemCount != 2) return
 
-        // Must have exactly 2 items: 1 Teleport scroll + 1 Amethyst shard
-        if (hasTeleportScroll && hasAmethyst && itemCount == 2) {
-            event.inventory.result = plugin.runeManager.createRune()
+        // Check for vertical pattern: Scroll on top, Amethyst below
+        // Valid vertical pairs in 3x3 grid: (0,3), (1,4), (2,5), (3,6), (4,7), (5,8)
+        val verticalPairs = listOf(
+            Pair(0, 3), Pair(1, 4), Pair(2, 5),
+            Pair(3, 6), Pair(4, 7), Pair(5, 8)
+        )
+
+        for ((topIndex, bottomIndex) in verticalPairs) {
+            val topItem = matrix[topIndex]
+            val bottomItem = matrix[bottomIndex]
+
+            if (topItem == null || bottomItem == null) continue
+            if (topItem.type == Material.AIR || bottomItem.type == Material.AIR) continue
+
+            // Check: Top = Teleport Scroll, Bottom = Amethyst Shard
+            val isTopTeleportScroll = plugin.scrollManager.isScroll(topItem) &&
+                plugin.scrollManager.getSpell(topItem) == com.hacklab.minecraft.skills.magic.SpellType.TELEPORT
+            val isBottomAmethyst = bottomItem.type == Material.AMETHYST_SHARD &&
+                !plugin.runeManager.isRune(bottomItem)
+
+            if (isTopTeleportScroll && isBottomAmethyst) {
+                event.inventory.result = plugin.runeManager.createRune()
+                return
+            }
         }
     }
 
