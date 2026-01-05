@@ -238,6 +238,10 @@ class CraftingListener(private val plugin: Skills) : Listener {
         }
     }
 
+    /**
+     * Create a blank rune by combining Paper + Amethyst Shard in inventory
+     * Either: paper on cursor + amethyst clicked, or amethyst on cursor + paper clicked
+     */
     @EventHandler(priority = EventPriority.HIGH)
     fun onCreateRune(event: InventoryClickEvent) {
         val player = event.whoClicked as? Player ?: return
@@ -250,25 +254,20 @@ class CraftingListener(private val plugin: Skills) : Listener {
         val clicked = event.currentItem
         if (clicked == null || clicked.type == Material.AIR) return
 
-        // Check for Gate Travel scroll + Amethyst Shard combination
-        val isScrollOnCursor = plugin.scrollManager.isScroll(cursor)
+        // Check for Paper + Amethyst Shard combination
+        val isPaperOnCursor = cursor.type == Material.PAPER
+        val isPaperClicked = clicked.type == Material.PAPER
         val isAmethystClicked = clicked.type == Material.AMETHYST_SHARD && !plugin.runeManager.isRune(clicked)
         val isAmethystOnCursor = cursor.type == Material.AMETHYST_SHARD && !plugin.runeManager.isRune(cursor)
-        val isScrollClicked = plugin.scrollManager.isScroll(clicked)
 
-        // Either: scroll on cursor + amethyst clicked, or amethyst on cursor + scroll clicked
-        val gateScrollOnCursor = isScrollOnCursor &&
-            plugin.scrollManager.getSpell(cursor) == com.hacklab.minecraft.skills.magic.SpellType.GATE_TRAVEL
-        val gateScrollClicked = isScrollClicked &&
-            plugin.scrollManager.getSpell(clicked) == com.hacklab.minecraft.skills.magic.SpellType.GATE_TRAVEL
-
-        if ((gateScrollOnCursor && isAmethystClicked) || (isAmethystOnCursor && gateScrollClicked)) {
+        // Either: paper on cursor + amethyst clicked, or amethyst on cursor + paper clicked
+        if ((isPaperOnCursor && isAmethystClicked) || (isAmethystOnCursor && isPaperClicked)) {
             // Create a rune
             val rune = plugin.runeManager.createRune()
 
-            // Determine which item is the scroll and which is the amethyst
-            if (gateScrollOnCursor && isAmethystClicked) {
-                // Consume the scroll from cursor
+            // Consume both items (one from cursor, one from clicked)
+            if (isPaperOnCursor && isAmethystClicked) {
+                // Consume paper from cursor
                 if (cursor.amount > 1) {
                     val newCursor = cursor.clone()
                     newCursor.amount = cursor.amount - 1
@@ -280,7 +279,7 @@ class CraftingListener(private val plugin: Skills) : Listener {
                 // Replace the amethyst with the rune
                 event.currentItem = rune
             } else {
-                // Consume the amethyst from cursor
+                // Consume amethyst from cursor
                 if (cursor.amount > 1) {
                     val newCursor = cursor.clone()
                     newCursor.amount = cursor.amount - 1
@@ -289,7 +288,7 @@ class CraftingListener(private val plugin: Skills) : Listener {
                     event.view.setCursor(null)
                 }
 
-                // Replace the scroll with the rune
+                // Replace the paper with the rune
                 event.currentItem = rune
             }
 

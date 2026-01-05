@@ -303,15 +303,13 @@ Mark/Recall/Gate Travel require
 a rune item.
 
 [Crafting]
-Use /scribe rune command
-Materials:
-- Amethyst Shard x1
-- Paper x1
-Success: 100% (never fails)
+Combine in inventory:
+1. Pick up Paper with cursor
+2. Click on Amethyst Shard
+3. Blank Rune is created!
+(Works in either direction)
 
-[Purchase]
-Buy from Librarian (Lv.2)
-Price: 3-5 emeralds
+No skill required, 100% success
 
 [How to Use]
 1. Hold blank rune in hand

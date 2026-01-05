@@ -250,7 +250,7 @@ class RunebookManager(private val plugin: Skills) {
      * Create an item representing a filled rune slot
      */
     private fun createRuneSlotItem(entry: RuneEntry, index: Int, useJapanese: Boolean): ItemStack {
-        val item = ItemStack(Material.ENDER_EYE)
+        val item = ItemStack(Material.AMETHYST_SHARD)
         val meta = item.itemMeta ?: return item
 
         meta.displayName(
