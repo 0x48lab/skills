@@ -48,6 +48,7 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
         sender.sendMessage(Component.text("/skilladmin reset <player>").color(NamedTextColor.WHITE))
         sender.sendMessage(Component.text("/skilladmin reload").color(NamedTextColor.WHITE))
         sender.sendMessage(Component.text("/skilladmin give <player> spellbook").color(NamedTextColor.WHITE))
+        sender.sendMessage(Component.text("/skilladmin give <player> runebook").color(NamedTextColor.WHITE))
         sender.sendMessage(Component.text("/skilladmin give <player> rune").color(NamedTextColor.WHITE))
         sender.sendMessage(Component.text("/skilladmin give <player> reagents").color(NamedTextColor.WHITE))
         sender.sendMessage(Component.text("/skilladmin give <player> scroll <spell|all>").color(NamedTextColor.WHITE))
@@ -235,6 +236,12 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
                 target.inventory.addItem(spellbook)
                 sender.sendMessage("Gave full spellbook to ${target.name}")
             }
+            "runebook" -> {
+                val useJapanese = plugin.localeManager.getLanguage(target) == com.hacklab.minecraft.skills.i18n.Language.JAPANESE
+                val runebook = plugin.runebookManager.createRunebook(useJapanese)
+                target.inventory.addItem(runebook)
+                sender.sendMessage("Gave runebook to ${target.name}")
+            }
             "rune" -> {
                 val rune = plugin.runeManager.createRune()
                 target.inventory.addItem(rune)
@@ -296,7 +303,7 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
                     .filter { it.lowercase().startsWith(args[2].lowercase()) }
                 "setstat" -> listOf("STR", "DEX", "INT")
                     .filter { it.lowercase().startsWith(args[2].lowercase()) }
-                "give" -> listOf("spellbook", "rune", "reagents", "scroll")
+                "give" -> listOf("spellbook", "runebook", "rune", "reagents", "scroll")
                     .filter { it.startsWith(args[2].lowercase()) }
                 else -> emptyList()
             }
