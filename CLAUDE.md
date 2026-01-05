@@ -1983,6 +1983,65 @@ vengeful_mobs:
   default_attack_cooldown: 1000  # デフォルト攻撃間隔（ms）
 ```
 
+## チャンクモブ制限機能
+
+チャンク単位でモブ数を制限し、自動繁殖場やモンスタースポナーによるサーバー負荷を軽減する機能。
+
+### 基本仕様
+- チャンクごとにカテゴリ別のモブ数をカウント
+- 上限に達するとスポーン・繁殖をブロック
+- 繁殖ブロック時はプレイヤーに通知
+- config.ymlで有効/無効を切り替え可能
+
+### カテゴリ別デフォルト上限
+| カテゴリ | 上限 | 対象 |
+|---------|------|------|
+| Passive（友好的） | 24 | 牛、羊、豚、鶏など |
+| Hostile（敵対的） | 32 | ゾンビ、スケルトン、クリーパーなど |
+| Ambient（環境） | 8 | コウモリ |
+| Water Creature（水生生物） | 8 | イカ、イルカなど |
+| Water Ambient（水生環境） | 16 | 魚類 |
+
+### 制限対象外エンティティ
+| 種別 | 対象 |
+|-----|------|
+| ボスMob | エンダードラゴン、ウィザー、エルダーガーディアン |
+| 保護Mob | 村人、アイアンゴーレム、スノーゴーレム、行商人、トレーダーラマ |
+
+### 制限対象外スポーン理由
+| スポーン理由 | 説明 |
+|-------------|------|
+| COMMAND | /summonコマンド |
+| CUSTOM | プラグインによるスポーン |
+| BUILD_* | ゴーレム・ウィザー建築 |
+| CURED | ゾンビ村人の治療 |
+| DROWNED | ドラウンド化 |
+| PIGLIN_ZOMBIFIED | ゾンビピグリン化 |
+| INFECTION | ゾンビ村人化 |
+| METAMORPHOSIS | オタマジャクシ→カエル変態 |
+| SHEARED | ムーシュルームの毛刈り |
+| ENDER_PEARL | エンダーパールからのエンダーマイト |
+
+### 設定項目（config.yml）
+```yaml
+chunk_mob_limit:
+  enabled: true              # 機能の有効/無効
+  limits:
+    passive: 24              # 友好的Mobの上限
+    hostile: 32              # 敵対的Mobの上限
+    ambient: 8               # 環境Mobの上限
+    water_creature: 8        # 水生生物の上限
+    water_ambient: 16        # 水生環境Mobの上限
+  check_interval_ticks: 100  # キャッシュ更新間隔（tick）
+  notify_on_limit: true      # 繁殖ブロック時に通知
+```
+
+### メッセージ
+| 言語 | メッセージ |
+|-----|-----------|
+| 英語 | "Breeding blocked: {category} mob limit ({limit}) reached in this chunk." |
+| 日本語 | "繁殖がブロックされました: このチャンクの{category}モブ数が上限({limit})に達しています。" |
+
 ## 技術仕様
 
 ### データ保存
