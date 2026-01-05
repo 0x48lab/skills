@@ -239,109 +239,46 @@ class CraftingListener(private val plugin: Skills) : Listener {
     }
 
     /**
-     * Create a blank rune by combining Teleport Scroll + Amethyst Shard in inventory
-     * Either: scroll on cursor + amethyst clicked, or amethyst on cursor + scroll clicked
+     * Handle rune crafting via PrepareItemCraftEvent
+     * Recipe: Teleport Scroll + Amethyst Shard = Blank Rune
      */
     @EventHandler(priority = EventPriority.HIGH)
-    fun onCreateRune(event: InventoryClickEvent) {
-        val player = event.whoClicked as? Player ?: return
+    fun onPrepareRuneCraft(event: org.bukkit.event.inventory.PrepareItemCraftEvent) {
+        val matrix = event.inventory.matrix ?: return
 
-        // Get cursor item (what player is holding on cursor)
-        val cursor = event.cursor
-        if (cursor.type == Material.AIR) return
+        // Check for Teleport Scroll + Amethyst Shard combination (any arrangement)
+        var hasTeleportScroll = false
+        var hasAmethyst = false
+        var itemCount = 0
 
-        // Get clicked item
-        val clicked = event.currentItem
-        if (clicked == null || clicked.type == Material.AIR) return
+        for (item in matrix) {
+            if (item == null || item.type == Material.AIR) continue
+            itemCount++
 
-        // Check for Teleport Scroll + Amethyst Shard combination
-        val isScrollOnCursor = plugin.scrollManager.isScroll(cursor)
-        val isScrollClicked = plugin.scrollManager.isScroll(clicked)
-        val isAmethystClicked = clicked.type == Material.AMETHYST_SHARD && !plugin.runeManager.isRune(clicked)
-        val isAmethystOnCursor = cursor.type == Material.AMETHYST_SHARD && !plugin.runeManager.isRune(cursor)
-
-        // Debug logging
-        if ((isScrollOnCursor && isAmethystClicked) || (isAmethystOnCursor && isScrollClicked)) {
-            val cursorSpell = if (isScrollOnCursor) plugin.scrollManager.getSpell(cursor) else null
-            val clickedSpell = if (isScrollClicked) plugin.scrollManager.getSpell(clicked) else null
-            plugin.logger.info("[Rune Debug] isScrollOnCursor=$isScrollOnCursor, isAmethystClicked=$isAmethystClicked")
-            plugin.logger.info("[Rune Debug] isScrollClicked=$isScrollClicked, isAmethystOnCursor=$isAmethystOnCursor")
-            plugin.logger.info("[Rune Debug] cursorSpell=$cursorSpell, clickedSpell=$clickedSpell")
+            if (plugin.scrollManager.isScroll(item) &&
+                plugin.scrollManager.getSpell(item) == com.hacklab.minecraft.skills.magic.SpellType.TELEPORT) {
+                hasTeleportScroll = true
+            } else if (item.type == Material.AMETHYST_SHARD && !plugin.runeManager.isRune(item)) {
+                hasAmethyst = true
+            }
         }
 
-        // Check if the scroll is a Teleport scroll
-        val teleportScrollOnCursor = isScrollOnCursor &&
-            plugin.scrollManager.getSpell(cursor) == com.hacklab.minecraft.skills.magic.SpellType.TELEPORT
-        val teleportScrollClicked = isScrollClicked &&
-            plugin.scrollManager.getSpell(clicked) == com.hacklab.minecraft.skills.magic.SpellType.TELEPORT
+        // Must have exactly 2 items: 1 Teleport scroll + 1 Amethyst shard
+        if (hasTeleportScroll && hasAmethyst && itemCount == 2) {
+            event.inventory.result = plugin.runeManager.createRune()
+        }
+    }
 
-        // Either: teleport scroll on cursor + amethyst clicked, or amethyst on cursor + teleport scroll clicked
-        if ((teleportScrollOnCursor && isAmethystClicked) || (isAmethystOnCursor && teleportScrollClicked)) {
-            // Cancel the event first to prevent default behavior
-            event.isCancelled = true
-
-            // Create a rune
-            val rune = plugin.runeManager.createRune()
-
-            // Store values for delayed execution
-            val clickedInventory = event.clickedInventory
-            val slot = event.slot
-            val cursorAmount = cursor.amount
-            val clickedAmount = clicked.amount
-            val isTeleportOnCursor = teleportScrollOnCursor && isAmethystClicked
-
-            // Run on next tick to avoid event timing issues
-            plugin.server.scheduler.runTask(plugin, Runnable {
-                if (isTeleportOnCursor) {
-                    // Consume scroll from cursor
-                    if (cursorAmount > 1) {
-                        val newCursor = cursor.clone()
-                        newCursor.amount = cursorAmount - 1
-                        player.setItemOnCursor(newCursor)
-                    } else {
-                        player.setItemOnCursor(null)
-                    }
-
-                    // Consume one amethyst from clicked slot
-                    if (clickedAmount > 1) {
-                        val newClicked = clicked.clone()
-                        newClicked.amount = clickedAmount - 1
-                        clickedInventory?.setItem(slot, newClicked)
-                    } else {
-                        clickedInventory?.setItem(slot, null)
-                    }
-                } else {
-                    // Consume amethyst from cursor
-                    if (cursorAmount > 1) {
-                        val newCursor = cursor.clone()
-                        newCursor.amount = cursorAmount - 1
-                        player.setItemOnCursor(newCursor)
-                    } else {
-                        player.setItemOnCursor(null)
-                    }
-
-                    // Consume one scroll from clicked slot
-                    if (clickedAmount > 1) {
-                        val newClicked = clicked.clone()
-                        newClicked.amount = clickedAmount - 1
-                        clickedInventory?.setItem(slot, newClicked)
-                    } else {
-                        clickedInventory?.setItem(slot, null)
-                    }
-                }
-
-                // Give rune to player
-                val leftover = player.inventory.addItem(rune)
-                if (leftover.isNotEmpty()) {
-                    leftover.values.forEach { player.world.dropItemNaturally(player.location, it) }
-                }
-
-                // Send message
-                plugin.messageSender.send(player, com.hacklab.minecraft.skills.i18n.MessageKey.RUNE_CREATED)
-
-                // Play sound
-                player.world.playSound(player.location, org.bukkit.Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 1.2f)
-            })
+    /**
+     * Handle taking the crafted rune - play sound and send message
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    fun onCraftRune(event: CraftItemEvent) {
+        val result = event.recipe.result
+        if (plugin.runeManager.isRune(result)) {
+            val player = event.whoClicked as? Player ?: return
+            plugin.messageSender.send(player, com.hacklab.minecraft.skills.i18n.MessageKey.RUNE_CREATED)
+            player.world.playSound(player.location, org.bukkit.Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 1.2f)
         }
     }
 }
