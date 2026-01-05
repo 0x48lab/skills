@@ -239,7 +239,7 @@ class CraftingListener(private val plugin: Skills) : Listener {
     }
 
     /**
-     * Create a blank rune by combining Mark Scroll + Amethyst Shard in inventory
+     * Create a blank rune by combining Teleport Scroll + Amethyst Shard in inventory
      * Either: scroll on cursor + amethyst clicked, or amethyst on cursor + scroll clicked
      */
     @EventHandler(priority = EventPriority.HIGH)
@@ -254,25 +254,25 @@ class CraftingListener(private val plugin: Skills) : Listener {
         val clicked = event.currentItem
         if (clicked == null || clicked.type == Material.AIR) return
 
-        // Check for Mark Scroll + Amethyst Shard combination
+        // Check for Teleport Scroll + Amethyst Shard combination
         val isScrollOnCursor = plugin.scrollManager.isScroll(cursor)
         val isScrollClicked = plugin.scrollManager.isScroll(clicked)
         val isAmethystClicked = clicked.type == Material.AMETHYST_SHARD && !plugin.runeManager.isRune(clicked)
         val isAmethystOnCursor = cursor.type == Material.AMETHYST_SHARD && !plugin.runeManager.isRune(cursor)
 
-        // Check if the scroll is a Mark scroll
-        val markScrollOnCursor = isScrollOnCursor &&
-            plugin.scrollManager.getSpell(cursor) == com.hacklab.minecraft.skills.magic.SpellType.MARK
-        val markScrollClicked = isScrollClicked &&
-            plugin.scrollManager.getSpell(clicked) == com.hacklab.minecraft.skills.magic.SpellType.MARK
+        // Check if the scroll is a Teleport scroll
+        val teleportScrollOnCursor = isScrollOnCursor &&
+            plugin.scrollManager.getSpell(cursor) == com.hacklab.minecraft.skills.magic.SpellType.TELEPORT
+        val teleportScrollClicked = isScrollClicked &&
+            plugin.scrollManager.getSpell(clicked) == com.hacklab.minecraft.skills.magic.SpellType.TELEPORT
 
-        // Either: mark scroll on cursor + amethyst clicked, or amethyst on cursor + mark scroll clicked
-        if ((markScrollOnCursor && isAmethystClicked) || (isAmethystOnCursor && markScrollClicked)) {
+        // Either: teleport scroll on cursor + amethyst clicked, or amethyst on cursor + teleport scroll clicked
+        if ((teleportScrollOnCursor && isAmethystClicked) || (isAmethystOnCursor && teleportScrollClicked)) {
             // Create a rune
             val rune = plugin.runeManager.createRune()
 
             // Consume both items (one from cursor, one from clicked)
-            if (markScrollOnCursor && isAmethystClicked) {
+            if (teleportScrollOnCursor && isAmethystClicked) {
                 // Consume scroll from cursor
                 if (cursor.amount > 1) {
                     val newCursor = cursor.clone()

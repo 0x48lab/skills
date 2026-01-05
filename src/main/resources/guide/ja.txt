@@ -300,17 +300,17 @@ Mark/Recall/Gate Travelには
 
 【合成】
 インベントリ内で合成:
-1. Markスクロールを持つ
+1. Teleportスクロールを持つ
 2. アメジストの欠片をクリック
 3. 空のルーンが完成！
 （逆の操作でもOK）
 
 スキル不要・成功率100%
 
-Markスクロール入手先:
-- Mobドロップ（エヴォーカー等）
+Teleportスクロール入手先:
+- Mobドロップ（ウィッチ等）
 - End City宝箱
-- 自作（/scribe mark）
+- 自作（/scribe teleport）
 
 【使い方】
 1. 空のルーンを手に持つ
