@@ -18,12 +18,16 @@ class RuneManager(private val plugin: Skills) {
 
     /**
      * Check if an item is a rune
+     * Also recognizes legacy runes that may not have the rune key but have location data
      */
     fun isRune(item: ItemStack?): Boolean {
         if (item == null || item.type != Material.AMETHYST_SHARD) {
             return false
         }
-        return item.itemMeta?.persistentDataContainer?.has(runeKey, PersistentDataType.BYTE) == true
+        val pdc = item.itemMeta?.persistentDataContainer ?: return false
+        // Check for rune key or legacy runes with location data
+        return pdc.has(runeKey, PersistentDataType.BYTE) ||
+               pdc.has(runeLocationKey, PersistentDataType.STRING)
     }
 
     /**
@@ -60,6 +64,11 @@ class RuneManager(private val plugin: Skills) {
         if (!isRune(rune)) return false
 
         val meta = rune.itemMeta ?: return false
+
+        // Ensure rune key is set (for legacy runes)
+        if (!meta.persistentDataContainer.has(runeKey, PersistentDataType.BYTE)) {
+            meta.persistentDataContainer.set(runeKey, PersistentDataType.BYTE, 1)
+        }
 
         // Store location
         val locationString = "${location.x},${location.y},${location.z}"
