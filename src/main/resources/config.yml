@@ -178,3 +178,22 @@ vengeful_mobs:
       speed: 1.5
       attack_cooldown: 1000
       mode: RETALIATE_ONCE
+
+# Chunk Mob Limit settings - Prevents server lag from mob farms
+chunk_mob_limit:
+  # Enable/disable the feature
+  enabled: true
+
+  # Maximum mob count per chunk by category
+  limits:
+    passive: 24       # Animals (cows, sheep, pigs, etc.)
+    hostile: 32       # Monsters (zombies, skeletons, etc.)
+    ambient: 8        # Bats
+    water_creature: 8 # Squid, dolphins, etc.
+    water_ambient: 16 # Fish
+
+  # Cache refresh interval in ticks (100 = 5 seconds)
+  check_interval_ticks: 100
+
+  # Notify player when breeding is blocked due to limit
+  notify_on_limit: true

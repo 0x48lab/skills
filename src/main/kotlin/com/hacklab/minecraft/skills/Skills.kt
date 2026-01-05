@@ -26,6 +26,7 @@ import com.hacklab.minecraft.skills.i18n.MessageSender
 import com.hacklab.minecraft.skills.i18n.PlayerLocaleManager
 import com.hacklab.minecraft.skills.listener.*
 import com.hacklab.minecraft.skills.magic.*
+import com.hacklab.minecraft.skills.moblimit.MobLimitManager
 import com.hacklab.minecraft.skills.skill.SkillManager
 import com.hacklab.minecraft.skills.skill.SkillTitleManager
 import com.hacklab.minecraft.skills.taming.AnimalLoreManager
@@ -173,6 +174,10 @@ class Skills : JavaPlugin() {
 
     // Integration
     lateinit var notorietyIntegration: NotorietyIntegration
+        private set
+
+    // Mob Limit
+    lateinit var mobLimitManager: MobLimitManager
         private set
 
     // Listeners
@@ -329,6 +334,9 @@ class Skills : JavaPlugin() {
         // Integration (Notoriety plugin)
         notorietyIntegration = NotorietyIntegration(this)
         notorietyIntegration.initialize()
+
+        // Mob Limit
+        mobLimitManager = MobLimitManager(this)
     }
 
     private fun registerListeners() {
@@ -375,6 +383,12 @@ class Skills : JavaPlugin() {
 
         // Sleep
         pm.registerEvents(SleepListener(this), this)
+
+        // Mob Limit (only if enabled)
+        if (skillsConfig.chunkMobLimitEnabled) {
+            pm.registerEvents(MobLimitListener(this), this)
+            logger.info("Chunk Mob Limit enabled")
+        }
     }
 
     private fun registerCommands() {

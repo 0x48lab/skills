@@ -266,6 +266,11 @@ sleep:
   click_to_sleep: "Sleep too"
   click_hover: "Click to skip the night together"
 
+# Chunk Mob Limit messages
+chunk_mob_limit:
+  breeding: "<red>Breeding blocked: {category} mob limit ({limit}) reached in this chunk."
+  info: "<gray>Chunk mob count - {category}: {count}/{limit}"
+
 # Common words
 common:
   "yes": "Yes"

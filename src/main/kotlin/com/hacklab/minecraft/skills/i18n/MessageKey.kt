@@ -246,6 +246,10 @@ enum class MessageKey(val path: String) {
     SLEEP_CLICK_TO_SLEEP("sleep.click_to_sleep"),
     SLEEP_CLICK_HOVER("sleep.click_hover"),
 
+    // Chunk Mob Limit
+    CHUNK_MOB_LIMIT_BREEDING("chunk_mob_limit.breeding"),
+    CHUNK_MOB_LIMIT_INFO("chunk_mob_limit.info"),
+
     // Common
     COMMON_YES("common.yes"),
     COMMON_NO("common.no"),

@@ -266,6 +266,11 @@ sleep:
   click_to_sleep: "一緒に寝る"
   click_hover: "クリックして夜をスキップ"
 
+# チャンクモブ制限メッセージ
+chunk_mob_limit:
+  breeding: "<red>繁殖がブロックされました: このチャンクの{category}モブ数が上限({limit})に達しています。"
+  info: "<gray>チャンクのモブ数 - {category}: {count}/{limit}"
+
 # 共通
 common:
   "yes": "はい"

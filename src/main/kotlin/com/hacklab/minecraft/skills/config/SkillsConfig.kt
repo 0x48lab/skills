@@ -62,6 +62,16 @@ class SkillsConfig(private val plugin: Skills) {
     val economyTimeWindowMinutes: Int get() = config.getInt("economy.chunk_limit.time_window_minutes", 60)
     val economyShowOnScoreboard: Boolean get() = config.getBoolean("economy.show_on_scoreboard", true)
 
+    // Chunk Mob Limit settings
+    val chunkMobLimitEnabled: Boolean get() = config.getBoolean("chunk_mob_limit.enabled", true)
+    val chunkMobLimitPassive: Int get() = config.getInt("chunk_mob_limit.limits.passive", 24)
+    val chunkMobLimitHostile: Int get() = config.getInt("chunk_mob_limit.limits.hostile", 32)
+    val chunkMobLimitAmbient: Int get() = config.getInt("chunk_mob_limit.limits.ambient", 8)
+    val chunkMobLimitWaterCreature: Int get() = config.getInt("chunk_mob_limit.limits.water_creature", 8)
+    val chunkMobLimitWaterAmbient: Int get() = config.getInt("chunk_mob_limit.limits.water_ambient", 16)
+    val chunkMobLimitCheckInterval: Long get() = config.getLong("chunk_mob_limit.check_interval_ticks", 100)
+    val chunkMobLimitNotify: Boolean get() = config.getBoolean("chunk_mob_limit.notify_on_limit", true)
+
     /**
      * Get reward limit for a specific world
      */
