@@ -60,7 +60,7 @@ class RunebookListener(private val plugin: Skills) : Listener {
     /**
      * Handle clicks in the runebook GUI
      */
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGHEST)
     fun onInventoryClick(event: InventoryClickEvent) {
         val player = event.whoClicked as? Player ?: return
 
@@ -125,9 +125,13 @@ class RunebookListener(private val plugin: Skills) : Listener {
 
                 // Rune slots (row 1-2, excluding info and close buttons)
                 else -> {
-                    // If player is holding a rune on cursor, allow dropping on empty slots too
-                    if (cursorItem.type != Material.AIR && clickedItem?.type == Material.GRAY_STAINED_GLASS_PANE) {
-                        handleRuneDrop(player, runebook, cursorItem, useJapanese)
+                    // If clicking on empty slot (gray glass)
+                    if (clickedItem?.type == Material.GRAY_STAINED_GLASS_PANE) {
+                        // If player is holding a rune on cursor, add it to runebook
+                        if (cursorItem.type != Material.AIR) {
+                            handleRuneDrop(player, runebook, cursorItem, useJapanese)
+                        }
+                        // Either way, don't allow picking up the glass
                         return
                     }
                     val runeIndex = plugin.runebookManager.getRuneIndex(clickedItem)
@@ -143,7 +147,7 @@ class RunebookListener(private val plugin: Skills) : Listener {
     /**
      * Handle dragging items in the runebook GUI
      */
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGHEST)
     fun onInventoryDrag(event: InventoryDragEvent) {
         val player = event.whoClicked as? Player ?: return
 
