@@ -297,6 +297,29 @@ Recall (5th) - TP to rune
 
 ---PAGE---
 
+=== How to Get Runes ===
+
+Mark/Recall/Gate Travel require
+a rune item.
+
+[Crafting]
+Use /scribe rune command
+Materials:
+- Amethyst Shard x1
+- Paper x1
+Success: 100% (never fails)
+
+[Purchase]
+Buy from Librarian (Lv.2)
+Price: 3-5 emeralds
+
+[How to Use]
+1. Hold blank rune in hand
+2. /cast mark to record location
+3. Use marked rune for Recall/Gate
+
+---PAGE---
+
 === Utility Spells ===
 
 Paralyze (5th)
