@@ -125,4 +125,5 @@ empty_message: "呪文が記録されていません。\n\nスクロールで呪
 click_hint: "クリックで詠唱"
 click_to_cast: "クリックで詠唱"
 reagents_label: "触媒"
+power_words_label: "詠唱"
 author: "アルケイン図書館"

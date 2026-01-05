@@ -181,10 +181,37 @@ enum class SpellType(
     val difficulty: Int get() = circle.number * 10
 
     companion object {
+        // Cache for Power Words lookup (lowercase key -> SpellType, lower circle priority)
+        private val powerWordsMap: Map<String, SpellType> by lazy {
+            val map = mutableMapOf<String, SpellType>()
+            // Sort by circle number to ensure lower circle spells have priority
+            entries.sortedBy { it.circle.number }.forEach { spell ->
+                val key = spell.powerWords.lowercase()
+                // Only add if not already present (lower circle wins)
+                if (!map.containsKey(key)) {
+                    map[key] = spell
+                }
+            }
+            map
+        }
+
         fun fromDisplayName(name: String): SpellType? =
             entries.find { it.displayName.equals(name, ignoreCase = true) }
 
         fun getByCircle(circle: SpellCircle): List<SpellType> =
             entries.filter { it.circle == circle }
+
+        /**
+         * Find spell by Power Words (case-insensitive)
+         * When duplicates exist (e.g., "Kal Vas Flam"), lower circle spell has priority
+         */
+        fun fromPowerWords(words: String): SpellType? =
+            powerWordsMap[words.lowercase()]
+
+        /**
+         * Get all Power Words for tab completion
+         */
+        fun getAllPowerWords(): List<String> =
+            entries.map { it.powerWords }
     }
 }

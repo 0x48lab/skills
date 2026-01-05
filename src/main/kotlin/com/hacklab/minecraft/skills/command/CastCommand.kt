@@ -38,10 +38,9 @@ class CastCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
             return true
         }
 
-        // Try to match spell name (with optional player argument for PLAYER_OR_SELF spells)
+        // Try to match spell by: 1) display name, 2) enum name, 3) Power Words
         var spellName = args.joinToString(" ")
-        var spell = SpellType.fromDisplayName(spellName)
-            ?: SpellType.entries.find { it.name.equals(spellName.replace(" ", "_"), ignoreCase = true) }
+        var spell = findSpell(spellName)
 
         var targetPlayer: Player? = null
 
@@ -50,8 +49,7 @@ class CastCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
             val spellArgs = args.dropLast(1)
             val playerArg = args.last()
             spellName = spellArgs.joinToString(" ")
-            spell = SpellType.fromDisplayName(spellName)
-                ?: SpellType.entries.find { it.name.equals(spellName.replace(" ", "_"), ignoreCase = true) }
+            spell = findSpell(spellName)
 
             if (spell != null && spell.targetType == com.hacklab.minecraft.skills.magic.SpellTargetType.PLAYER_OR_SELF) {
                 targetPlayer = plugin.server.getPlayer(playerArg)
@@ -68,7 +66,7 @@ class CastCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
 
         if (spell == null) {
             sender.sendMessage("Unknown spell: $spellName")
-            sender.sendMessage("Use /spellbook to see available spells.")
+            sender.sendMessage("Use /spellbook to see available spells, or try Power Words (e.g., /cast Vas Flam)")
             return true
         }
 
@@ -93,6 +91,8 @@ class CastCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
         }
 
         val input = args.joinToString(" ").lowercase()
+
+        // Add spell display names
         suggestions.addAll(
             availableSpells
                 .map { it.displayName }
@@ -100,6 +100,30 @@ class CastCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
                 .sorted()
         )
 
-        return suggestions.filter { it.lowercase().startsWith(input) }
+        // Add Power Words for available spells
+        suggestions.addAll(
+            availableSpells
+                .map { it.powerWords }
+                .filter { it.lowercase().startsWith(input) }
+                .sorted()
+        )
+
+        return suggestions.distinct().filter { it.lowercase().startsWith(input) }
+    }
+
+    /**
+     * Find spell by display name, enum name, or Power Words
+     */
+    private fun findSpell(input: String): SpellType? {
+        // 1. Try display name (e.g., "Fireball")
+        SpellType.fromDisplayName(input)?.let { return it }
+
+        // 2. Try enum name (e.g., "FIREBALL" or "fire_wall")
+        SpellType.entries.find { it.name.equals(input.replace(" ", "_"), ignoreCase = true) }?.let { return it }
+
+        // 3. Try Power Words (e.g., "Vas Flam")
+        SpellType.fromPowerWords(input)?.let { return it }
+
+        return null
     }
 }

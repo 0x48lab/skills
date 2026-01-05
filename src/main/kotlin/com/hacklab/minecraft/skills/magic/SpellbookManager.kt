@@ -336,6 +336,19 @@ class SpellbookManager(private val plugin: Skills) {
                 val description = getSpellDescription(lang, spell)
                 builder.append(Component.text("  $description\n").color(NamedTextColor.BLACK))
 
+                // Power Words (UO-style incantation)
+                val powerWordsLabel = getLocalized(lang, "power_words_label", "Incantation")
+                builder.append(
+                    Component.text("  $powerWordsLabel: ")
+                        .color(NamedTextColor.DARK_PURPLE)
+                        .append(
+                            Component.text(spell.powerWords)
+                                .color(NamedTextColor.LIGHT_PURPLE)
+                                .decorate(TextDecoration.ITALIC)
+                        )
+                        .append(Component.text("\n"))
+                )
+
                 // Reagents (group and count duplicates)
                 val reagentCounts = spell.reagents.groupingBy { it }.eachCount()
                 val reagentsText = reagentCounts.entries.joinToString(", ") { (material, count) ->

@@ -79,6 +79,9 @@ class CastingManager(private val plugin: Skills) {
         // Announce Power Words (UO-style incantation)
         broadcastPowerWords(player, spell)
 
+        // Spawn floating text effect above player
+        plugin.floatingTextManager.spawnFloatingText(player, spell)
+
         // Play casting start sound
         player.world.playSound(player.location, Sound.BLOCK_ENCHANTMENT_TABLE_USE, 0.5f, 1.2f)
 
@@ -239,6 +242,9 @@ class CastingManager(private val plugin: Skills) {
         player.hideBossBar(state.bossBar)
         castingStates.remove(player.uniqueId)
 
+        // Remove floating text effect
+        plugin.floatingTextManager.removeFloatingText(player.uniqueId)
+
         // Cancel the progress task
         if (state.taskId != -1) {
             plugin.server.scheduler.cancelTask(state.taskId)
@@ -266,6 +272,9 @@ class CastingManager(private val plugin: Skills) {
      */
     fun cancelCasting(playerId: UUID, silent: Boolean = false): Boolean {
         val state = castingStates.remove(playerId) ?: return false
+
+        // Remove floating text effect
+        plugin.floatingTextManager.removeFloatingText(playerId)
 
         // Get player and hide boss bar
         plugin.server.getPlayer(playerId)?.let { player ->

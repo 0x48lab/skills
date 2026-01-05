@@ -107,6 +107,8 @@ class Skills : JavaPlugin() {
         private set
     lateinit var summonManager: SummonManager
         private set
+    lateinit var floatingTextManager: FloatingTextManager
+        private set
 
     // Crafting
     lateinit var craftingManager: CraftingManager
@@ -254,6 +256,11 @@ class Skills : JavaPlugin() {
             staminaManager.stopUpdateTask()
         }
 
+        // Cleanup floating texts
+        if (::floatingTextManager.isInitialized) {
+            floatingTextManager.cleanup()
+        }
+
         // Disconnect database
         database.disconnect()
 
@@ -285,6 +292,7 @@ class Skills : JavaPlugin() {
         gateManager = GateManager(this)
         runebookManager = RunebookManager(this)
         summonManager = SummonManager(this)
+        floatingTextManager = FloatingTextManager(this)
         castingManager = CastingManager(this)
         spellManager = SpellManager(this)
 
