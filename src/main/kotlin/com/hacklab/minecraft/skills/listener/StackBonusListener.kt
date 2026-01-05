@@ -1,6 +1,7 @@
 package com.hacklab.minecraft.skills.listener
 
 import com.hacklab.minecraft.skills.Skills
+import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -16,7 +17,8 @@ import org.bukkit.event.player.PlayerJoinEvent
  * Applies stack bonus when:
  * - Player picks up items from the ground
  * - Player takes items from containers (chests, furnaces, etc.)
- * - Player joins the game (updates existing inventory)
+ * - Player joins the game (syncs all items of same type to highest maxStackSize)
+ * - Player tries to stack items in inventory (syncs maxStackSize for stacking)
  */
 class StackBonusListener(private val plugin: Skills) : Listener {
 
@@ -37,38 +39,48 @@ class StackBonusListener(private val plugin: Skills) : Listener {
     }
 
     /**
-     * Apply stack bonus when player takes items from containers.
-     * Uses sync version to ensure items can stack with existing inventory items.
+     * Apply stack bonus when player takes items from containers or
+     * tries to stack items within their inventory.
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun onInventoryClick(event: InventoryClickEvent) {
         val player = event.whoClicked as? Player ?: return
-
-        // Skip if clicking in player's own inventory top section
         val clickedInventory = event.clickedInventory ?: return
 
-        // Check if player is taking items from a non-player inventory
+        // Handle taking items from containers (non-player inventory)
         if (clickedInventory.type != InventoryType.PLAYER &&
             clickedInventory.type != InventoryType.CRAFTING) {
 
-            // Player is clicking on a container inventory
             val item = event.currentItem ?: return
-
-            // Apply stack bonus with inventory sync to maintain stacking compatibility
             plugin.stackBonusManager.applyStackBonusWithSync(item, player)
         }
 
-        // Also handle shift-click from container to player inventory
+        // Handle shift-click from container to player inventory
         if (event.isShiftClick && clickedInventory.type != InventoryType.PLAYER) {
             val item = event.currentItem ?: return
             plugin.stackBonusManager.applyStackBonusWithSync(item, player)
+        }
+
+        // Handle drag & drop within player inventory to stack items
+        if (clickedInventory.type == InventoryType.PLAYER) {
+            val cursor = event.cursor
+            val slotItem = event.currentItem
+
+            // If player is trying to combine items of the same type
+            if (!cursor.type.isAir &&
+                slotItem != null && !slotItem.type.isAir &&
+                cursor.type == slotItem.type &&
+                cursor.type.maxStackSize > 1) {
+
+                // Sync maxStackSize for both items so they can stack
+                plugin.stackBonusManager.syncItemsForStacking(cursor, slotItem, player)
+            }
         }
     }
 
     /**
      * Update stack bonus for all items when player joins.
-     * This ensures returning players have their inventory updated
-     * if their skills have changed.
+     * Syncs all items of the same type to the highest maxStackSize found.
      */
     @EventHandler(priority = EventPriority.MONITOR)
     fun onPlayerJoin(event: PlayerJoinEvent) {
@@ -76,31 +88,54 @@ class StackBonusListener(private val plugin: Skills) : Listener {
 
         // Schedule update for next tick to ensure player data is loaded
         plugin.server.scheduler.runTaskLater(plugin, Runnable {
-            updatePlayerInventory(player)
+            syncPlayerInventory(player)
         }, 5L)
     }
 
     /**
-     * Update stack sizes for all items in player's inventory.
+     * Sync stack sizes for all items in player's inventory.
+     * Groups items by type and sets all items of each type to the highest maxStackSize.
      */
-    private fun updatePlayerInventory(player: Player) {
+    private fun syncPlayerInventory(player: Player) {
         if (!player.isOnline) return
 
         val inventory = player.inventory
-        val maxStackSize = plugin.stackBonusManager.calculateMaxStackSize(player)
+        val calculatedMax = plugin.stackBonusManager.calculateMaxStackSize(player)
 
-        // Update main inventory
+        // Group slots by material type
+        val slotsByType = mutableMapOf<Material, MutableList<Int>>()
         for (i in 0 until inventory.size) {
             val item = inventory.getItem(i) ?: continue
             if (item.type.maxStackSize > 1) {
-                val meta = item.itemMeta ?: continue
-                val currentMax = if (meta.hasMaxStackSize()) meta.maxStackSize else item.type.maxStackSize
+                slotsByType.getOrPut(item.type) { mutableListOf() }.add(i)
+            }
+        }
 
-                // Only update if new max is higher (don't reduce stack size)
-                if (maxStackSize > currentMax) {
-                    meta.setMaxStackSize(maxStackSize)
-                    item.itemMeta = meta
-                    inventory.setItem(i, item)
+        // For each material type, find the highest maxStackSize and sync all items
+        for ((type, slots) in slotsByType) {
+            if (slots.size <= 1) continue // No need to sync single items
+
+            // Find highest maxStackSize among items of this type
+            var highestMax = calculatedMax
+            for (slot in slots) {
+                val item = inventory.getItem(slot) ?: continue
+                val meta = item.itemMeta ?: continue
+                if (meta.hasMaxStackSize()) {
+                    highestMax = maxOf(highestMax, meta.maxStackSize)
+                }
+            }
+
+            // Update all items of this type to the highest maxStackSize
+            if (highestMax > 64) {
+                for (slot in slots) {
+                    val item = inventory.getItem(slot) ?: continue
+                    val meta = item.itemMeta ?: continue
+                    val currentMax = if (meta.hasMaxStackSize()) meta.maxStackSize else item.type.maxStackSize
+                    if (currentMax != highestMax) {
+                        meta.setMaxStackSize(highestMax)
+                        item.itemMeta = meta
+                        inventory.setItem(slot, item)
+                    }
                 }
             }
         }

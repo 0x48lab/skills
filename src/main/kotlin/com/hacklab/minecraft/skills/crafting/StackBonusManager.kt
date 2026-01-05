@@ -245,4 +245,31 @@ class StackBonusManager(private val plugin: Skills) {
         meta.setMaxStackSize(size)
         item.itemMeta = meta
     }
+
+    /**
+     * Sync two items' MaxStackSize so they can be stacked together.
+     * Sets both items to the higher MaxStackSize of the two (or calculated max if higher).
+     *
+     * @param item1 First item
+     * @param item2 Second item
+     * @param player The player whose skills determine the stack size
+     */
+    fun syncItemsForStacking(item1: ItemStack, item2: ItemStack, player: Player) {
+        if (item1.type != item2.type) return
+        if (item1.type.maxStackSize <= 1) return
+
+        val calculatedMax = calculateMaxStackSize(player)
+        val max1 = getMaxStackSize(item1)
+        val max2 = getMaxStackSize(item2)
+        val targetMax = maxOf(calculatedMax, max1, max2)
+
+        if (targetMax > BASE_STACK_SIZE) {
+            if (max1 != targetMax) {
+                setMaxStackSize(item1, targetMax)
+            }
+            if (max2 != targetMax) {
+                setMaxStackSize(item2, targetMax)
+            }
+        }
+    }
 }
