@@ -283,60 +283,65 @@ class CraftingListener(private val plugin: Skills) : Listener {
             // Create a rune
             val rune = plugin.runeManager.createRune()
 
-            // Consume both items (one from cursor, one from clicked)
-            if (teleportScrollOnCursor && isAmethystClicked) {
-                // Consume scroll from cursor
-                if (cursor.amount > 1) {
-                    val newCursor = cursor.clone()
-                    newCursor.amount = cursor.amount - 1
-                    player.setItemOnCursor(newCursor)
+            // Store values for delayed execution
+            val clickedInventory = event.clickedInventory
+            val slot = event.slot
+            val cursorAmount = cursor.amount
+            val clickedAmount = clicked.amount
+            val isTeleportOnCursor = teleportScrollOnCursor && isAmethystClicked
+
+            // Run on next tick to avoid event timing issues
+            plugin.server.scheduler.runTask(plugin, Runnable {
+                if (isTeleportOnCursor) {
+                    // Consume scroll from cursor
+                    if (cursorAmount > 1) {
+                        val newCursor = cursor.clone()
+                        newCursor.amount = cursorAmount - 1
+                        player.setItemOnCursor(newCursor)
+                    } else {
+                        player.setItemOnCursor(null)
+                    }
+
+                    // Consume one amethyst from clicked slot
+                    if (clickedAmount > 1) {
+                        val newClicked = clicked.clone()
+                        newClicked.amount = clickedAmount - 1
+                        clickedInventory?.setItem(slot, newClicked)
+                    } else {
+                        clickedInventory?.setItem(slot, null)
+                    }
                 } else {
-                    player.setItemOnCursor(null)
+                    // Consume amethyst from cursor
+                    if (cursorAmount > 1) {
+                        val newCursor = cursor.clone()
+                        newCursor.amount = cursorAmount - 1
+                        player.setItemOnCursor(newCursor)
+                    } else {
+                        player.setItemOnCursor(null)
+                    }
+
+                    // Consume one scroll from clicked slot
+                    if (clickedAmount > 1) {
+                        val newClicked = clicked.clone()
+                        newClicked.amount = clickedAmount - 1
+                        clickedInventory?.setItem(slot, newClicked)
+                    } else {
+                        clickedInventory?.setItem(slot, null)
+                    }
                 }
 
-                // Consume one amethyst from clicked slot
-                if (clicked.amount > 1) {
-                    val newClicked = clicked.clone()
-                    newClicked.amount = clicked.amount - 1
-                    event.clickedInventory?.setItem(event.slot, newClicked)
-                } else {
-                    event.clickedInventory?.setItem(event.slot, null)
-                }
                 // Give rune to player
                 val leftover = player.inventory.addItem(rune)
                 if (leftover.isNotEmpty()) {
                     leftover.values.forEach { player.world.dropItemNaturally(player.location, it) }
                 }
-            } else {
-                // Consume amethyst from cursor
-                if (cursor.amount > 1) {
-                    val newCursor = cursor.clone()
-                    newCursor.amount = cursor.amount - 1
-                    player.setItemOnCursor(newCursor)
-                } else {
-                    player.setItemOnCursor(null)
-                }
 
-                // Consume one scroll from clicked slot
-                if (clicked.amount > 1) {
-                    val newClicked = clicked.clone()
-                    newClicked.amount = clicked.amount - 1
-                    event.clickedInventory?.setItem(event.slot, newClicked)
-                } else {
-                    event.clickedInventory?.setItem(event.slot, null)
-                }
-                // Give rune to player
-                val leftover = player.inventory.addItem(rune)
-                if (leftover.isNotEmpty()) {
-                    leftover.values.forEach { player.world.dropItemNaturally(player.location, it) }
-                }
-            }
+                // Send message
+                plugin.messageSender.send(player, com.hacklab.minecraft.skills.i18n.MessageKey.RUNE_CREATED)
 
-            // Send message
-            plugin.messageSender.send(player, com.hacklab.minecraft.skills.i18n.MessageKey.RUNE_CREATED)
-
-            // Play sound
-            player.world.playSound(player.location, org.bukkit.Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 1.2f)
+                // Play sound
+                player.world.playSound(player.location, org.bukkit.Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 1.2f)
+            })
         }
     }
 }
