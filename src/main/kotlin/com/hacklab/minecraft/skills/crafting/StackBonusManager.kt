@@ -37,6 +37,33 @@ class StackBonusManager(private val plugin: Skills) {
             SkillType.COOKING,
             SkillType.ALCHEMY
         )
+
+        /**
+         * Items that should NOT have their ItemMeta modified.
+         * These items have special validation that breaks when meta is changed.
+         *
+         * Note: Items with maxStackSize=1 (potions, most tools) are already excluded
+         * by the stackability check, so only stackable items need to be listed here.
+         *
+         * CONFIRMED ISSUES:
+         * - Trial Keys: Vault blocks validate keys and reject modified ones
+         *
+         * Other items (banners, maps, enchanted books, fireworks) preserve their
+         * data correctly when only maxStackSize is modified, because ItemMeta
+         * cloning preserves all fields.
+         */
+        val EXCLUDED_MATERIALS: Set<Material> = setOf(
+            // Trial Chamber items - Vault blocks validate keys (CONFIRMED BROKEN)
+            Material.TRIAL_KEY,
+            Material.OMINOUS_TRIAL_KEY
+        )
+
+        /**
+         * Check if an item type should be excluded from stack bonus processing.
+         */
+        fun isExcludedMaterial(material: Material): Boolean {
+            return material in EXCLUDED_MATERIALS
+        }
     }
 
     /**
@@ -83,6 +110,11 @@ class StackBonusManager(private val plugin: Skills) {
             return item
         }
 
+        // Skip items with special NBT data that breaks when meta is modified
+        if (isExcludedMaterial(item.type)) {
+            return item
+        }
+
         val maxStackSize = calculateMaxStackSize(player)
 
         // Only modify if bonus applies (> 64)
@@ -111,7 +143,7 @@ class StackBonusManager(private val plugin: Skills) {
         }
 
         for (item in items) {
-            if (item != null && item.type.maxStackSize > 1) {
+            if (item != null && item.type.maxStackSize > 1 && !isExcludedMaterial(item.type)) {
                 val meta = item.itemMeta
                 if (meta != null) {
                     meta.setMaxStackSize(maxStackSize)
@@ -159,6 +191,12 @@ class StackBonusManager(private val plugin: Skills) {
     fun applyStackBonusWithSync(item: ItemStack, player: Player): ItemStack {
         // Only apply to stackable items (original max > 1)
         if (item.type.maxStackSize <= 1) {
+            return item
+        }
+
+        // Skip items with special NBT data that breaks when meta is modified
+        // (Trial Keys, potions, maps, written books, etc.)
+        if (isExcludedMaterial(item.type)) {
             return item
         }
 
@@ -257,6 +295,7 @@ class StackBonusManager(private val plugin: Skills) {
     fun syncItemsForStacking(item1: ItemStack, item2: ItemStack, player: Player) {
         if (item1.type != item2.type) return
         if (item1.type.maxStackSize <= 1) return
+        if (isExcludedMaterial(item1.type)) return
 
         val calculatedMax = calculateMaxStackSize(player)
         val max1 = getMaxStackSize(item1)
