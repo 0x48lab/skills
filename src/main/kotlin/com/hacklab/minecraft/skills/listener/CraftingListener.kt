@@ -246,6 +246,7 @@ class CraftingListener(private val plugin: Skills) : Listener {
     @EventHandler(priority = EventPriority.HIGH)
     fun onPrepareRuneCraft(event: org.bukkit.event.inventory.PrepareItemCraftEvent) {
         val matrix = event.inventory.matrix
+        val matrixSize = matrix.size
 
         // Count non-empty items - must be exactly 2
         var itemCount = 0
@@ -255,13 +256,24 @@ class CraftingListener(private val plugin: Skills) : Listener {
         if (itemCount != 2) return
 
         // Check for vertical pattern: Scroll on top, Amethyst below
-        // Valid vertical pairs in 3x3 grid: (0,3), (1,4), (2,5), (3,6), (4,7), (5,8)
-        val verticalPairs = listOf(
-            Pair(0, 3), Pair(1, 4), Pair(2, 5),
-            Pair(3, 6), Pair(4, 7), Pair(5, 8)
-        )
+        // Valid vertical pairs depend on grid size:
+        // 2x2 grid (size 4): (0,2), (1,3)
+        // 3x3 grid (size 9): (0,3), (1,4), (2,5), (3,6), (4,7), (5,8)
+        val verticalPairs = if (matrixSize == 4) {
+            // 2x2 player inventory crafting grid
+            listOf(Pair(0, 2), Pair(1, 3))
+        } else {
+            // 3x3 crafting table grid
+            listOf(
+                Pair(0, 3), Pair(1, 4), Pair(2, 5),
+                Pair(3, 6), Pair(4, 7), Pair(5, 8)
+            )
+        }
 
         for ((topIndex, bottomIndex) in verticalPairs) {
+            // Safety check for bounds
+            if (topIndex >= matrixSize || bottomIndex >= matrixSize) continue
+
             val topItem = matrix[topIndex]
             val bottomItem = matrix[bottomIndex]
 
