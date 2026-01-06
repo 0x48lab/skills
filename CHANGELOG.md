@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.5] - 2026-01-06
+
+### Fixed
+- **Trial Chamber Vault Key Issue (CRITICAL)**
+  - Fixed Trial Keys obtained from Trial Spawners not working with Vault blocks
+  - Root cause: `StackBonusManager` was modifying Trial Key's ItemMeta when picked up
+  - Trial Keys stack to 64, so they passed the stackability check and got modified
+  - This corrupted the key's NBT data, making Vault blocks reject them
+  - Creative-obtained keys worked because they bypassed the pickup event
+  - Solution: Added `TRIAL_KEY` and `OMINOUS_TRIAL_KEY` to exclusion list in `StackBonusManager`
+
+- **Rune Crafting ArrayIndexOutOfBoundsException**
+  - Fixed crash when using 2x2 inventory crafting grid for rune crafting
+  - Root cause: `onPrepareRuneCraft` was using 3x3 grid indices (0-8) for all grids
+  - 2x2 grid only has indices 0-3, causing ArrayIndexOutOfBoundsException at index 4
+  - Solution: Detect grid size and use appropriate vertical pairs
+    - 2x2 grid: (0,2), (1,3)
+    - 3x3 grid: (0,3), (1,4), (2,5), (3,6), (4,7), (5,8)
+
 ## [0.4.4] - 2026-01-06
 
 ### Added
