@@ -28,11 +28,10 @@ enum class SkillType(
     MEDITATION("Meditation", SkillCategory.MAGIC, intWeight = 1.0),
     RESISTING_SPELLS("Resisting Spells", SkillCategory.MAGIC, intWeight = 1.0),
 
-    // Crafting
-    ALCHEMY("Alchemy", SkillCategory.CRAFTING, intWeight = 1.0),
-    BLACKSMITHY("Blacksmithy", SkillCategory.CRAFTING, strWeight = 1.0),
-    CRAFTSMANSHIP("Craftsmanship", SkillCategory.CRAFTING, strWeight = 0.5, dexWeight = 0.5),  // Wood, leather, bows, tinker items
-    COOKING("Cooking", SkillCategory.CRAFTING, strWeight = 1.0),
+    // Crafting - Equipment & Tools (Blacksmithy + Craftsmanship: weapons, armor, tools)
+    CRAFTING("Crafting", SkillCategory.CRAFTING, strWeight = 0.6, dexWeight = 0.4),
+    // Crafting - Consumables (Cooking + Alchemy: food, potions)
+    COOKING("Cooking", SkillCategory.CRAFTING, strWeight = 0.5, intWeight = 0.5),
     INSCRIPTION("Inscription", SkillCategory.CRAFTING, intWeight = 1.0),
 
     // Gathering

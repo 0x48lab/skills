@@ -157,6 +157,9 @@ evaluate:
 crafting:
   success: "<green>Crafted {item}!"
   quality: "<gray>Quality: {quality}"
+  quality_hq: "<green>Well crafted!"
+  quality_ex: "<gold>Masterpiece!"
+  quality_summary: "<gray>Craft complete: <gold>EX x{ex}<gray>, <green>HQ x{hq}<gray>, <white>NQ x{nq}<gray>, <dark_gray>LQ x{lq}"
 
 # Repair messages
 repair:

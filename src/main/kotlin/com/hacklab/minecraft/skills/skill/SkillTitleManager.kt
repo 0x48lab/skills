@@ -63,9 +63,7 @@ class SkillTitleManager(private val plugin: Skills) {
         SkillType.RESISTING_SPELLS to Pair("Spellbreaker", "呪耐者"),
 
         // Crafting
-        SkillType.ALCHEMY to Pair("Alchemist", "錬金術師"),
-        SkillType.BLACKSMITHY to Pair("Blacksmith", "鍛冶師"),
-        SkillType.CRAFTSMANSHIP to Pair("Artisan", "職人"),
+        SkillType.CRAFTING to Pair("Artisan", "職人"),
         SkillType.COOKING to Pair("Chef", "料理人"),
         SkillType.INSCRIPTION to Pair("Scribe", "書写師"),
 

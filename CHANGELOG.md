@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.6] - 2026-01-09
+
+### Changed
+- **Production Skill Consolidation** (Breaking Change)
+  - Merged 4 production skills into 2:
+    - **CRAFTING**: Equipment, tools, weapons, armor (merged Blacksmithy + Craftsmanship)
+      - STR weight: 60%, DEX weight: 40%
+      - Covers: Metal items, wooden items, leather items, bows, tools, shields
+    - **COOKING**: Food and potions (merged Cooking + Alchemy)
+      - STR weight: 50%, INT weight: 50%
+      - Covers: Furnace cooking, crafted food, potions, brewing
+  - Stack bonus now uses 2 skills (max 200) instead of 4 skills (max 400)
+    - Formula: `stackSize = 64 + (CRAFTING + COOKING) / 200 * 35`
+  - Mending enchantment now uses CRAFTING skill for all craftable equipment
+  - Skill titles updated: removed Blacksmith/Alchemist, kept Artisan/Chef
+  - Quality system unchanged (difficulty-relative HQ/EX calculation)
+  - Food/Potion bonus effects unchanged (recovery bonus, duration extension)
+
+### Removed
+- SkillType.BLACKSMITHY (merged into CRAFTING)
+- SkillType.CRAFTSMANSHIP (merged into CRAFTING)
+- SkillType.ALCHEMY (merged into COOKING)
+
 ## [0.4.5] - 2026-01-06
 
 ### Fixed

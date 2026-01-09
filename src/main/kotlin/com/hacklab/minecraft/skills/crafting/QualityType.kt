@@ -17,53 +17,77 @@ enum class QualityType(
     companion object {
         /**
          * Calculate quality based on skill value (legacy, no difficulty)
-         * For backwards compatibility
+         * For backwards compatibility - assumes difficulty 0
          */
         fun calculateQuality(skill: Double): QualityType {
             return calculateQuality(skill, 0)
         }
 
         /**
-         * Calculate quality based on skill value and item difficulty
+         * Calculate quality based on skill value and item difficulty (DIFFICULTY-RELATIVE SYSTEM)
          *
-         * The difficulty affects the effective skill:
-         * - If skill >= difficulty: full quality potential
-         * - If skill < difficulty: reduced quality potential
+         * Quality is determined relative to the item's difficulty, not absolute skill value.
+         * This makes progression meaningful for each material tier.
          *
-         * Quality thresholds (based on effective skill):
-         * - LQ: effectiveSkill < 30
-         * - NQ: effectiveSkill 30-49
-         * - HQ: effectiveSkill 50-69 with probability check
-         * - EX: effectiveSkill 70+ with probability check
+         * Quality thresholds (relative to difficulty):
+         * - LQ: skill < difficulty (attempting items above your level)
+         * - NQ: difficulty ≤ skill < difficulty + 20 (competent)
+         * - HQ: skill ≥ difficulty + 20 (probability-based, mastering the material)
+         * - HQ guaranteed: skill ≥ difficulty + 40 (complete mastery)
+         * - EX: skill ≥ difficulty + 30 (probability-based, exceptional work)
+         *
+         * Examples:
+         * - Iron (25): HQ starts at 45, guaranteed at 65, EX possible at 55+
+         * - Diamond (40): HQ starts at 60, guaranteed at 80, EX possible at 70+
+         * - Netherite (60): HQ starts at 80, guaranteed at 100, EX possible at 90+
          *
          * @param skill The player's skill value (0-100)
          * @param difficulty The item's crafting difficulty (0-100)
          */
         fun calculateQuality(skill: Double, difficulty: Int): QualityType {
-            // Calculate effective skill based on difficulty
-            // If skill is below difficulty, reduce effective skill
-            val skillDifference = skill - difficulty
-            val effectiveSkill = when {
-                skillDifference >= 0 -> skill  // Skill meets or exceeds difficulty
-                skillDifference >= -20 -> skill + (skillDifference * 0.5)  // Slight penalty
-                else -> skill + (skillDifference * 1.0)  // Heavy penalty for very hard items
-            }.coerceIn(0.0, 100.0)
+            val diff = difficulty.toDouble()
+            val skillOverDifficulty = skill - diff
+
+            // LQ: skill below difficulty (item is too hard)
+            if (skillOverDifficulty < 0) {
+                return LOW_QUALITY
+            }
+
+            // NQ: skill meets difficulty but not yet mastering
+            if (skillOverDifficulty < 20) {
+                return NORMAL_QUALITY
+            }
 
             val roll = Math.random() * 100
-            val randomness = Math.random() * 10 - 5  // ±5 randomness
 
-            val adjustedSkill = (effectiveSkill + randomness).coerceIn(0.0, 100.0)
-
-            return when {
-                // EX: Need 70+ effective skill and pass probability check
-                adjustedSkill >= 70 && roll < (adjustedSkill - 60) * 2.5 -> EXCEPTIONAL
-                // HQ: Need 50+ effective skill and pass probability check
-                adjustedSkill >= 50 && roll < (adjustedSkill - 30) * 1.5 -> HIGH_QUALITY
-                // NQ: Need 30+ effective skill
-                adjustedSkill >= 30 -> NORMAL_QUALITY
-                // LQ: Low skill or hard item
-                else -> LOW_QUALITY
+            // HQ guaranteed at +40, EX possible at +30
+            if (skillOverDifficulty >= 40) {
+                // At +40 or more: HQ is guaranteed, check for EX
+                // EX probability: (skillOverDifficulty - 30) * 2, so at +40 = 20%, at +50 = 40%, etc.
+                val exChance = (skillOverDifficulty - 30) * 2.0
+                if (roll < exChance) {
+                    return EXCEPTIONAL
+                }
+                return HIGH_QUALITY
             }
+
+            // HQ probability zone: +20 to +40
+            // HQ probability: (skillOverDifficulty - 20) * 5, so at +20 = 0%, at +30 = 50%, at +40 = 100%
+            val hqChance = (skillOverDifficulty - 20) * 5.0
+
+            // Also check for EX if skill is +30 or more
+            if (skillOverDifficulty >= 30) {
+                val exChance = (skillOverDifficulty - 30) * 2.0
+                if (roll < exChance) {
+                    return EXCEPTIONAL
+                }
+            }
+
+            if (roll < hqChance) {
+                return HIGH_QUALITY
+            }
+
+            return NORMAL_QUALITY
         }
 
         /**

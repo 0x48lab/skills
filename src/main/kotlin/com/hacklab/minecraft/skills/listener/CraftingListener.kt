@@ -23,19 +23,44 @@ class CraftingListener(private val plugin: Skills) : Listener {
         val result = event.recipe.result
 
         // Check if this is a skill-craftable item
-        if (plugin.craftingManager.isSkillCraftable(result.type)) {
-            // Calculate how many times we're crafting (for shift-click)
-            val craftCount = calculateCraftCount(event)
+        if (!plugin.craftingManager.isSkillCraftable(result.type)) {
+            return
+        }
 
-            // Process craft with the count for skill gain
-            val processedResult = plugin.craftingManager.processCraft(player, result.clone(), craftCount)
+        val isShiftClick = event.click.isShiftClick
+
+        // For non-stackable items with shift-click, handle manually to apply individual quality
+        if (isShiftClick && result.maxStackSize == 1) {
+            // Calculate how many items can be crafted
+            val craftCount = calculateCraftCount(event)
+            if (craftCount <= 0) return
+
+            // Cancel the event - we'll handle crafting manually
+            event.isCancelled = true
+
+            // Consume materials
+            consumeMaterials(event, craftCount)
+
+            // Create each item with individual quality and add to inventory
+            repeat(craftCount) {
+                val processedResult = plugin.craftingManager.processCraft(player, result.clone(), true)
+                val leftover = player.inventory.addItem(processedResult)
+
+                // Drop any items that don't fit
+                leftover.values.forEach { item ->
+                    player.world.dropItemNaturally(player.location, item)
+                }
+            }
+        } else {
+            // Normal click or stackable items - use default behavior with quality
+            val craftCount = if (isShiftClick) calculateCraftCount(event) else 1
+            val processedResult = plugin.craftingManager.processCraft(player, result.clone(), isShiftClick, craftCount)
             event.inventory.result = processedResult
         }
     }
 
     /**
-     * Calculate how many times an item will be crafted
-     * For shift-click, calculates max possible crafts from available materials
+     * Calculate how many times an item can be crafted based on materials and inventory space
      */
     private fun calculateCraftCount(event: CraftItemEvent): Int {
         // Normal click = 1 craft
@@ -46,6 +71,7 @@ class CraftingListener(private val plugin: Skills) : Listener {
         // Shift-click: calculate max possible crafts from materials
         val matrix = event.inventory.matrix
         val resultAmount = event.recipe.result.amount
+        val resultType = event.recipe.result.type
 
         // Find the minimum stack size in the crafting grid (excluding empty slots)
         var minMaterialCount = Int.MAX_VALUE
@@ -60,23 +86,50 @@ class CraftingListener(private val plugin: Skills) : Listener {
         }
 
         // Calculate how many times we can craft
-        // Also limit by how many can fit in inventory
         val maxCrafts = minMaterialCount
-        val resultPerCraft = resultAmount
 
         // Check available inventory space
         val inventory = event.whoClicked.inventory
         var availableSpace = 0
-        for (slot in inventory.storageContents) {
-            if (slot == null || slot.type == Material.AIR) {
-                availableSpace += event.recipe.result.maxStackSize
-            } else if (slot.type == event.recipe.result.type && slot.amount < slot.maxStackSize) {
-                availableSpace += slot.maxStackSize - slot.amount
+
+        if (resultType.maxStackSize == 1) {
+            // Non-stackable: count empty slots
+            for (slot in inventory.storageContents) {
+                if (slot == null || slot.type == Material.AIR) {
+                    availableSpace++
+                }
             }
+        } else {
+            // Stackable: count available space
+            for (slot in inventory.storageContents) {
+                if (slot == null || slot.type == Material.AIR) {
+                    availableSpace += resultType.maxStackSize
+                } else if (slot.type == resultType && slot.amount < slot.maxStackSize) {
+                    availableSpace += slot.maxStackSize - slot.amount
+                }
+            }
+            availableSpace /= resultAmount
         }
 
-        val maxBySpace = availableSpace / resultPerCraft
-        return minOf(maxCrafts, maxBySpace).coerceAtLeast(1)
+        return minOf(maxCrafts, availableSpace).coerceAtLeast(1)
+    }
+
+    /**
+     * Consume materials from the crafting grid
+     */
+    private fun consumeMaterials(event: CraftItemEvent, craftCount: Int) {
+        val matrix = event.inventory.matrix
+        for (i in matrix.indices) {
+            val item = matrix[i]
+            if (item != null && item.type != Material.AIR) {
+                val newAmount = item.amount - craftCount
+                if (newAmount <= 0) {
+                    event.inventory.setItem(i + 1, null) // +1 because slot 0 is result
+                } else {
+                    item.amount = newAmount
+                }
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -149,18 +202,18 @@ class CraftingListener(private val plugin: Skills) : Listener {
         // Check if this is a repair operation (item has durability)
         if (!plugin.durabilityManager.isRepairable(firstItem)) return
 
-        // Get player's Blacksmithy skill
+        // Get player's Crafting skill
         val data = plugin.playerDataManager.getPlayerData(player)
-        val blacksmithySkill = data.getSkillValue(SkillType.BLACKSMITHY)
+        val craftingSkill = data.getSkillValue(SkillType.CRAFTING)
 
         // Get repair difficulty
         val difficulty = plugin.durabilityManager.getRepairDifficulty(firstItem)
 
         // Try skill gain
-        plugin.skillManager.tryGainSkill(player, SkillType.BLACKSMITHY, difficulty)
+        plugin.skillManager.tryGainSkill(player, SkillType.CRAFTING, difficulty)
 
         // Process repair - reduce max durability (UO-style)
-        val repairResult = plugin.durabilityManager.processRepair(result, blacksmithySkill)
+        val repairResult = plugin.durabilityManager.processRepair(result, craftingSkill)
 
         if (repairResult.success) {
             // Send message about durability reduction

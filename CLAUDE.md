@@ -21,17 +21,18 @@ INT = INT対象スキル合計 / 対象スキル数（7スキル）× 100 / 100
 ※ 各対象スキルの平均値がそのままステータス値となる
 ※ 各ステータスの最大値: 100（全対象スキルが100の場合）
 
-#### 対象スキル（全39スキルを分類）
+#### 対象スキル（全37スキルを分類）
 | ステータス | 対象スキル |
 |-----------|----------------------|
-| STR | Swordsmanship, Axe, Mace Fighting, Wrestling, Tactics, Anatomy, Mining, Lumberjacking, Blacksmithy, Cooking, Heat Resistance, Cold Resistance, Endurance（13スキル） |
+| STR | Swordsmanship, Axe, Mace Fighting, Wrestling, Tactics, Anatomy, Mining, Lumberjacking, Heat Resistance, Cold Resistance, Endurance（11スキル） |
 | DEX | Archery, Throwing, Spear, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Farming, Athletics, Swimming（14スキル） |
-| INT | Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Alchemy, Animal Lore（7スキル） |
+| INT | Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Animal Lore（6スキル） |
 
 #### 複数ステータスに影響するスキル
 | スキル | 影響ステータス |
 |-------|---------------|
-| Craftsmanship | STR 50% + DEX 50% |
+| Crafting | STR 60% + DEX 40% |
+| Cooking | STR 50% + INT 50% |
 | Animal Taming | STR 50% + DEX 50% |
 | Veterinary | STR 50% + INT 50% |
 | Detecting Hidden | DEX 50% + INT 50% |
@@ -198,25 +199,25 @@ INT: 60  (-30% マナ消費, +6% 詠唱成功率)
 #### 生産難易度（素材別）
 | 素材 | 難易度 | 対象スキル |
 |-----|--------|-----------|
-| 木製品 | 5 | Craftsmanship |
-| 石製品 | 10 | Blacksmithy（石ツール） |
-| 革製品 | 15 | Craftsmanship |
-| 鉄製品 | 25 | Blacksmithy |
-| 金製品 | 20 | Blacksmithy |
-| ダイヤ製品 | 40 | Blacksmithy |
-| ネザライト製品 | 60 | Blacksmithy |
-| 弓・クロスボウ | 20-30 | Craftsmanship |
-| 矢（通常） | 5 | Craftsmanship |
-| 矢（特殊） | 20-25 | Craftsmanship |
-| ポーション（基本） | 30 | Alchemy |
-| ポーション（強化） | 50 | Alchemy |
-| ポーション（延長） | 45 | Alchemy |
-| スクロール | 魔法サークル × 10 | Inscription |
+| 木製品 | 5 | Crafting |
+| 石製品 | 10 | Crafting |
+| 革製品 | 15 | Crafting |
+| 鉄製品 | 25 | Crafting |
+| 金製品 | 20 | Crafting |
+| ダイヤ製品 | 40 | Crafting |
+| ネザライト製品 | 60 | Crafting |
+| 弓・クロスボウ | 20-30 | Crafting |
+| 矢（通常） | 5 | Crafting |
+| 矢（特殊） | 20-25 | Crafting |
+| 細工品（基本） | 10 | Crafting |
+| 細工品（複合） | 20 | Crafting |
+| 細工品（精密） | 35 | Crafting |
 | 食料（基本） | 10 | Cooking |
 | 食料（複合） | 30 | Cooking |
-| 細工品（基本） | 10 | Craftsmanship |
-| 細工品（複合） | 20 | Craftsmanship |
-| 細工品（精密） | 35 | Craftsmanship |
+| ポーション（基本） | 30 | Cooking |
+| ポーション（強化） | 50 | Cooking |
+| ポーション（延長） | 45 | Cooking |
+| スクロール | 魔法サークル × 10 | Inscription |
 
 #### 資源収集難易度
 | 資源 | 難易度 | 対象スキル |
@@ -303,34 +304,30 @@ data class SkillData(
 ### 生産系スキル
 | スキル名 | 対象アイテム | 説明 | 上昇条件 |
 |---------|-------------|------|---------|
-| Alchemy | ポーション | 醸造台でのポーション作成。品質で効果時間・強度変動 | ポーション作成時 |
-| Blacksmithy | 金属武器・防具・ツール | 鉄/金/ダイヤ/ネザライト/石製品。金床修理も対象 | 対象アイテムクラフト時 |
-| Craftsmanship | 木製品、革製品、弓矢、細工品 | 盾、弓、矢、ハサミ、釣り竿、時計など（木工+裁縫+弓職人+細工統合） | 対象アイテムクラフト時 |
-| Cooking | 食料 | かまど/燻製器での調理。品質で回復量変動 | 食料を取り出した時 |
+| Crafting | 装備・ツール全般 | 金属/木/革/石製品、武器、防具、弓矢、細工品、金床修理 | 対象アイテムクラフト時 |
+| Cooking | 食料・ポーション | かまど調理、クラフト食品、醸造台でのポーション作成 | 食料取り出し時、ポーション作成時 |
 | Inscription | 魔法スクロール | 魔法を封じ込めた巻物の作成。Mageryと連携 | スクロール作成時 |
 
 #### スタック上限ボーナス
 生産スキルの合計に応じて、スタック可能なアイテムの最大スタック数が64から99に増加する。
 
 ##### 対象スキル
-- Craftsmanship
-- Blacksmithy
+- Crafting
 - Cooking
-- Alchemy
 
 ##### 計算式
 ```
-スタック上限 = 64 + (対象スキル合計 / 400 × 35)
+スタック上限 = 64 + (対象スキル合計 / 200 × 35)
 ```
 
 ##### スタック上限表
 | スキル合計 | スタック上限 |
 |-----------|-------------|
 | 0 | 64 |
-| 100 | 73 |
-| 200 | 82 |
-| 300 | 90 |
-| 400 | 99 |
+| 50 | 73 |
+| 100 | 82 |
+| 150 | 90 |
+| 200 | 99 |
 
 ##### 適用タイミング
 - アイテムを地面から拾った時
@@ -338,54 +335,45 @@ data class SkillData(
 - プレイヤーがログインした時（既存インベントリを更新）
 
 #### 生産スキル対象アイテム詳細
-##### Alchemy（錬金術）
-- 治癒のポーション / 再生のポーション / 耐火のポーション
-- 俊敏のポーション / 跳躍のポーション / 暗視のポーション
-- 力のポーション / 水中呼吸のポーション
-- 毒のポーション / 負傷のポーション / 鈍化のポーション
-- スプラッシュポーション / 残留ポーション
 
-###### Alchemyスキル効果
-醸造したポーションにAlchemyスキルに基づいた効果時間延長ボーナスが付与される。
-```
-効果時間延長 = Alchemyスキル / 200（スキル100で最大+50%）
-```
+##### Crafting（クラフティング）
+装備・ツール全般を統合したスキル（旧Blacksmithy + Craftsmanship）。
 
-###### ポーションの難易度表
-| 難易度 | ポーション |
-|-------|-----------|
-| 15 | ありふれた、濃厚な、奇妙な |
-| 25 | 暗視、水中呼吸 |
-| 30 | 治癒、俊敏、跳躍、耐火 |
-| 35 | 再生、力、低速落下 |
-| 40 | 透明化 |
-| 45 | 毒、弱体化、鈍化 |
-| 50 | 負傷、タートルマスター、幸運 |
-| 55 | 不吉、風帯電、糸繰り、粘液、蟲憑き |
-
-###### 難易度補正
-| 条件 | 追加難易度 |
-|-----|----------|
-| 効果時間延長版 | +15 |
-| 強化版（レベルII） | +20 |
-| スプラッシュポーション | +10 |
-| 残留ポーション | +20 |
-
-##### Blacksmithy（鍛冶）
-- 鉄/金/ダイヤ/ネザライトの剣
-- 鉄/金/ダイヤ/ネザライトの斧（武器として）
-- 鉄/金/ダイヤ/ネザライトのツルハシ/シャベル/クワ
+**金属製品**
+- 鉄/金/ダイヤ/ネザライトの剣、斧、ツルハシ、シャベル、クワ
 - 鉄/金/ダイヤ/ネザライトのヘルメット/チェストプレート/レギンス/ブーツ
 - チェーン防具（素材: 鉄塊）
-- 金床での修理作業（UOスタイル修理劣化システム、詳細は後述）
 - 石のツール（難易度低）
+
+**木製品・基本**
+- 盾 / 木の剣 / 木のツール
+- ドア / トラップドア / フェンス / フェンスゲート
+- チェスト / 樽 / 額縁 / 看板
+- ベッド / 本棚 / 作業台 / 織機 / 製図台
+
+**革製品**
+- 革の帽子/上着/ズボン/ブーツ
+
+**弓矢**
+- 弓 / クロスボウ
+- 矢（通常） / 矢（光の矢、効能付きの矢）
+
+**細工品**
+- 基本: ハサミ / 火打石と打ち金 / 金塊・鉄塊
+- 複合: 釣り竿 / ランタン / 蝋燭 / 鎖 / 火薬
+- 精密: 時計 / コンパス / 望遠鏡 / ロケット花火
+
+**その他**
+- 本と羽根ペン / 地図（紙ベース）
+- 旗 / カーペット
+- 金床での修理作業（UOスタイル修理劣化システム）
 
 ###### UOスタイル修理システム
 金床で装備を修理すると、最大耐久度が減少する（UO準拠）。
 
 **耐久度減少計算**
 ```
-減少量 = (110 - Blacksmithyスキル) / 10
+減少量 = (110 - Craftingスキル) / 10
 ```
 - スキル100（GM）: 1ポイント減少
 - スキル50: 6ポイント減少
@@ -396,22 +384,20 @@ data class SkillData(
 - 色分け: 緑（75%超）、黄（50%超）、橙（25%超）、赤（25%以下）
 
 **スキル上昇**
-- 修理完了時にBlacksmithyスキル上昇判定
+- 修理完了時にCraftingスキル上昇判定
 - 難易度はアイテム素材に依存（ネザライト80、ダイヤ60、鉄40等）
 
-**修繕エンチャント連携**
-修繕エンチャントの成功率がアイテム種別に応じた生産スキルに依存する。
+###### 修繕エンチャント連携
+修繕エンチャントの成功率がCraftingスキルに依存する。
 
 | アイテム種別 | 必要スキル |
 |-------------|-----------|
-| 鉄/金/ダイヤ/ネザライト/チェーン/石の武器・防具・ツール | Blacksmithy |
-| トライデント、メイス、槍 | Blacksmithy |
-| 弓、クロスボウ、革の防具、木製品、盾 | Craftsmanship |
-| 釣り竿、ハサミ、火打石と打ち金 | Craftsmanship |
+| 全ての装備・ツール（金属、木、革、石、弓等） | Crafting |
+| トライデント、メイス、槍 | Crafting |
 | エリトラ、タートルヘルメット | スキル不要（常に100%） |
 
 ```
-成功率 = min(100, 対応スキル × 100 / 60)
+成功率 = min(100, Craftingスキル × 100 / 60)
 ```
 | スキル | 成功率 |
 |-------|-------|
@@ -425,40 +411,28 @@ data class SkillData(
 - 失敗時：経験値はプレイヤーに入り、修繕は発動しない
 - スキル60で安定して修繕が使えるようになる
 
-##### Craftsmanship（工芸）
-木工、裁縫、弓職人、細工を統合したスキル。
+##### Cooking（クッキング）
+食べ物とポーションを統合したスキル（旧Cooking + Alchemy）。
 
-**木製品・基本**
-- 盾 / 木の剣 / 木のツール
-- ドア / トラップドア / フェンス / フェンスゲート
-- チェスト / 樽 / 額縁 / 看板
-- ベッド / 本棚 / 作業台 / 織機 / 製図台
-
-**革製品**
-- 革の帽子/上着/ズボン/ブーツ
-
-**弓矢（旧Bowcraft）**
-- 弓 / クロスボウ
-- 矢（通常） / 矢（光の矢、効能付きの矢）
-
-**細工品（旧Tinkering）**
-- 基本: ハサミ / 火打石と打ち金 / 金塊・鉄塊
-- 複合: 釣り竿 / ランタン / 蝋燭 / 鎖 / 火薬
-- 精密: 時計 / コンパス / 望遠鏡 / ロケット花火
-
-**その他**
-- 本と羽根ペン / 地図（紙ベース）
-- 旗 / カーペット
-
-##### Cooking（料理）
+**かまど調理品**
 - 焼き肉（牛/豚/鶏/羊/ウサギ）
 - 焼き魚（鮭/タラ）
-- ベイクドポテト / パン / クッキー
-- ケーキ / パンプキンパイ
-- キノコシチュー / ウサギシチュー / ビートルートスープ
+- ベイクドポテト
 - 乾燥昆布
 
-###### Cookingスキル効果
+**クラフト食品**
+- パン / クッキー
+- ケーキ / パンプキンパイ
+- キノコシチュー / ウサギシチュー / ビートルートスープ
+
+**ポーション（醸造台）**
+- 治癒のポーション / 再生のポーション / 耐火のポーション
+- 俊敏のポーション / 跳躍のポーション / 暗視のポーション
+- 力のポーション / 水中呼吸のポーション
+- 毒のポーション / 負傷のポーション / 鈍化のポーション
+- スプラッシュポーション / 残留ポーション
+
+###### 食べ物の効果
 調理した食べ物にCookingスキルに基づいた回復ボーナスが付与される。
 ```
 回復ボーナス = Cookingスキル / 4 + 品質補正
@@ -486,6 +460,32 @@ HQ/EX品質の食べ物を食べると、一時的に最大HPが増加する。
 | 45 | ウサギシチュー、怪しげなシチュー、ケーキ |
 | 60 | 金のリンゴ |
 | 100 | エンチャントされた金のリンゴ |
+
+###### ポーションの効果
+醸造したポーションにCookingスキルに基づいた効果時間延長ボーナスが付与される。
+```
+効果時間延長 = Cookingスキル / 200（スキル100で最大+50%）
+```
+
+###### ポーションの難易度表
+| 難易度 | ポーション |
+|-------|-----------|
+| 15 | ありふれた、濃厚な、奇妙な |
+| 25 | 暗視、水中呼吸 |
+| 30 | 治癒、俊敏、跳躍、耐火 |
+| 35 | 再生、力、低速落下 |
+| 40 | 透明化 |
+| 45 | 毒、弱体化、鈍化 |
+| 50 | 負傷、タートルマスター、幸運 |
+| 55 | 不吉、風帯電、糸繰り、粘液、蟲憑き |
+
+###### 難易度補正
+| 条件 | 追加難易度 |
+|-----|----------|
+| 効果時間延長版 | +15 |
+| 強化版（レベルII） | +20 |
+| スプラッシュポーション | +10 |
+| 残留ポーション | +20 |
 
 ##### Inscription（書写）
 - 魔法スクロール（全魔法）
@@ -2277,7 +2277,7 @@ com.hacklab.minecraft.skills/
 #### Enum定義
 
 ```kotlin
-// スキル種別（39スキル）
+// スキル種別（37スキル）
 enum class SkillType(
     val displayName: String,
     val category: SkillCategory,
@@ -2303,11 +2303,9 @@ enum class SkillType(
     RESISTING_SPELLS("Resisting Spells", SkillCategory.MAGIC, mapOf(StatType.INT to 1.0)),
     INSCRIPTION("Inscription", SkillCategory.CRAFTING, mapOf(StatType.INT to 1.0)),
 
-    // 生産系
-    ALCHEMY("Alchemy", SkillCategory.CRAFTING, mapOf(StatType.INT to 1.0)),
-    BLACKSMITHY("Blacksmithy", SkillCategory.CRAFTING, mapOf(StatType.STR to 1.0)),
-    CRAFTSMANSHIP("Craftsmanship", SkillCategory.CRAFTING, mapOf(StatType.STR to 0.5, StatType.DEX to 0.5)),  // 木工+裁縫+弓職人+細工統合
-    COOKING("Cooking", SkillCategory.CRAFTING, mapOf(StatType.STR to 1.0)),
+    // 生産系（2スキルに統合）
+    CRAFTING("Crafting", SkillCategory.CRAFTING, mapOf(StatType.STR to 0.6, StatType.DEX to 0.4)),  // 装備・ツール全般（旧Blacksmithy + Craftsmanship）
+    COOKING("Cooking", SkillCategory.CRAFTING, mapOf(StatType.STR to 0.5, StatType.INT to 0.5)),    // 食料・ポーション（旧Cooking + Alchemy）
 
     // 資源収集系
     MINING("Mining", SkillCategory.GATHERING, mapOf(StatType.STR to 1.0)),
@@ -2736,7 +2734,7 @@ class CraftListener(private val plugin: Skills) : Listener {
 
     @EventHandler
     fun onBrewingStand(event: BrewEvent) {
-        // Alchemy スキル判定（醸造完了時）
+        // Cooking スキル判定（醸造完了時）
     }
 
     @EventHandler

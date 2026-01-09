@@ -17,12 +17,16 @@ class CraftingManager(private val plugin: Skills) {
     /**
      * Process a crafting event
      * Called when player crafts an item
-     * @param craftCount Number of times crafting (for shift-click)
+     *
+     * @param player The player crafting
+     * @param result The crafted item
+     * @param isShiftClick Whether this is a shift-click (batch) craft
+     * @param craftCount Number of items being crafted (for skill gain, default 1)
      */
-    fun processCraft(player: Player, result: ItemStack, craftCount: Int = 1): ItemStack {
+    fun processCraft(player: Player, result: ItemStack, isShiftClick: Boolean = false, craftCount: Int = 1): ItemStack {
         // Check if this is a craftable food
         if (CookingDifficulty.isCraftedFood(result.type)) {
-            return processCraftedFood(player, result, craftCount)
+            return processCraftedFood(player, result, isShiftClick, craftCount)
         }
 
         val craftInfo = CraftDifficulty.getCraftInfo(result.type) ?: return result
@@ -30,22 +34,36 @@ class CraftingManager(private val plugin: Skills) {
         val data = plugin.playerDataManager.getPlayerData(player)
         val skillValue = data.getSkillValue(craftInfo.skill)
 
-        // Try skill gain for each craft
+        // Try skill gain for each item crafted
+        var skillGained = false
         repeat(craftCount) {
-            plugin.skillManager.tryGainSkill(player, craftInfo.skill, craftInfo.difficulty)
+            if (plugin.skillManager.tryGainSkill(player, craftInfo.skill, craftInfo.difficulty)) {
+                skillGained = true
+            }
         }
 
         // Apply quality based on skill and difficulty (only for non-stackable items)
         val qualifiedResult = plugin.qualityManager.applyQualityFromSkill(result, skillValue, craftInfo.difficulty)
 
-        // Notify player only if quality was applied (non-stackable items)
+        // Get the applied quality
+        val quality = plugin.qualityManager.getQuality(qualifiedResult)
+
+        // Record in session and handle feedback
         if (result.maxStackSize == 1) {
-            val quality = plugin.qualityManager.getQuality(qualifiedResult)
-            plugin.messageSender.send(
-                player, MessageKey.CRAFTING_QUALITY,
-                "item" to result.type.name.lowercase().replace("_", " "),
-                "quality" to quality.displayName
-            )
+            if (isShiftClick) {
+                // Shift-click: record in session, feedback will come when session ends
+                plugin.craftingSessionManager.recordCraft(player, quality, skillGained)
+            } else {
+                // Single craft: immediate feedback for HQ/EX
+                plugin.craftingSessionManager.sendImmediateFeedback(player, quality)
+
+                // Show quality message for single craft
+                plugin.messageSender.send(
+                    player, MessageKey.CRAFTING_QUALITY,
+                    "item" to result.type.name.lowercase().replace("_", " "),
+                    "quality" to quality.displayName
+                )
+            }
         }
 
         return qualifiedResult
@@ -53,13 +71,19 @@ class CraftingManager(private val plugin: Skills) {
 
     /**
      * Process crafted food items (bread, cake, etc.)
+     * Food items are stackable so quality is applied as a bonus, not a quality type
+     *
+     * @param player The player crafting
+     * @param result The crafted food item
+     * @param isShiftClick Whether this is a shift-click (batch) craft (unused for food)
+     * @param craftCount Number of items being crafted (for skill gain)
      */
-    private fun processCraftedFood(player: Player, result: ItemStack, craftCount: Int = 1): ItemStack {
+    private fun processCraftedFood(player: Player, result: ItemStack, isShiftClick: Boolean = false, craftCount: Int = 1): ItemStack {
         val data = plugin.playerDataManager.getPlayerData(player)
         val cookingSkill = data.getSkillValue(SkillType.COOKING)
         val difficulty = CookingDifficulty.getDifficulty(result.type)
 
-        // Try skill gain for each craft
+        // Try skill gain for each item crafted
         repeat(craftCount) {
             plugin.skillManager.tryGainSkill(player, SkillType.COOKING, difficulty)
         }
@@ -72,7 +96,7 @@ class CraftingManager(private val plugin: Skills) {
      * Process anvil repair
      */
     fun processAnvilRepair(player: Player, item: ItemStack): Boolean {
-        // Anvil repair uses Blacksmithy
+        // Anvil repair uses Crafting skill
         val data = plugin.playerDataManager.getPlayerData(player)
 
         // Difficulty based on item material
@@ -84,13 +108,13 @@ class CraftingManager(private val plugin: Skills) {
             else -> 30
         }
 
-        plugin.skillManager.tryGainSkill(player, SkillType.BLACKSMITHY, difficulty)
+        plugin.skillManager.tryGainSkill(player, SkillType.CRAFTING, difficulty)
         return true
     }
 
     /**
      * Process brewing (potions from brewing stand)
-     * Applies duration bonus based on Alchemy skill
+     * Applies duration bonus based on Cooking skill
      *
      * @param player The player
      * @param result The brewed potion
@@ -98,7 +122,7 @@ class CraftingManager(private val plugin: Skills) {
      */
     fun processBrewing(player: Player, result: ItemStack, amount: Int = 1): ItemStack {
         val data = plugin.playerDataManager.getPlayerData(player)
-        val alchemySkill = data.getSkillValue(SkillType.ALCHEMY)
+        val cookingSkill = data.getSkillValue(SkillType.COOKING)
 
         // Get potion metadata for difficulty calculation
         val meta = result.itemMeta as? PotionMeta
@@ -119,11 +143,11 @@ class CraftingManager(private val plugin: Skills) {
 
         // Try skill gain for each potion brewed
         repeat(amount) {
-            plugin.skillManager.tryGainSkill(player, SkillType.ALCHEMY, difficulty)
+            plugin.skillManager.tryGainSkill(player, SkillType.COOKING, difficulty)
         }
 
         // Apply potion bonus (duration extension, quality)
-        return potionBonusManager.applyPotionBonus(result, alchemySkill, player.name)
+        return potionBonusManager.applyPotionBonus(result, cookingSkill, player.name)
     }
 
     /**

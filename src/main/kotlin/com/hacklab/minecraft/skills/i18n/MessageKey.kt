@@ -153,6 +153,9 @@ enum class MessageKey(val path: String) {
     // Crafting
     CRAFTING_SUCCESS("crafting.success"),
     CRAFTING_QUALITY("crafting.quality"),
+    CRAFTING_QUALITY_HQ("crafting.quality_hq"),
+    CRAFTING_QUALITY_EX("crafting.quality_ex"),
+    CRAFTING_QUALITY_SUMMARY("crafting.quality_summary"),
 
     // Repair
     REPAIR_SUCCESS("repair.success"),
