@@ -54,11 +54,10 @@ Support:
 
 === Crafting Skills ===
 
-- Blacksmithy: Weapons/Armor
-- Craftsmanship: Wood/Leather/
-  Bows/Arrows/Tools
-- Alchemy: Potions
-- Cooking: Food
+- Crafting: Equipment/Tools
+  (weapons, armor, tools, bows)
+- Cooking: Food/Potions
+  (furnace, brewing stand)
 - Inscription: Scrolls
 
 Higher skill = better quality!
@@ -71,15 +70,14 @@ Production skills increase
 max stack size from 64 to 99.
 
 Formula:
-64 + (SkillSum / 400 x 35)
+64 + (SkillSum / 300 x 35)
 
 Contributing Skills:
-- Craftsmanship
-- Blacksmithy
+- Crafting
 - Cooking
-- Alchemy
+- Inscription
 
-Skill 400 total = 99 stack!
+Skill 300 total = 99 stack!
 
 ---PAGE---
 
@@ -104,12 +102,12 @@ Difficulty varies by food:
 
 ---PAGE---
 
-=== Alchemy Skill ===
+=== Cooking (Potions) ===
 
 Effect:
 Potions you brew get
 extended duration based on
-your Alchemy skill level.
+your Cooking skill level.
 
 Skill 100 = +50% duration!
 

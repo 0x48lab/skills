@@ -5,7 +5,7 @@ A skill-based progression system inspired by classic MMORPGs. Instead of traditi
 ## Key Features
 
 ### Skill System
-- **40+ unique skills** across combat, magic, crafting, gathering, and more
+- **37 unique skills** across combat, magic, crafting, gathering, and more
 - **700 total skill cap** - specialize or diversify, but you can't master everything
 - Skills increase through use and decrease when inactive (if over cap)
 
@@ -30,8 +30,9 @@ A skill-based progression system inspired by classic MMORPGs. Instead of traditi
 
 ### Crafting & Gathering
 - Quality tiers from Poor to Legendary based on skill
-- Blacksmithy, Tailoring, Carpentry, Cooking, Alchemy
+- Crafting (weapons, armor, tools), Cooking (food, potions), Inscription (scrolls)
 - Mining, Lumberjacking, Fishing with bonus drops
+- Stack size bonus (64→99) based on production skill sum
 
 ### Thief Skills
 - Hiding & Stealth movement

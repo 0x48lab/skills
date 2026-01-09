@@ -37,11 +37,8 @@
 ### クラフトスキル
 | スキル | 説明 |
 |--------|------|
-| Blacksmithy | 鍛冶 |
-| Tailoring | 裁縫 |
-| Carpentry | 大工 |
-| Cooking | 料理 |
-| Alchemy | 錬金術 |
+| Crafting | 製作（武器、防具、道具、弓矢） |
+| Cooking | 料理・錬金（食料、ポーション） |
 | Inscription | 写本（スクロール作成） |
 
 ### 採集スキル

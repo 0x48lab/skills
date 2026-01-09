@@ -53,11 +53,10 @@ INT (知力)
 
 === 製作スキル ===
 
-- Blacksmithy: 武器/防具
-- Craftsmanship: 木製品/革/
-  弓/矢/道具
-- Alchemy: ポーション
-- Cooking: 料理
+- Crafting: 装備/道具
+  （武器、防具、弓）
+- Cooking: 食料/ポーション
+  （かまど、醸造台）
 - Inscription: スクロール
 
 高スキル = 高品質！
@@ -70,15 +69,14 @@ INT (知力)
 最大スタック数が64から99へ
 
 計算式:
-64 + (スキル合計 / 400 x 35)
+64 + (スキル合計 / 300 x 35)
 
 対象スキル:
-- Craftsmanship
-- Blacksmithy
+- Crafting
 - Cooking
-- Alchemy
+- Inscription
 
-合計400で99スタック！
+合計300で99スタック！
 
 ---PAGE---
 
@@ -102,7 +100,7 @@ INT (知力)
 
 ---PAGE---
 
-=== Alchemyスキル ===
+=== Cooking（ポーション） ===
 
 効果:
 醸造したポーションの

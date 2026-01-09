@@ -16,8 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - **COOKING**: Food and potions (merged Cooking + Alchemy)
       - STR weight: 50%, INT weight: 50%
       - Covers: Furnace cooking, crafted food, potions, brewing
-  - Stack bonus now uses 2 skills (max 200) instead of 4 skills (max 400)
-    - Formula: `stackSize = 64 + (CRAFTING + COOKING) / 200 * 35`
+  - Stack bonus now uses 3 skills (max 300) instead of 4 skills (max 400)
+    - Formula: `stackSize = 64 + (CRAFTING + COOKING + INSCRIPTION) / 300 * 35`
   - Mending enchantment now uses CRAFTING skill for all craftable equipment
   - Skill titles updated: removed Blacksmith/Alchemist, kept Artisan/Chef
   - Quality system unchanged (difficulty-relative HQ/EX calculation)
