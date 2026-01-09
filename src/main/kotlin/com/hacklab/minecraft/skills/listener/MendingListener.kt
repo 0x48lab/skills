@@ -13,9 +13,8 @@ import kotlin.random.Random
 /**
  * Listener for Mending enchantment integration with crafting skills.
  *
- * Mending success rate depends on the appropriate crafting skill for each item type:
- * - Metal items (iron/gold/diamond/netherite/chain/stone) → Blacksmithy
- * - Everything else (leather, wooden, bows, tools, gadgets) → Craftsmanship
+ * Mending success rate depends on the Crafting skill:
+ * - All craftable items (weapons, armor, tools) → Crafting
  * - Elytra, turtle helmet → No skill required (100% success)
  *
  * Formula: min(100, skill * 100 / 60)
@@ -64,34 +63,30 @@ class MendingListener(private val plugin: Skills) : Listener {
         val typeName = item.type.name
 
         return when {
-            // Metal weapons, armor, and tools → Blacksmithy
+            // Special items - no skill required (always 100%)
+            item.type == Material.ELYTRA ||
+            item.type == Material.TURTLE_HELMET -> null
+
+            // All craftable items → Crafting
             typeName.contains("IRON_") ||
             typeName.contains("GOLDEN_") ||
             typeName.contains("DIAMOND_") ||
             typeName.contains("NETHERITE_") ||
             typeName.contains("CHAINMAIL_") ||
             typeName.contains("STONE_") ||
-            item.type == Material.TRIDENT ||
-            item.type == Material.MACE -> SkillType.BLACKSMITHY
-
-            // Spears → Blacksmithy (metal-tipped)
-            typeName.contains("_SPEAR") -> SkillType.BLACKSMITHY
-
-            // Special items - no skill required (always 100%)
-            item.type == Material.ELYTRA ||
-            item.type == Material.TURTLE_HELMET -> null
-
-            // Everything else → Craftsmanship (bows, leather, wooden, tools, gadgets)
-            item.type == Material.BOW ||
-            item.type == Material.CROSSBOW ||
             typeName.contains("LEATHER_") ||
             typeName.contains("WOODEN_") ||
+            typeName.contains("_SPEAR") ||
+            item.type == Material.TRIDENT ||
+            item.type == Material.MACE ||
+            item.type == Material.BOW ||
+            item.type == Material.CROSSBOW ||
             item.type == Material.SHIELD ||
             item.type == Material.FISHING_ROD ||
             item.type == Material.SHEARS ||
             item.type == Material.FLINT_AND_STEEL ||
             item.type == Material.CARROT_ON_A_STICK ||
-            item.type == Material.WARPED_FUNGUS_ON_A_STICK -> SkillType.CRAFTSMANSHIP
+            item.type == Material.WARPED_FUNGUS_ON_A_STICK -> SkillType.CRAFTING
 
             // Default: no skill required
             else -> null

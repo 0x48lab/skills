@@ -12,6 +12,7 @@ import com.hacklab.minecraft.skills.economy.MobRewardListener
 import com.hacklab.minecraft.skills.economy.MobRewardManager
 import com.hacklab.minecraft.skills.economy.VaultHook
 import com.hacklab.minecraft.skills.crafting.CraftingManager
+import com.hacklab.minecraft.skills.crafting.CraftingSessionManager
 import com.hacklab.minecraft.skills.crafting.DurabilityManager
 import com.hacklab.minecraft.skills.crafting.QualityManager
 import com.hacklab.minecraft.skills.crafting.StackBonusManager
@@ -112,6 +113,8 @@ class Skills : JavaPlugin() {
 
     // Crafting
     lateinit var craftingManager: CraftingManager
+        private set
+    lateinit var craftingSessionManager: CraftingSessionManager
         private set
     lateinit var qualityManager: QualityManager
         private set
@@ -261,6 +264,11 @@ class Skills : JavaPlugin() {
             floatingTextManager.cleanup()
         }
 
+        // Cleanup crafting sessions
+        if (::craftingSessionManager.isInitialized) {
+            craftingSessionManager.clearAllSessions()
+        }
+
         // Disconnect database
         database.disconnect()
 
@@ -299,6 +307,7 @@ class Skills : JavaPlugin() {
         // Crafting
         qualityManager = QualityManager(this)
         craftingManager = CraftingManager(this)
+        craftingSessionManager = CraftingSessionManager(this)
         durabilityManager = DurabilityManager(this)
         stackBonusManager = StackBonusManager(this)
 

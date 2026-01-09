@@ -36,14 +36,28 @@ class SkillManager(private val plugin: Skills) {
             return false
         }
 
-        // Calculate gain chance
-        val baseChance = (100 - currentValue) / 10.0  // Higher skill = lower chance
-        val difficultyModifier = calculateDifficultyModifier(currentValue, difficulty.toDouble())
-        val gainChance = (baseChance * difficultyModifier).coerceIn(0.1, 50.0)
+        // Skill gain logic:
+        // - If difficulty >= skill: GUARANTEED gain (using appropriate/challenging material)
+        // - If difficulty < skill: probability-based gain (material is below your level)
+        //
+        // This rewards using appropriate materials and makes progression feel natural:
+        // - Iron (25) guarantees gains until skill 25, then probability-based
+        // - Diamond (40) guarantees gains until skill 40, then probability-based
+        // - Netherite (60) guarantees gains until skill 60, then probability-based
+        val guaranteedGain = difficulty >= currentValue
 
-        // Roll for skill gain
-        if (Random.nextDouble() * 100 > gainChance) {
-            return false
+        if (!guaranteedGain) {
+            // Calculate gain chance for lower difficulty materials
+            // Base chance is higher at low skill, lower at high skill
+            // Formula: (100 - skill) / 5 gives 20% at skill 0, 10% at skill 50, 2% at skill 90
+            val baseChance = (100 - currentValue) / 5.0
+            val difficultyModifier = calculateDifficultyModifier(currentValue, difficulty.toDouble())
+            val gainChance = (baseChance * difficultyModifier).coerceIn(0.5, 50.0)
+
+            // Roll for skill gain
+            if (Random.nextDouble() * 100 > gainChance) {
+                return false
+            }
         }
 
         // Calculate gain amount
@@ -154,14 +168,26 @@ class SkillManager(private val plugin: Skills) {
 
     /**
      * Calculate difficulty modifier for skill gain
-     * Optimal when difficulty matches skill level
+     * Higher difficulty = better gain (rewarding challenging tasks)
+     * Lower difficulty = worse gain (you've outgrown this task)
+     *
+     * Design:
+     * - difficulty > skill: bonus (stretching yourself, rewarded)
+     * - difficulty ≈ skill (±30): normal
+     * - difficulty < skill - 30: penalty (too easy, you've outgrown it)
+     *
+     * This ensures using valuable materials (higher difficulty) is rewarded,
+     * and skill gain caps out when the task becomes trivial.
+     * e.g., Diamond (difficulty 40) will stop giving good gains around skill 70+
+     *       Iron (difficulty 25) will stop giving good gains around skill 55+
+     *       Netherite (difficulty 60) will stop giving good gains around skill 90+
      */
     private fun calculateDifficultyModifier(skillValue: Double, difficulty: Double): Double {
         val difference = difficulty - skillValue
         return when {
-            difference > 20 -> 0.5   // Too hard
-            difference < -20 -> 0.2  // Too easy
-            else -> 1.0              // Optimal range
+            difference >= 0 -> 1.0 + (difference / 50.0).coerceAtMost(0.5)  // Bonus for challenging tasks (up to +50%)
+            difference > -30 -> 1.0                                          // Optimal range (wider: ±30)
+            else -> 0.3                                                      // Too easy (skill > difficulty + 30), less harsh penalty
         }
     }
 

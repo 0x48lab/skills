@@ -27,6 +27,10 @@ magic:
   casting_time_base: 2000   # Base casting time in milliseconds
   targeting_timeout: 10000  # Targeting mode timeout in milliseconds
   spell_range: 12.0         # Maximum spell range in blocks
+  # Reagent search settings - where to search for spell reagents
+  reagent_search:
+    search_shulker_boxes: true  # Search inside shulker boxes in inventory
+    search_bundles: true        # Search inside bundles in inventory
 
 # Thief settings
 thief:

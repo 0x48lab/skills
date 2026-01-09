@@ -157,6 +157,9 @@ evaluate:
 crafting:
   success: "<green>{item}を作成しました！"
   quality: "<gray>品質: {quality}"
+  quality_hq: "<green>上出来だ！"
+  quality_ex: "<gold>傑作だ！"
+  quality_summary: "<gray>クラフト完了: <gold>EX x{ex}<gray>, <green>HQ x{hq}<gray>, <white>NQ x{nq}<gray>, <dark_gray>LQ x{lq}"
 
 # 修理メッセージ
 repair:

@@ -28,6 +28,8 @@ class SkillsConfig(private val plugin: Skills) {
     val castingTimeBase: Long get() = config.getLong("magic.casting_time_base", 2000)
     val targetingTimeout: Long get() = config.getLong("magic.targeting_timeout", 10000)
     val spellRange: Double get() = config.getDouble("magic.spell_range", 12.0)
+    val reagentSearchShulkerBoxes: Boolean get() = config.getBoolean("magic.reagent_search.search_shulker_boxes", true)
+    val reagentSearchBundles: Boolean get() = config.getBoolean("magic.reagent_search.search_bundles", true)
 
     // Thief settings
     val hideMovementBreaks: Boolean get() = config.getBoolean("thief.hide_movement_breaks", false)

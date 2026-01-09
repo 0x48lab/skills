@@ -12,15 +12,13 @@ import org.bukkit.inventory.meta.ItemMeta
  * Manages stack size bonus based on production skills.
  *
  * Stack size increases from 64 to 99 based on the sum of:
- * - Craftsmanship
- * - Blacksmithy
- * - Cooking
- * - Alchemy
+ * - Crafting (equipment, tools)
+ * - Cooking (food, potions)
  *
- * Formula: stackSize = 64 + (skillSum / 400 * 35)
+ * Formula: stackSize = 64 + (skillSum / 200 * 35)
  * - Skill sum 0: 64 stack
- * - Skill sum 200: 82 stack
- * - Skill sum 400: 99 stack
+ * - Skill sum 100: 82 stack
+ * - Skill sum 200: 99 stack
  */
 class StackBonusManager(private val plugin: Skills) {
 
@@ -28,14 +26,12 @@ class StackBonusManager(private val plugin: Skills) {
         const val BASE_STACK_SIZE = 64
         const val MAX_STACK_SIZE = 99
         const val BONUS_STACK_SIZE = MAX_STACK_SIZE - BASE_STACK_SIZE // 35
-        const val MAX_SKILL_SUM = 400.0 // 4 skills * 100 each
+        const val MAX_SKILL_SUM = 200.0 // 2 skills * 100 each
 
         // Skills that contribute to stack size bonus
         val CONTRIBUTING_SKILLS = listOf(
-            SkillType.CRAFTSMANSHIP,
-            SkillType.BLACKSMITHY,
-            SkillType.COOKING,
-            SkillType.ALCHEMY
+            SkillType.CRAFTING,
+            SkillType.COOKING
         )
 
         /**
