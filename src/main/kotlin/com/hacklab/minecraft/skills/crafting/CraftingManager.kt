@@ -34,9 +34,10 @@ class CraftingManager(private val plugin: Skills) {
         val data = plugin.playerDataManager.getPlayerData(player)
         val skillValue = data.getSkillValue(craftInfo.skill)
 
-        // Try skill gain for each item crafted
+        // Try skill gain for each item crafted, multiplied by material complexity
+        // gainMultiplier: 1 = simple (1-3 materials), 2 = medium (4-5), 3 = large (6-7), 4 = complex (8-9)
         var skillGained = false
-        repeat(craftCount) {
+        repeat(craftCount * craftInfo.gainMultiplier) {
             if (plugin.skillManager.tryGainSkill(player, craftInfo.skill, craftInfo.difficulty)) {
                 skillGained = true
             }
