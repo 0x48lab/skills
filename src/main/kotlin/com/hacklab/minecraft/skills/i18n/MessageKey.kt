@@ -191,7 +191,9 @@ enum class MessageKey(val path: String) {
 
     // Armor
     ARMOR_CANNOT_EQUIP_STR("armor.cannot_equip_str"),
+    ARMOR_CANNOT_EQUIP_DEX("armor.cannot_equip_dex"),
     ARMOR_REMOVED_STR("armor.removed_str"),
+    ARMOR_REMOVED_DEX("armor.removed_dex"),
     ARMOR_DEX_PENALTY_WARNING("armor.dex_penalty_warning"),
 
     // Gathering

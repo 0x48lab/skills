@@ -202,7 +202,9 @@ combat:
 # Armor messages
 armor:
   cannot_equip_str: "<red>Not enough STR! (Required: {required}, Current: {current})"
+  cannot_equip_dex: "<red>Not enough DEX! (Required: {required}, Current: {current})"
   removed_str: "<yellow>Your STR dropped too low to wear {item}!"
+  removed_dex: "<yellow>Your DEX dropped too low to wear {item}!"
   dex_penalty_warning: "<gray>This armor has a DEX penalty of -{penalty}"
 
 # Gathering messages

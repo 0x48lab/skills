@@ -618,7 +618,7 @@ class SpellManager(private val plugin: Skills) {
                 target.addPotionEffect(PotionEffect(PotionEffectType.STRENGTH, duration, 0))
                 // Visual: Golden blessing on target
                 target.world.spawnParticle(Particle.ENCHANT, target.location.add(0.0, 1.5, 0.0), 40, 0.5, 0.8, 0.5, 0.5)
-                target.world.spawnParticle(Particle.INSTANT_EFFECT, target.location.add(0.0, 1.0, 0.0), 15, 0.3, 0.5, 0.3, 0.0)
+                target.world.spawnParticle(Particle.ENCHANT, target.location.add(0.0, 1.0, 0.0), 15, 0.3, 0.5, 0.3, 0.5)
                 target.world.playSound(target.location, Sound.BLOCK_BEACON_POWER_SELECT, 1.0f, 1.2f)
             }
 

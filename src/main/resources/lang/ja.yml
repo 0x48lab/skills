@@ -202,7 +202,9 @@ combat:
 # 防具メッセージ
 armor:
   cannot_equip_str: "<red>STRが足りません！ (必要: {required}, 現在: {current})"
+  cannot_equip_dex: "<red>DEXが足りません！ (必要: {required}, 現在: {current})"
   removed_str: "<yellow>STRが下がったため、{item}を装備できなくなりました"
+  removed_dex: "<yellow>DEXが下がったため、{item}を装備できなくなりました"
   dex_penalty_warning: "<gray>この防具はDEXに-{penalty}のペナルティがあります"
 
 # 採集メッセージ

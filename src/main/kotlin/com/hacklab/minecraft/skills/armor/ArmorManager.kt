@@ -26,16 +26,32 @@ class ArmorManager(private val plugin: Skills) {
     fun tryEquip(player: Player, item: ItemStack?): Boolean {
         if (item == null) return true
 
+        val playerData = plugin.playerDataManager.getPlayerData(player)
+
+        // Check STR requirement
         val strDeficit = plugin.armorConfig.getStrDeficit(player, item)
         if (strDeficit > 0) {
             val required = plugin.armorConfig.getStrRequired(item)
-            val playerData = plugin.playerDataManager.getPlayerData(player)
 
             plugin.messageSender.send(
                 player,
                 MessageKey.ARMOR_CANNOT_EQUIP_STR,
                 "required" to required,
                 "current" to playerData.str
+            )
+            return false
+        }
+
+        // Check DEX requirement (UO-style heavy armor restriction)
+        val dexDeficit = plugin.armorConfig.getDexDeficit(player, item)
+        if (dexDeficit > 0) {
+            val required = plugin.armorConfig.getDexRequired(item)
+
+            plugin.messageSender.send(
+                player,
+                MessageKey.ARMOR_CANNOT_EQUIP_DEX,
+                "required" to required,
+                "current" to playerData.dex
             )
             return false
         }
@@ -55,18 +71,35 @@ class ArmorManager(private val plugin: Skills) {
 
     /**
      * Check player's equipment and remove any items they can no longer wear
-     * Called when STR decreases
+     * Called when STR or DEX decreases
      */
     fun validateEquipment(player: Player) {
         val unequippable = plugin.armorConfig.getUnequippableArmor(player)
+        val playerData = plugin.playerDataManager.getPlayerData(player)
 
         for (item in unequippable) {
             removeArmorPiece(player, item)
-            plugin.messageSender.send(
-                player,
-                MessageKey.ARMOR_REMOVED_STR,
-                "item" to getArmorDisplayName(item)
-            )
+
+            // Determine which stat caused the removal
+            val strDeficit = plugin.armorConfig.getStrDeficit(player, item)
+            val dexDeficit = plugin.armorConfig.getDexDeficit(player, item)
+
+            when {
+                strDeficit > 0 -> {
+                    plugin.messageSender.send(
+                        player,
+                        MessageKey.ARMOR_REMOVED_STR,
+                        "item" to getArmorDisplayName(item)
+                    )
+                }
+                dexDeficit > 0 -> {
+                    plugin.messageSender.send(
+                        player,
+                        MessageKey.ARMOR_REMOVED_DEX,
+                        "item" to getArmorDisplayName(item)
+                    )
+                }
+            }
         }
     }
 

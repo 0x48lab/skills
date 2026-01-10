@@ -1,112 +1,137 @@
 # Armor Configuration
 # ar: Armor Rating (defense value)
 # str_required: Minimum STR to equip
+# dex_required: Minimum DEX to equip (UO-style heavy armor restriction)
 # dex_penalty: DEX effectiveness reduction when worn
 # special: Minecraft-specific special properties
 
 armor:
   # === Netherite (Full Plate - Highest tier) ===
+  # DEX 50+ required for full set
   NETHERITE_HELMET:
     ar: 8
     str_required: 80
+    dex_required: 40
     dex_penalty: 5
     special:
       knockback_resistance: 0.1
   NETHERITE_CHESTPLATE:
     ar: 18
     str_required: 95
+    dex_required: 50
     dex_penalty: 12
     special:
       knockback_resistance: 0.1
   NETHERITE_LEGGINGS:
     ar: 14
     str_required: 85
+    dex_required: 45
     dex_penalty: 8
     special:
       knockback_resistance: 0.1
   NETHERITE_BOOTS:
     ar: 8
     str_required: 70
+    dex_required: 35
     dex_penalty: 4
     special:
       knockback_resistance: 0.1
 
   # === Diamond (Plate Armor) ===
+  # DEX 45+ required for full set
   DIAMOND_HELMET:
     ar: 7
     str_required: 65
+    dex_required: 35
     dex_penalty: 4
   DIAMOND_CHESTPLATE:
     ar: 16
     str_required: 80
+    dex_required: 45
     dex_penalty: 10
   DIAMOND_LEGGINGS:
     ar: 12
     str_required: 70
+    dex_required: 40
     dex_penalty: 6
   DIAMOND_BOOTS:
     ar: 7
     str_required: 55
+    dex_required: 30
     dex_penalty: 3
 
   # === Iron (Chain/Ring Mail) ===
+  # DEX 35+ required for full set
   IRON_HELMET:
     ar: 5
     str_required: 40
+    dex_required: 25
     dex_penalty: 3
   IRON_CHESTPLATE:
     ar: 12
     str_required: 55
+    dex_required: 35
     dex_penalty: 7
   IRON_LEGGINGS:
     ar: 10
     str_required: 50
+    dex_required: 30
     dex_penalty: 5
   IRON_BOOTS:
     ar: 5
     str_required: 35
+    dex_required: 20
     dex_penalty: 2
 
   # === Chainmail (Actual Chainmail - lighter than iron) ===
+  # DEX 25+ required for full set (DEX 25 minimum can wear this)
   CHAINMAIL_HELMET:
     ar: 4
     str_required: 30
+    dex_required: 15
     dex_penalty: 2
   CHAINMAIL_CHESTPLATE:
     ar: 10
     str_required: 45
+    dex_required: 25
     dex_penalty: 5
   CHAINMAIL_LEGGINGS:
     ar: 8
     str_required: 40
+    dex_required: 20
     dex_penalty: 4
   CHAINMAIL_BOOTS:
     ar: 4
     str_required: 25
+    dex_required: 10
     dex_penalty: 1
 
   # === Gold (Decorative - low protection, no requirements) ===
   GOLDEN_HELMET:
     ar: 3
     str_required: 0
+    dex_required: 0
     dex_penalty: 2
     special:
       piglin_neutral: true
   GOLDEN_CHESTPLATE:
     ar: 7
     str_required: 0
+    dex_required: 0
     dex_penalty: 4
     special:
       piglin_neutral: true
   GOLDEN_LEGGINGS:
     ar: 5
     str_required: 0
+    dex_required: 0
     dex_penalty: 3
     special:
       piglin_neutral: true
   GOLDEN_BOOTS:
     ar: 3
     str_required: 0
+    dex_required: 0
     dex_penalty: 1
     special:
       piglin_neutral: true
@@ -115,24 +140,29 @@ armor:
   LEATHER_HELMET:
     ar: 2
     str_required: 0
+    dex_required: 0
     dex_penalty: 0
   LEATHER_CHESTPLATE:
     ar: 5
     str_required: 0
+    dex_required: 0
     dex_penalty: 0
   LEATHER_LEGGINGS:
     ar: 4
     str_required: 0
+    dex_required: 0
     dex_penalty: 0
   LEATHER_BOOTS:
     ar: 2
     str_required: 0
+    dex_required: 0
     dex_penalty: 0
 
   # === Special Helmets ===
   TURTLE_HELMET:
     ar: 4
     str_required: 20
+    dex_required: 10
     dex_penalty: 1
     special:
       water_breathing: 10  # seconds
@@ -141,6 +171,7 @@ armor:
   SHIELD:
     ar: 5
     str_required: 25
+    dex_required: 15
     dex_penalty: 2
     special:
       block_bonus: 20  # +20% to Parrying block effectiveness
@@ -149,6 +180,7 @@ armor:
   ELYTRA:
     ar: 0
     str_required: 0
+    dex_required: 0
     dex_penalty: 0
     special:
       flight: true
@@ -181,5 +213,7 @@ quality_modifiers:
 # Messages
 messages:
   cannot_equip_str: "STRが足りません！ (必要: {required}, 現在: {current})"
+  cannot_equip_dex: "DEXが足りません！ (必要: {required}, 現在: {current})"
   armor_removed_str: "STRが下がったため、{item}を装備できなくなりました"
+  armor_removed_dex: "DEXが下がったため、{item}を装備できなくなりました"
   dex_penalty_warning: "この防具はDEXに-{penalty}のペナルティがあります"

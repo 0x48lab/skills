@@ -71,6 +71,7 @@ class ArmorConfig(private val plugin: Skills) {
                 armorStats[material] = ArmorStats(
                     ar = section.getInt("ar", 0),
                     strRequired = section.getInt("str_required", 0),
+                    dexRequired = section.getInt("dex_required", 0),
                     dexPenalty = section.getInt("dex_penalty", 0),
                     special = special
                 )
@@ -144,6 +145,13 @@ class ArmorConfig(private val plugin: Skills) {
      */
     fun getStrRequired(item: ItemStack?): Int {
         return getArmorStats(item)?.strRequired ?: 0
+    }
+
+    /**
+     * Get DEX requirement for an armor piece
+     */
+    fun getDexRequired(item: ItemStack?): Int {
+        return getArmorStats(item)?.dexRequired ?: 0
     }
 
     /**
@@ -221,7 +229,7 @@ class ArmorConfig(private val plugin: Skills) {
     }
 
     /**
-     * Check if player can equip an armor piece based on STR
+     * Check if player can equip an armor piece based on STR and DEX
      */
     fun canEquip(player: Player, item: ItemStack?): Boolean {
         if (item == null || item.type == Material.AIR) return true
@@ -229,7 +237,7 @@ class ArmorConfig(private val plugin: Skills) {
         val stats = getArmorStats(item) ?: return true
         val playerData = plugin.playerDataManager.getPlayerData(player)
 
-        return playerData.str >= stats.strRequired
+        return playerData.str >= stats.strRequired && playerData.dex >= stats.dexRequired
     }
 
     /**
@@ -242,6 +250,18 @@ class ArmorConfig(private val plugin: Skills) {
         val playerData = plugin.playerDataManager.getPlayerData(player)
 
         return (stats.strRequired - playerData.str).coerceAtLeast(0)
+    }
+
+    /**
+     * Get the DEX deficit for equipping an item (0 if can equip)
+     */
+    fun getDexDeficit(player: Player, item: ItemStack?): Int {
+        if (item == null || item.type == Material.AIR) return 0
+
+        val stats = getArmorStats(item) ?: return 0
+        val playerData = plugin.playerDataManager.getPlayerData(player)
+
+        return (stats.dexRequired - playerData.dex).coerceAtLeast(0)
     }
 
     /**
@@ -276,6 +296,7 @@ class ArmorConfig(private val plugin: Skills) {
 data class ArmorStats(
     val ar: Int,
     val strRequired: Int,
+    val dexRequired: Int,
     val dexPenalty: Int,
     val special: ArmorSpecial? = null
 )

@@ -12,9 +12,13 @@ import kotlin.random.Random
 class EndChestLoot(private val plugin: Skills) {
 
     companion object {
-        // End City rates
-        const val C7_DROP_RATE = 0.005  // 0.5%
-        const val C8_DROP_RATE = 0.002  // 0.2%
+        // End City rates - High circle focus (C5-C8 only)
+        // End City is endgame content, so rewards are better quality
+        const val END_C5_C6_DROP_RATE = 0.10  // 10% for C5-C6
+        const val END_C7_DROP_RATE = 0.05     // 5% for C7
+        const val END_C8_DROP_RATE = 0.02     // 2% for C8
+        // Total: ~17% per chest, ~4 scrolls per hour (25 chests)
+        // C7-C8: ~1-2 per hour
 
         // Trial Chamber rates (C1-C8) - higher tier = rarer
         const val TRIAL_C1_C3_DROP_RATE = 0.08   // 8% for common spells
@@ -26,18 +30,26 @@ class EndChestLoot(private val plugin: Skills) {
 
     /**
      * Try to generate a high-circle scroll for End chest loot
+     * End City drops C5-C8 only (high circle focus for endgame content)
      * @return ItemStack of scroll if drop succeeds, null otherwise
      */
     fun tryGetEndChestScroll(): ItemStack? {
-        // Roll for C7 first
-        if (Random.nextDouble() < C7_DROP_RATE) {
+        // Roll from highest to lowest (rarest first)
+        // C8 - Legendary (2%)
+        if (Random.nextDouble() < END_C8_DROP_RATE) {
+            val spell = getRandomC8Spell() ?: return null
+            return plugin.scrollManager.createScroll(spell)
+        }
+
+        // C7 - Rare (5%)
+        if (Random.nextDouble() < END_C7_DROP_RATE) {
             val spell = getRandomC7Spell() ?: return null
             return plugin.scrollManager.createScroll(spell)
         }
 
-        // Then roll for C8
-        if (Random.nextDouble() < C8_DROP_RATE) {
-            val spell = getRandomC8Spell() ?: return null
+        // C5-C6 - High-tier (10%)
+        if (Random.nextDouble() < END_C5_C6_DROP_RATE) {
+            val spell = getRandomSpellByCircles(SpellCircle.FIFTH, SpellCircle.SIXTH) ?: return null
             return plugin.scrollManager.createScroll(spell)
         }
 
