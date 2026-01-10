@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.7] - 2026-01-11
+
+### Added
+- **DEX Requirement for Armor (UO-Style)**
+  - Heavy armor now requires minimum DEX to equip (like Ultima Online)
+  - Players with low DEX (e.g., STR/INT builds) cannot wear plate armor
+  - DEX requirements by armor tier:
+    - Netherite: DEX 50+ (full set), 35-50 per piece
+    - Diamond: DEX 45+ (full set), 30-45 per piece
+    - Iron: DEX 35+ (full set), 20-35 per piece
+    - Chainmail: DEX 25+ (full set), 10-25 per piece
+    - Leather/Gold: No DEX requirement
+  - Error messages shown when trying to equip with insufficient DEX
+  - Armor automatically removed when DEX drops below requirement
+
+### Changed
+- **End City Scroll Drop Rates (Rebalanced)**
+  - End City chests now drop C5-C8 scrolls only (high-circle focus)
+  - New drop rates for endgame-appropriate rewards:
+    - C5-C6: 10% (was: none)
+    - C7: 5% (was: 0.5%)
+    - C8: 2% (was: 0.2%)
+  - Total ~17% per chest, ~4 scrolls per hour (25 chests)
+  - C7-C8 scrolls: ~1-2 per hour
+  - Removed C1-C4 from End City (available in Trial Chambers instead)
+
+### Fixed
+- Fixed Bless spell particle effect (INSTANT_EFFECT → ENCHANT)
+
 ## [0.4.6] - 2026-01-09
 
 ### Changed
