@@ -202,6 +202,13 @@ class CraftingListener(private val plugin: Skills) : Listener {
         // Check if this is a repair operation (item has durability)
         if (!plugin.durabilityManager.isRepairable(firstItem)) return
 
+        // Check if player has enough experience to complete the anvil operation
+        val repairCost = anvil.repairCost
+        if (repairCost > 0 && player.level < repairCost) {
+            // Not enough experience - don't process repair
+            return
+        }
+
         // Get player's Crafting skill
         val data = plugin.playerDataManager.getPlayerData(player)
         val craftingSkill = data.getSkillValue(SkillType.CRAFTING)
