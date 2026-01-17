@@ -394,6 +394,9 @@ class Skills : JavaPlugin() {
         // Stack size bonus based on production skills
         pm.registerEvents(StackBonusListener(this), this)
 
+        // Pick block fix (after StackBonusListener to handle maxStackSize mismatch)
+        pm.registerEvents(PickBlockListener(this), this)
+
         // Runebook GUI
         runebookListener = RunebookListener(this)
         pm.registerEvents(runebookListener, this)

@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.8] - 2026-01-17
+
+### Fixed
+- **Pick Block (Middle-Click) Not Working**
+  - Fixed pick block functionality not finding items in inventory
+  - Root cause: `StackBonusManager` modifies `maxStackSize` from 64 to 99 for stackable items
+  - This caused `ItemStack.isSimilar()` to fail when comparing inventory items to world blocks
+  - Solution: Added `PickBlockListener` that intercepts `PlayerPickBlockEvent` when vanilla search fails
+  - Custom search ignores `maxStackSize` differences and matches by material type only
+  - Handles special block-to-item mappings (ores → drops, wall items → regular items)
+
 ## [0.4.7] - 2026-01-11
 
 ### Added
