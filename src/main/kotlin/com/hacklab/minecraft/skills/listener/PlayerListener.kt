@@ -6,7 +6,6 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.entity.Player
-import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerRespawnEvent
@@ -25,9 +24,8 @@ class PlayerListener(private val plugin: Skills) : Listener {
         // Load language preference
         plugin.localeManager.loadPlayerLocale(player.uniqueId, data.language)
 
-        // Sync health and mana to vanilla
+        // Sync health to vanilla
         StatCalculator.syncHealthToVanilla(player, data)
-        StatCalculator.syncManaToVanilla(player, data)
 
         // Validate equipment (remove armor player can no longer wear due to STR)
         plugin.armorManager.validateEquipment(player)
@@ -99,15 +97,6 @@ class PlayerListener(private val plugin: Skills) : Listener {
             val distance = event.from.distance(event.to)
             plugin.hidingManager.processMovement(player, distance)
         }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    fun onFoodLevelChange(event: FoodLevelChangeEvent) {
-        val player = event.entity as? Player ?: return
-        val newFoodLevel = event.foodLevel
-
-        // Sync food level changes to internal mana (both increase and decrease)
-        plugin.manaManager.syncFromVanilla(player, newFoodLevel)
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

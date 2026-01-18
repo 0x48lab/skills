@@ -374,7 +374,7 @@ enum class MessageKey(val path: String) {
     ARMS_NOT_WEAPON_ARMOR("arms.not_weapon_armor"),
 
     // Food/Mana
-    FOOD_OVERFLOW_HEAL("food.overflow_heal"),
+    FOOD_MANA_RESTORE("food.mana_restore"),
 
     // UI separators
     UI_SEPARATOR("ui.separator"),

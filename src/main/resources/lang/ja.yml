@@ -404,7 +404,7 @@ arms:
 
 # フード/マナ
 food:
-  overflow_heal: "<green>マナ満タン！食事で {amount} HP回復しました。"
+  mana_restore: "<green>+{amount} MP回復！"
 
 # UI要素
 ui:

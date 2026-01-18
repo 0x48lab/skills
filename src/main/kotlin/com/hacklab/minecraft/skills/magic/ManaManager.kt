@@ -40,9 +40,6 @@ class ManaManager(private val plugin: Skills) {
         data.mana -= actualCost
         data.dirty = true
 
-        // Sync to vanilla food level
-        StatCalculator.syncManaToVanilla(player, data)
-
         return true
     }
 
@@ -52,7 +49,6 @@ class ManaManager(private val plugin: Skills) {
     fun restoreMana(player: Player, amount: Double) {
         val data = plugin.playerDataManager.getPlayerData(player)
         data.restoreMana(amount)
-        StatCalculator.syncManaToVanilla(player, data)
     }
 
     /**
@@ -88,7 +84,6 @@ class ManaManager(private val plugin: Skills) {
         val actualRegen = baseRegen * (1 + skillBonus)
 
         data.restoreMana(actualRegen)
-        StatCalculator.syncManaToVanilla(player, data)
 
         // Try skill gain
         plugin.skillManager.tryGainSkill(
@@ -101,14 +96,27 @@ class ManaManager(private val plugin: Skills) {
     }
 
     /**
-     * Handle vanilla food level change
-     * Keep mana synced when food level changes naturally
+     * Process natural mana regeneration (INT-based)
+     * Called periodically for all online players
+     * @return true if mana was regenerated
      */
-    fun syncFromVanilla(player: Player, newFoodLevel: Int) {
+    fun processNaturalRegeneration(player: Player): Boolean {
         val data = plugin.playerDataManager.getPlayerData(player)
-        // Convert food level (0-20) to mana percentage
-        val manaPercent = newFoodLevel / 20.0
-        data.mana = data.maxMana * manaPercent
-        data.dirty = true
+
+        // Only regenerate if not full
+        if (data.mana >= data.maxMana) {
+            return false
+        }
+
+        // Calculate regen rate based on INT
+        // Base: 0.5 mana per 5 seconds
+        // INT bonus: +INT% (INT 100 = +100% = 1.0 mana per 5 seconds)
+        val baseRegen = 0.5
+        val intBonus = data.int / 100.0
+        val actualRegen = baseRegen * (1 + intBonus)
+
+        data.restoreMana(actualRegen)
+
+        return true
     }
 }

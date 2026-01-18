@@ -922,9 +922,6 @@ class SpellManager(private val plugin: Skills) {
                         targetData.mana = (targetData.mana - actualDrain).coerceAtLeast(0.0)
                         casterData.mana = (casterData.mana + actualDrain).coerceAtMost(20.0)
 
-                        StatCalculator.syncManaToVanilla(target, targetData)
-                        StatCalculator.syncManaToVanilla(caster, casterData)
-
                         plugin.messageSender.send(caster, MessageKey.MAGIC_MANA_DRAIN_CAST,
                             "target" to target.name, "amount" to actualDrain.toInt())
                         // Visual: Mana drain effect
@@ -1006,9 +1003,6 @@ class SpellManager(private val plugin: Skills) {
 
                         targetData.mana = (targetData.mana - actualDrain).coerceAtLeast(0.0)
                         casterData.mana = (casterData.mana + actualDrain).coerceAtMost(20.0)
-
-                        StatCalculator.syncManaToVanilla(target, targetData)
-                        StatCalculator.syncManaToVanilla(caster, casterData)
 
                         plugin.messageSender.send(caster, MessageKey.MAGIC_MANA_VAMPIRE_CAST,
                             "target" to target.name, "amount" to actualDrain.toInt())

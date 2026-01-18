@@ -5,10 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.11] - 2026-01-18
+
+### Changed
+- **Mana System Overhaul (UO-Style)**
+  - Reverted "Food Bar = Mana" system from v0.4.10
+  - Mana is now completely independent from the food bar
+  - Food bar returns to vanilla behavior (hunger/saturation)
+  - Vanilla HP regeneration (SATIATED) is re-enabled
+  - All healing sources now properly restore internal HP
+
+### Added
+- **Natural Mana Regeneration (INT-based)**
+  - All players regenerate mana over time
+  - Base regen: 0.5 mana per 5 seconds
+  - INT bonus: +INT% (e.g., INT 100 = 1.0 mana per 5 seconds)
+- **Golden Apple Mana Recovery**
+  - Golden Apple: +5 MP (in addition to vanilla HP effects)
+  - Enchanted Golden Apple: +10 MP (in addition to vanilla HP effects)
+- **Meditation Mana Recovery** (unchanged)
+  - Sneaking while stationary regenerates mana faster
+  - 0.1 × (1 + Meditation/100) mana per 0.5 seconds
+
+### Technical
+- Removed `ExhaustionListener` (vanilla exhaustion restored)
+- Removed `syncManaToVanilla` from StatCalculator and all callers
+- Removed `syncFromVanilla` from ManaManager
+- Added `processNaturalRegeneration` to ManaManager
+- Integrated mana regeneration into `ScoreboardManager.startUpdateTask()` (avoids thread proliferation)
+- Simplified `CombatListener.onEntityRegainHealth` to allow all healing sources
+
 ## [0.4.10] - 2026-01-18
 
 ### Added
-- **Food Bar = Mana System**
+- **Food Bar = Mana System** (REVERTED in v0.4.11)
   - Food bar now represents Mana instead of hunger
   - Vanilla exhaustion (running, jumping, mining, etc.) no longer depletes the food bar
   - Eating restores Mana first, overflow is converted to HP (1 mana overflow = 5 internal HP)

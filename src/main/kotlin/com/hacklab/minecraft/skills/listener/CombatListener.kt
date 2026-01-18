@@ -155,56 +155,26 @@ class CombatListener(private val plugin: Skills) : Listener {
 
     /**
      * Handle vanilla health regeneration.
-     * SATIATED regeneration (from full food) is disabled because food bar = mana.
-     * Other regeneration sources (potions, healing spells) are synced to internal HP.
+     * All regeneration sources are synced to internal HP system.
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun onEntityRegainHealth(event: EntityRegainHealthEvent) {
         val entity = event.entity
 
         if (entity is Player) {
-            // Block vanilla SATIATED regeneration - food bar = mana, not hunger
-            // HP restoration is handled by:
-            // - FoodListener (overflow from eating)
-            // - Magic spells (Heal, Greater Heal)
-            // - Potions and effects (MAGIC, REGEN with active effect, etc.)
-            when (event.regainReason) {
-                EntityRegainHealthEvent.RegainReason.SATIATED -> {
-                    // Always block - food satiation should not heal (food = mana)
-                    event.isCancelled = true
-                    return
-                }
-                EntityRegainHealthEvent.RegainReason.REGEN,
-                EntityRegainHealthEvent.RegainReason.MAGIC_REGEN -> {
-                    // REGEN: from Regeneration potion effect
-                    // MAGIC_REGEN: from golden apples, potions, beacons
-                    // Only allow if player actually has Regeneration effect
-                    if (!entity.hasPotionEffect(org.bukkit.potion.PotionEffectType.REGENERATION)) {
-                        // No regeneration effect - block it
-                        event.isCancelled = true
-                        return
-                    }
-                    // Has regeneration effect - apply to internal HP
-                    val data = plugin.playerDataManager.getPlayerData(entity)
-                    val internalHeal = event.amount * plugin.skillsConfig.baseDamageMultiplier
-                    data.heal(internalHeal)
+            // Apply all healing to internal HP
+            val data = plugin.playerDataManager.getPlayerData(entity)
+            val internalHeal = event.amount * plugin.skillsConfig.baseDamageMultiplier
+            data.heal(internalHeal)
 
-                    // Cancel vanilla healing and sync internal HP to vanilla
-                    // This prevents vanilla HP from reaching max before internal HP
-                    event.isCancelled = true
-                    plugin.server.scheduler.runTask(plugin, Runnable {
-                        if (entity.isOnline) {
-                            StatCalculator.syncHealthToVanilla(entity, data)
-                        }
-                    })
+            // Cancel vanilla healing and sync internal HP to vanilla
+            // This ensures internal HP is the source of truth
+            event.isCancelled = true
+            plugin.server.scheduler.runTask(plugin, Runnable {
+                if (entity.isOnline) {
+                    StatCalculator.syncHealthToVanilla(entity, data)
                 }
-                else -> {
-                    // Allow other healing sources (MAGIC, CUSTOM, EATING, etc.)
-                    val data = plugin.playerDataManager.getPlayerData(entity)
-                    val internalHeal = event.amount * plugin.skillsConfig.baseDamageMultiplier
-                    data.heal(internalHeal)
-                }
-            }
+            })
         }
     }
 

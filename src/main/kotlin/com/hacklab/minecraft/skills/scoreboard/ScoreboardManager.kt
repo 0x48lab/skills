@@ -20,6 +20,7 @@ class ScoreboardManager(private val plugin: Skills) {
 
     private val playerScoreboards: MutableMap<UUID, Scoreboard> = ConcurrentHashMap()
     private var updateTask: BukkitRunnable? = null
+    private var tickCounter = 0
 
     /**
      * Start the scoreboard update task
@@ -27,8 +28,16 @@ class ScoreboardManager(private val plugin: Skills) {
     fun startUpdateTask() {
         updateTask = object : BukkitRunnable() {
             override fun run() {
+                tickCounter++
+                val shouldRegenMana = tickCounter % 5 == 0  // Every 5 seconds
+
                 Bukkit.getOnlinePlayers().forEach { player ->
                     updateScoreboard(player)
+
+                    // Natural mana regeneration (INT-based) every 5 seconds
+                    if (shouldRegenMana) {
+                        plugin.manaManager.processNaturalRegeneration(player)
+                    }
                 }
             }
         }

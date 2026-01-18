@@ -67,7 +67,6 @@ class InternalHealthManager(private val plugin: Skills) {
         data.internalHp = data.maxInternalHp
         data.mana = data.maxMana
         syncToVanilla(player)
-        StatCalculator.syncManaToVanilla(player, data)
     }
 
     /**

@@ -413,10 +413,7 @@ class Skills : JavaPlugin() {
         // Mending integration with Blacksmithy
         pm.registerEvents(MendingListener(this), this)
 
-        // Exhaustion disabled (food bar = mana, not hunger)
-        pm.registerEvents(ExhaustionListener(this), this)
-
-        // Food consumption (Mana/HP restoration with overflow)
+        // Food consumption (Golden Apple = MP recovery)
         pm.registerEvents(FoodListener(this), this)
 
         // Stack size bonus based on production skills
@@ -517,6 +514,8 @@ class Skills : JavaPlugin() {
 
         // Stamina update task
         staminaManager.startUpdateTask()
+
+        // Note: Natural mana regeneration is handled by ScoreboardManager.startUpdateTask()
 
         // Chunk limit cleanup (every 5 minutes)
         object : BukkitRunnable() {
