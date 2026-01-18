@@ -14,11 +14,14 @@ import java.util.LinkedList
  * Manages chain chopping for Lumberjacking skill.
  * Higher skill = more connected logs chopped in chain.
  * GM (100) can chop entire tree from base.
- * Chain only propagates upward (tree felling sensation).
+ *
+ * Algorithm:
+ * - First block (player-broken): only search upward (prevent going into ground)
+ * - Subsequent blocks: search all 26 directions (capture entire branches)
  */
 class ChainChoppingManager(private val plugin: Skills) {
 
-    // 9 directions for upward propagation: directly up + 8 diagonal-up directions
+    // 9 directions for upward propagation (used for first block only)
     private val upwardDirections = listOf(
         Triple(0, 1, 0),    // directly up
         Triple(1, 1, 0),    // diagonal up
@@ -30,6 +33,19 @@ class ChainChoppingManager(private val plugin: Skills) {
         Triple(-1, 1, 1),
         Triple(-1, 1, -1)
     )
+
+    // All 26 directions (used for subsequent blocks to capture branches)
+    private val allDirections: List<Triple<Int, Int, Int>> = buildList {
+        for (dx in -1..1) {
+            for (dy in -1..1) {
+                for (dz in -1..1) {
+                    if (dx != 0 || dy != 0 || dz != 0) {
+                        add(Triple(dx, dy, dz))
+                    }
+                }
+            }
+        }
+    }
 
     // Blocks processed per tick to reduce server load
     private val blocksPerTick = 5
@@ -47,20 +63,25 @@ class ChainChoppingManager(private val plugin: Skills) {
             return Int.MAX_VALUE
         }
 
-        // 1 + floor(skill / 10)
-        // Skill 0-9: 1, Skill 10-19: 2, ..., Skill 90-99: 10
-        return 1 + (skill / 10).toInt()
+        // floor(skill / 10)
+        // Skill 0-9: 0 (no chain), Skill 10-19: 1, ..., Skill 50-59: 5, Skill 90-99: 9
+        return (skill / 10).toInt()
     }
 
     /**
-     * Find connected logs of the same type (upward only).
-     * Uses BFS algorithm with upward priority.
+     * Find connected logs of the same type.
+     * Uses BFS algorithm:
+     * - First block (player-broken): only search upward (prevent going into ground)
+     * - Subsequent blocks: search all 26 directions (capture entire branches)
+     *
      * @param startBlock The first broken block
      * @param logType The type of log to match
      * @param maxCount Maximum number of logs to find
      * @return List of blocks to break (excluding the already broken start block)
      */
     fun findConnectedLogs(startBlock: Block, logType: Material, maxCount: Int): List<Block> {
+        if (maxCount <= 0) return emptyList()
+
         val result = mutableListOf<Block>()
         val visited = mutableSetOf<Location>()
         val queue = LinkedList<Block>()
@@ -68,7 +89,7 @@ class ChainChoppingManager(private val plugin: Skills) {
         // Start from the origin block's neighbors (origin is already broken)
         visited.add(startBlock.location)
 
-        // Add initial upward neighbors
+        // First block: only search UPWARD neighbors (prevent going into ground)
         for ((dx, dy, dz) in upwardDirections) {
             val neighbor = startBlock.getRelative(dx, dy, dz)
             if (isSameLogType(neighbor.type, logType) && !visited.contains(neighbor.location)) {
@@ -77,7 +98,7 @@ class ChainChoppingManager(private val plugin: Skills) {
             }
         }
 
-        // BFS with upward priority
+        // BFS: subsequent blocks use ALL directions to capture branches
         while (queue.isNotEmpty() && result.size < maxCount) {
             val current = queue.poll()
 
@@ -89,8 +110,8 @@ class ChainChoppingManager(private val plugin: Skills) {
                 break
             }
 
-            // Find upward neighbors
-            for ((dx, dy, dz) in upwardDirections) {
+            // Find ALL neighbors (26 directions) for branch detection
+            for ((dx, dy, dz) in allDirections) {
                 val neighbor = current.getRelative(dx, dy, dz)
                 if (isSameLogType(neighbor.type, logType) && !visited.contains(neighbor.location)) {
                     queue.add(neighbor)
