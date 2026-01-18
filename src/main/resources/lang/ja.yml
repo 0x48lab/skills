@@ -230,12 +230,59 @@ admin:
   skill_set: "<green>{player}の{skill}を{value}に設定しました。"
   stats_reset: "<green>{player}のステータスをリセットしました。"
   data_reloaded: "<green>プレイヤーデータを再読み込みしました。"
+  # ヘルプメッセージ
+  help:
+    header: "<gold>═══ Skills 管理コマンド ═══"
+    check: "<white>/skilladmin check <プレイヤー>"
+    set: "<white>/skilladmin set <プレイヤー> <スキル> <値>"
+    setstat: "<white>/skilladmin setstat <プレイヤー> <STR|DEX|INT> <値>"
+    reset: "<white>/skilladmin reset <プレイヤー>"
+    reload: "<white>/skilladmin reload"
+    give_spellbook: "<white>/skilladmin give <プレイヤー> spellbook"
+    give_runebook: "<white>/skilladmin give <プレイヤー> runebook"
+    give_rune: "<white>/skilladmin give <プレイヤー> rune"
+    give_reagents: "<white>/skilladmin give <プレイヤー> reagents"
+    give_scroll: "<white>/skilladmin give <プレイヤー> scroll <魔法|all>"
+  # 使用法メッセージ
+  usage:
+    check: "<red>使用法: /skilladmin check <プレイヤー>"
+    set: "<red>使用法: /skilladmin set <プレイヤー> <スキル> <値>"
+    set_note: "<gray>注意: スペースを含むスキル名はアンダースコアを使用 (例: Heat_Resistance)"
+    setstat: "<red>使用法: /skilladmin setstat <プレイヤー> <STR|DEX|INT> <値>"
+    reset: "<red>使用法: /skilladmin reset <プレイヤー>"
+    give: "<red>使用法: /skilladmin give <プレイヤー> <アイテム>"
+    scroll: "<red>使用法: /skilladmin give <プレイヤー> scroll <魔法|all>"
+  # 結果メッセージ
+  player_not_found_or_never_joined: "<red>プレイヤーが見つからないか、サーバーに参加したことがありません: {player}"
+  player_skills_header: "<gold>═══ {player}のスキル ═══"
+  player_title: "<yellow>称号: {title}"
+  player_stats: "<aqua>STR: {str}  DEX: {dex}  INT: {int}"
+  player_total: "<aqua>合計: {current} / {max}"
+  unknown_skill: "<red>不明なスキル: {skill}"
+  unknown_skill_list: "<gray>利用可能なスキル: {skills}"
+  invalid_value: "<red>無効な値: {value} ({min}-{max}の範囲で指定してください)"
+  unknown_stat: "<red>不明なステータス: {stat} (STR, DEX, INT のいずれかを指定)"
+  skill_set_success: "<green>{player}の{skill}を{value}に設定しました"
+  stat_set_success: "<green>{player}の{stat}を{value}に設定しました"
+  skills_reset: "<green>{player}の全スキルをリセットしました"
+  config_reloaded: "<green>設定を再読み込みしました"
+  gave_spellbook: "<green>{player}にフルスペルブックを渡しました"
+  gave_runebook: "<green>{player}にルーンの書を渡しました"
+  gave_rune: "<green>{player}に空のルーンを渡しました"
+  gave_reagents: "<green>{player}に全触媒を渡しました"
+  gave_scroll: "<green>{player}に{spell}のスクロールを渡しました"
+  gave_all_scrolls: "<green>{player}に全魔法のスクロールを渡しました"
+  unknown_spell: "<red>不明な魔法: {spell}"
+  unknown_spell_list: "<gray>利用可能な魔法: {spells}"
+  unknown_item: "<red>不明なアイテム: {item}"
 
 # 言語メッセージ
 language:
   changed: "<green>言語を{language}に変更しました。"
   current: "<gray>現在の言語: {language}"
   available: "<gray>利用可能な言語: {languages}"
+  available_list: "<gray>利用可能: {languages}"
+  disabled: "<red>言語変更は無効になっています。"
   reset: "<green>言語設定をリセットしました。クライアントの言語設定が使用されます。"
   using_client: "<gray>現在の言語: クライアント言語を使用中 ({language})"
 
@@ -290,3 +337,76 @@ common:
   unknown: "不明"
   enabled: "有効"
   disabled: "無効"
+
+# スキルコマンド
+skills:
+  header: "<gold>═══ {title} ═══"
+  category_header: "<gold>═══ {category} ═══"
+  skill_entry: "<white>  {skill}: <color>{value}</color> <lock_color>{lock}</lock_color>"
+  total: "<aqua>合計: {current} / {max}"
+  usage_lock: "<red>使用法: /skills lock <スキル>"
+  usage_category: "<red>使用法: /skills category <カテゴリ>"
+  unknown_category: "<red>不明なカテゴリ: {category}"
+  unknown_skill: "<red>不明なスキル: {skill}"
+  skill_detail_header: "<gold>═══ {skill} ═══"
+  skill_detail_value: "<white>値: {value}"
+  skill_detail_category: "<gray>カテゴリ: {category}"
+  skill_detail_affects: "<aqua>影響: {stats}"
+  lock_changed: "<white>{skill}のロック: <lock_color>{lock} {mode}</lock_color>"
+
+# ステータスコマンド表示
+stats:
+  header_display: "<gold>═══ あなたのステータス ═══"
+  hp_display: "<color>❤ HP: {current} / {max}</color>"
+  mana_display: "<blue>🍖 マナ: {current} / {max}"
+  stat_total: "<yellow>ステータス合計: {current} / {max}"
+  str_display: "<red>STR: {value} {lock}  <gray>(+{hp_bonus} HP, +{mining_bonus}% 採掘, +{lumber_bonus}% 伐採)"
+  dex_display: "<green>DEX: {value} {lock}  <gray>(+{attack_bonus}% 攻撃速度, +{move_bonus}% 移動速度)"
+  int_display: "<blue>INT: {value} {lock}  <gray>(-{mana_reduction}% マナ消費, +{cast_bonus}% 詠唱成功率)"
+  total_skills_display: "<aqua>合計スキル: {current} / {max}"
+  lock_help: "<gray>/stats lock <stat> [up|down|locked]"
+  lock_description: "<dark_gray>  ▲ UP: 上昇可能  ▼ DOWN: 下降可能  🔒 LOCKED: 変更不可"
+  usage_lock: "<red>使用法: /stats lock <str|dex|int> [up|down|locked]"
+  invalid_stat: "<red>無効なステータス: {stat}"
+  invalid_mode: "<red>無効なモード: {mode}。up, down, locked のいずれかを指定"
+
+# キャストコマンド
+cast:
+  usage: "<gray>使用法: /cast <魔法名>"
+  example: "<gray>例: /cast fireball"
+  power_words_hint: "<gray>パワーワードで詠唱: /rune <パワーワード>"
+  unknown_spell: "<red>不明な魔法: {spell}"
+  spell_list_hint: "<gray>/spellbook list で利用可能な魔法を確認できます。"
+
+# ルーンコマンド
+rune:
+  usage: "<gray>使用法: /rune <パワーワード>"
+  example1: "<gray>例: /rune In Mani (Heal)"
+  example2: "<gray>例: /rune Vas Flam (Fireball)"
+  unknown_power_words: "<red>不明なパワーワード: {words}"
+  power_words_hint: "<gray>/spellbook list で魔法とパワーワードを確認できます。"
+
+# スクライブコマンド
+scribe:
+  help_header: "<gold>=== スクライブコマンド ==="
+  help_list: "<white>/scribe list - 書写可能な魔法を表示"
+  help_spell: "<white>/scribe <魔法> - 魔法のスクロールを作成"
+  help_requirements: "<gray>必要素材: 紙 + 触媒 + スペルブックに習得済みの魔法"
+  spellbook_empty: "<gray>スペルブックが空です。"
+  available_header: "<gold>=== 書写可能な魔法 ==="
+  unknown_spell: "<red>不明な魔法: {spell}"
+  unknown_spell_hint: "<gray>/scribe list で利用可能な魔法を確認できます。"
+
+# アームズコマンド
+arms:
+  hold_item: "<red>アームズロアで鑑定するアイテムを持ってください。"
+  not_weapon_armor: "<red>このアイテムは武器でも防具でもありません。"
+
+# フード/マナ
+food:
+  overflow_heal: "<green>マナ満タン！食事で {amount} HP回復しました。"
+
+# UI要素
+ui:
+  separator: "<gray>━━━━━━━━━━━━━━━━"
+  separator_thin: "<gray>─── {text} ───"

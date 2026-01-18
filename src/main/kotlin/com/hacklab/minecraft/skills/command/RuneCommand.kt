@@ -18,14 +18,14 @@ class RuneCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender !is Player) {
-            sender.sendMessage("This command is for players only.")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_ONLY)
             return true
         }
 
         if (args.isEmpty()) {
-            sender.sendMessage("Usage: /rune <Power Words>")
-            sender.sendMessage("Example: /rune In Mani (Heal)")
-            sender.sendMessage("Example: /rune Vas Flam (Fireball)")
+            plugin.messageSender.send(sender, MessageKey.RUNE_USAGE)
+            plugin.messageSender.send(sender, MessageKey.RUNE_EXAMPLE1)
+            plugin.messageSender.send(sender, MessageKey.RUNE_EXAMPLE2)
             return true
         }
 
@@ -50,8 +50,8 @@ class RuneCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
         val spell = SpellType.fromPowerWords(powerWords)
 
         if (spell == null) {
-            sender.sendMessage("Unknown Power Words: $powerWords")
-            sender.sendMessage("Use /spellbook list to see available spells and their Power Words.")
+            plugin.messageSender.send(sender, MessageKey.RUNE_UNKNOWN_POWER_WORDS, "words" to powerWords)
+            plugin.messageSender.send(sender, MessageKey.RUNE_POWER_WORDS_HINT)
             return true
         }
 

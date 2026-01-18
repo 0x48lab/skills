@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.10] - 2026-01-18
+
+### Added
+- **Food Bar = Mana System**
+  - Food bar now represents Mana instead of hunger
+  - Vanilla exhaustion (running, jumping, mining, etc.) no longer depletes the food bar
+  - Eating restores Mana first, overflow is converted to HP (1 mana overflow = 5 internal HP)
+  - Food level is capped at 19 (not 20) so players can always eat even when mana is full
+  - Natural HP regeneration (SATIATED) is disabled - HP is restored by:
+    - Eating (mana overflow → HP)
+    - Magic spells (Heal, Greater Heal)
+    - Potions with Regeneration effect (golden apples, regeneration potions)
+
+### Changed
+- **Regeneration Handling**
+  - `EntityRegainHealthEvent` with `REGEN` or `MAGIC_REGEN` reason now checks for Regeneration potion effect
+  - Only heals internal HP if player actually has Regeneration effect (from golden apple, potion, beacon)
+  - Prevents vanilla SATIATED regeneration from healing (since food bar = mana, not hunger)
+
+### Technical
+- Added `ExhaustionListener` to cancel all `EntityExhaustionEvent` for players
+- Modified `FoodListener` to handle mana restoration with HP overflow
+- Modified `CombatListener.onEntityRegainHealth` to properly handle SATIATED/REGEN/MAGIC_REGEN
+- Modified `StatCalculator.syncManaToVanilla` to cap food level at 19
+
 ## [0.4.9] - 2026-01-18
 
 ### Changed

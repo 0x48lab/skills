@@ -12,7 +12,7 @@ import org.bukkit.entity.Player
 class TameCommand(private val plugin: Skills) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender !is Player) {
-            sender.sendMessage("This command is for players only.")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_ONLY)
             return true
         }
 
@@ -33,7 +33,7 @@ class TameCommand(private val plugin: Skills) : CommandExecutor {
 class LoreCommand(private val plugin: Skills) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender !is Player) {
-            sender.sendMessage("This command is for players only.")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_ONLY)
             return true
         }
 
@@ -54,7 +54,7 @@ class LoreCommand(private val plugin: Skills) : CommandExecutor {
 class EvaluateCommand(private val plugin: Skills) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender !is Player) {
-            sender.sendMessage("This command is for players only.")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_ONLY)
             return true
         }
 

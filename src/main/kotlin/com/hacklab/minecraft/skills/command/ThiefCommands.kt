@@ -12,7 +12,7 @@ import org.bukkit.entity.Player
 class HideCommand(private val plugin: Skills) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender !is Player) {
-            sender.sendMessage("This command is for players only.")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_ONLY)
             return true
         }
 
@@ -38,7 +38,7 @@ class HideCommand(private val plugin: Skills) : CommandExecutor {
 class DetectCommand(private val plugin: Skills) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender !is Player) {
-            sender.sendMessage("This command is for players only.")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_ONLY)
             return true
         }
 
@@ -58,7 +58,7 @@ class DetectCommand(private val plugin: Skills) : CommandExecutor {
 class SnoopCommand(private val plugin: Skills) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender !is Player) {
-            sender.sendMessage("This command is for players only.")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_ONLY)
             return true
         }
 
@@ -79,7 +79,7 @@ class SnoopCommand(private val plugin: Skills) : CommandExecutor {
 class PoisonCommand(private val plugin: Skills) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender !is Player) {
-            sender.sendMessage("This command is for players only.")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_ONLY)
             return true
         }
 

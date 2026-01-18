@@ -230,12 +230,59 @@ admin:
   skill_set: "<green>Set {player}'s {skill} to {value}."
   stats_reset: "<green>Reset stats for {player}."
   data_reloaded: "<green>Player data reloaded."
+  # Help messages
+  help:
+    header: "<gold>═══ Skills Admin Commands ═══"
+    check: "<white>/skilladmin check <player>"
+    set: "<white>/skilladmin set <player> <skill> <value>"
+    setstat: "<white>/skilladmin setstat <player> <STR|DEX|INT> <value>"
+    reset: "<white>/skilladmin reset <player>"
+    reload: "<white>/skilladmin reload"
+    give_spellbook: "<white>/skilladmin give <player> spellbook"
+    give_runebook: "<white>/skilladmin give <player> runebook"
+    give_rune: "<white>/skilladmin give <player> rune"
+    give_reagents: "<white>/skilladmin give <player> reagents"
+    give_scroll: "<white>/skilladmin give <player> scroll <spell|all>"
+  # Usage messages
+  usage:
+    check: "<red>Usage: /skilladmin check <player>"
+    set: "<red>Usage: /skilladmin set <player> <skill> <value>"
+    set_note: "<gray>Note: For skills with spaces, use underscores (e.g., Heat_Resistance)"
+    setstat: "<red>Usage: /skilladmin setstat <player> <STR|DEX|INT> <value>"
+    reset: "<red>Usage: /skilladmin reset <player>"
+    give: "<red>Usage: /skilladmin give <player> <item>"
+    scroll: "<red>Usage: /skilladmin give <player> scroll <spell|all>"
+  # Result messages
+  player_not_found_or_never_joined: "<red>Player not found or has never joined: {player}"
+  player_skills_header: "<gold>═══ {player}'s Skills ═══"
+  player_title: "<yellow>Title: {title}"
+  player_stats: "<aqua>STR: {str}  DEX: {dex}  INT: {int}"
+  player_total: "<aqua>Total: {current} / {max}"
+  unknown_skill: "<red>Unknown skill: {skill}"
+  unknown_skill_list: "<gray>Available skills: {skills}"
+  invalid_value: "<red>Invalid value: {value} (must be {min}-{max})"
+  unknown_stat: "<red>Unknown stat: {stat} (must be STR, DEX, or INT)"
+  skill_set_success: "<green>Set {player}'s {skill} to {value}"
+  stat_set_success: "<green>Set {player}'s {stat} to {value}"
+  skills_reset: "<green>Reset all skills for {player}"
+  config_reloaded: "<green>Configuration reloaded"
+  gave_spellbook: "<green>Gave full spellbook to {player}"
+  gave_runebook: "<green>Gave runebook to {player}"
+  gave_rune: "<green>Gave blank rune to {player}"
+  gave_reagents: "<green>Gave all reagents to {player}"
+  gave_scroll: "<green>Gave Scroll of {spell} to {player}"
+  gave_all_scrolls: "<green>Gave all spell scrolls to {player}"
+  unknown_spell: "<red>Unknown spell: {spell}"
+  unknown_spell_list: "<gray>Available spells: {spells}"
+  unknown_item: "<red>Unknown item: {item}"
 
 # Language messages
 language:
   changed: "<green>Language changed to {language}."
   current: "<gray>Current language: {language}"
   available: "<gray>Available languages: {languages}"
+  available_list: "<gray>Available: {languages}"
+  disabled: "<red>Language change is disabled."
   reset: "<green>Language setting reset. Client language will be used."
   using_client: "<gray>Current language: Using client language ({language})"
 
@@ -290,3 +337,76 @@ common:
   unknown: "Unknown"
   enabled: "Enabled"
   disabled: "Disabled"
+
+# Skills command
+skills:
+  header: "<gold>═══ {title} ═══"
+  category_header: "<gold>═══ {category} ═══"
+  skill_entry: "<white>  {skill}: <color>{value}</color> <lock_color>{lock}</lock_color>"
+  total: "<aqua>Total: {current} / {max}"
+  usage_lock: "<red>Usage: /skills lock <skill>"
+  usage_category: "<red>Usage: /skills category <category>"
+  unknown_category: "<red>Unknown category: {category}"
+  unknown_skill: "<red>Unknown skill: {skill}"
+  skill_detail_header: "<gold>═══ {skill} ═══"
+  skill_detail_value: "<white>Value: {value}"
+  skill_detail_category: "<gray>Category: {category}"
+  skill_detail_affects: "<aqua>Affects: {stats}"
+  lock_changed: "<white>{skill} lock: <lock_color>{lock} {mode}</lock_color>"
+
+# Stats command display
+stats:
+  header_display: "<gold>═══ Your Stats ═══"
+  hp_display: "<color>❤ HP: {current} / {max}</color>"
+  mana_display: "<blue>🍖 Mana: {current} / {max}"
+  stat_total: "<yellow>Stat Total: {current} / {max}"
+  str_display: "<red>STR: {value} {lock}  <gray>(+{hp_bonus} HP, +{mining_bonus}% mining, +{lumber_bonus}% lumber)"
+  dex_display: "<green>DEX: {value} {lock}  <gray>(+{attack_bonus}% attack, +{move_bonus}% move)"
+  int_display: "<blue>INT: {value} {lock}  <gray>(-{mana_reduction}% mana cost, +{cast_bonus}% cast)"
+  total_skills_display: "<aqua>Total Skills: {current} / {max}"
+  lock_help: "<gray>/stats lock <stat> [up|down|locked]"
+  lock_description: "<dark_gray>  ▲ UP: can increase  ▼ DOWN: can decrease  🔒 LOCKED: cannot change"
+  usage_lock: "<red>Usage: /stats lock <str|dex|int> [up|down|locked]"
+  invalid_stat: "<red>Invalid stat: {stat}"
+  invalid_mode: "<red>Invalid mode: {mode}. Use: up, down, or locked"
+
+# Cast command
+cast:
+  usage: "<gray>Usage: /cast <spell name>"
+  example: "<gray>Example: /cast fireball"
+  power_words_hint: "<gray>For Power Words, use: /rune <Power Words>"
+  unknown_spell: "<red>Unknown spell: {spell}"
+  spell_list_hint: "<gray>Use /spellbook list to see available spells."
+
+# Rune command
+rune:
+  usage: "<gray>Usage: /rune <Power Words>"
+  example1: "<gray>Example: /rune In Mani (Heal)"
+  example2: "<gray>Example: /rune Vas Flam (Fireball)"
+  unknown_power_words: "<red>Unknown Power Words: {words}"
+  power_words_hint: "<gray>Use /spellbook list to see available spells and their Power Words."
+
+# Scribe command
+scribe:
+  help_header: "<gold>=== Scribe Commands ==="
+  help_list: "<white>/scribe list - Show spells you can scribe"
+  help_spell: "<white>/scribe <spell> - Create a scroll of the spell"
+  help_requirements: "<gray>Requirements: Paper + Reagents + Spell in spellbook"
+  spellbook_empty: "<gray>Your spellbook is empty."
+  available_header: "<gold>=== Available Spells for Scribing ==="
+  unknown_spell: "<red>Unknown spell: {spell}"
+  unknown_spell_hint: "<gray>Use /scribe list to see available spells."
+
+# Arms command
+arms:
+  hold_item: "<red>Hold an item to evaluate it with Arms Lore."
+  not_weapon_armor: "<red>This item is not a weapon or armor."
+
+# Food/Mana
+food:
+  overflow_heal: "<green>Mana full! Restored {amount} HP from food."
+
+# UI elements
+ui:
+  separator: "<gray>━━━━━━━━━━━━━━━━"
+  separator_thin: "<gray>─── {text} ───"

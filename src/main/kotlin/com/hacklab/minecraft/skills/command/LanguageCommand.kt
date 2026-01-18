@@ -3,8 +3,6 @@ package com.hacklab.minecraft.skills.command
 import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.i18n.Language
 import com.hacklab.minecraft.skills.i18n.MessageKey
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
@@ -15,12 +13,12 @@ class LanguageCommand(private val plugin: Skills) : CommandExecutor, TabComplete
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender !is Player) {
-            sender.sendMessage("This command is for players only.")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_ONLY)
             return true
         }
 
         if (!plugin.localeManager.canPlayerChangeLanguage()) {
-            sender.sendMessage(Component.text("Language change is disabled.").color(NamedTextColor.RED))
+            plugin.messageSender.send(sender, MessageKey.LANGUAGE_DISABLED)
             return true
         }
 
@@ -39,8 +37,8 @@ class LanguageCommand(private val plugin: Skills) : CommandExecutor, TabComplete
             }
 
             // Show available languages
-            sender.sendMessage(Component.text("Available: ${Language.entries.joinToString { "${it.code} (${it.displayName})" }}")
-                .color(NamedTextColor.GRAY))
+            plugin.messageSender.send(sender, MessageKey.LANGUAGE_AVAILABLE_LIST,
+                "languages" to Language.entries.joinToString { "${it.code} (${it.displayName})" })
             return true
         }
 

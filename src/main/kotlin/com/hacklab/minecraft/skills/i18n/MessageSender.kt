@@ -23,6 +23,16 @@ class MessageSender(private val plugin: Skills) {
     }
 
     /**
+     * Send a chat message to a command sender (player or console)
+     * For players, uses their language setting. For console, uses English.
+     */
+    fun send(sender: org.bukkit.command.CommandSender, key: MessageKey, vararg placeholders: Pair<String, Any>) {
+        val lang = if (sender is Player) localeManager.getLanguage(sender) else Language.ENGLISH
+        val component = messageManager.getComponent(key, lang, *placeholders)
+        sender.sendMessage(component)
+    }
+
+    /**
      * Send a raw string message to a player
      */
     fun sendRaw(player: Player, message: String) {

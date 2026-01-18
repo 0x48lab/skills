@@ -13,7 +13,7 @@ class ScribeCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender !is Player) {
-            sender.sendMessage("This command is for players only.")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_ONLY)
             return true
         }
 
@@ -34,11 +34,11 @@ class ScribeCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
     }
 
     private fun showUsage(player: Player) {
-        player.sendMessage("=== Scribe Commands ===")
-        player.sendMessage("/scribe list - Show spells you can scribe")
-        player.sendMessage("/scribe <spell> - Create a scroll of the spell")
+        plugin.messageSender.send(player, MessageKey.SCRIBE_HELP_HEADER)
+        plugin.messageSender.send(player, MessageKey.SCRIBE_HELP_LIST)
+        plugin.messageSender.send(player, MessageKey.SCRIBE_HELP_SPELL)
         player.sendMessage("")
-        player.sendMessage("Requirements: Paper + Reagents + Spell in spellbook")
+        plugin.messageSender.send(player, MessageKey.SCRIBE_HELP_REQUIREMENTS)
     }
 
     private fun listAvailableSpells(player: Player) {
@@ -50,11 +50,11 @@ class ScribeCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
 
         val spells = plugin.spellbookManager.getSpells(spellbook)
         if (spells.isEmpty()) {
-            player.sendMessage("Your spellbook is empty.")
+            plugin.messageSender.send(player, MessageKey.SCRIBE_SPELLBOOK_EMPTY)
             return
         }
 
-        player.sendMessage("=== Available Spells for Scribing ===")
+        plugin.messageSender.send(player, MessageKey.SCRIBE_AVAILABLE_HEADER)
         spells.sortedBy { it.circle.number }.forEach { spell ->
             player.sendMessage("  ${spell.displayName} (${spell.circle.name.lowercase().replaceFirstChar { it.uppercase() }} Circle)")
         }
@@ -65,8 +65,8 @@ class ScribeCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
             ?: SpellType.entries.find { it.name.equals(spellName.replace(" ", "_"), ignoreCase = true) }
 
         if (spell == null) {
-            player.sendMessage("Unknown spell: $spellName")
-            player.sendMessage("Use /scribe list to see available spells.")
+            plugin.messageSender.send(player, MessageKey.SCRIBE_UNKNOWN_SPELL, "spell" to spellName)
+            plugin.messageSender.send(player, MessageKey.SCRIBE_UNKNOWN_SPELL_HINT)
             return
         }
 

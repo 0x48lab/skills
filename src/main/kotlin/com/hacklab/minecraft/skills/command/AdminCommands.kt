@@ -19,7 +19,7 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (!sender.hasPermission("skills.admin")) {
-            plugin.messageSender.send(sender as? Player ?: return true, MessageKey.SYSTEM_NO_PERMISSION)
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_NO_PERMISSION)
             return true
         }
 
@@ -42,22 +42,22 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
     }
 
     private fun showHelp(sender: CommandSender) {
-        sender.sendMessage(Component.text("═══ Skills Admin Commands ═══").color(NamedTextColor.GOLD))
-        sender.sendMessage(Component.text("/skilladmin check <player>").color(NamedTextColor.WHITE))
-        sender.sendMessage(Component.text("/skilladmin set <player> <skill> <value>").color(NamedTextColor.WHITE))
-        sender.sendMessage(Component.text("/skilladmin setstat <player> <STR|DEX|INT> <value>").color(NamedTextColor.WHITE))
-        sender.sendMessage(Component.text("/skilladmin reset <player>").color(NamedTextColor.WHITE))
-        sender.sendMessage(Component.text("/skilladmin reload").color(NamedTextColor.WHITE))
-        sender.sendMessage(Component.text("/skilladmin give <player> spellbook").color(NamedTextColor.WHITE))
-        sender.sendMessage(Component.text("/skilladmin give <player> runebook").color(NamedTextColor.WHITE))
-        sender.sendMessage(Component.text("/skilladmin give <player> rune").color(NamedTextColor.WHITE))
-        sender.sendMessage(Component.text("/skilladmin give <player> reagents").color(NamedTextColor.WHITE))
-        sender.sendMessage(Component.text("/skilladmin give <player> scroll <spell|all>").color(NamedTextColor.WHITE))
+        plugin.messageSender.send(sender, MessageKey.ADMIN_HELP_HEADER)
+        plugin.messageSender.send(sender, MessageKey.ADMIN_HELP_CHECK)
+        plugin.messageSender.send(sender, MessageKey.ADMIN_HELP_SET)
+        plugin.messageSender.send(sender, MessageKey.ADMIN_HELP_SETSTAT)
+        plugin.messageSender.send(sender, MessageKey.ADMIN_HELP_RESET)
+        plugin.messageSender.send(sender, MessageKey.ADMIN_HELP_RELOAD)
+        plugin.messageSender.send(sender, MessageKey.ADMIN_HELP_GIVE_SPELLBOOK)
+        plugin.messageSender.send(sender, MessageKey.ADMIN_HELP_GIVE_RUNEBOOK)
+        plugin.messageSender.send(sender, MessageKey.ADMIN_HELP_GIVE_RUNE)
+        plugin.messageSender.send(sender, MessageKey.ADMIN_HELP_GIVE_REAGENTS)
+        plugin.messageSender.send(sender, MessageKey.ADMIN_HELP_GIVE_SCROLL)
     }
 
     private fun handleCheck(sender: CommandSender, args: List<String>) {
         if (args.isEmpty()) {
-            sender.sendMessage("Usage: /skilladmin check <player>")
+            plugin.messageSender.send(sender, MessageKey.ADMIN_USAGE_CHECK)
             return
         }
 
@@ -72,7 +72,7 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
         }
 
         if (data == null) {
-            sender.sendMessage("Player not found or has never joined: ${args[0]}")
+            plugin.messageSender.send(sender, MessageKey.ADMIN_PLAYER_NOT_FOUND_OR_NEVER_JOINED, "player" to args[0])
             return
         }
 
@@ -80,13 +80,20 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
 
         // Header with player name and title
         val title = plugin.skillTitleManager.getTitleFromData(data)
-        sender.sendMessage(Component.text("═══ ${playerName}'s Skills ═══").color(NamedTextColor.GOLD))
-        sender.sendMessage(Component.text("Title: $title").color(NamedTextColor.YELLOW))
+        plugin.messageSender.send(sender, MessageKey.ADMIN_PLAYER_SKILLS_HEADER, "player" to playerName)
+        plugin.messageSender.send(sender, MessageKey.ADMIN_PLAYER_TITLE, "title" to title)
         sender.sendMessage(Component.text(""))
 
         // Stats
-        sender.sendMessage(Component.text("STR: ${data.str}  DEX: ${data.dex}  INT: ${data.int}").color(NamedTextColor.AQUA))
-        sender.sendMessage(Component.text("Total: ${String.format("%.1f", data.getTotalSkillPoints())} / ${SkillType.TOTAL_SKILL_CAP}").color(NamedTextColor.AQUA))
+        plugin.messageSender.send(sender, MessageKey.ADMIN_PLAYER_STATS,
+            "str" to data.str.toString(),
+            "dex" to data.dex.toString(),
+            "int" to data.int.toString()
+        )
+        plugin.messageSender.send(sender, MessageKey.ADMIN_PLAYER_TOTAL,
+            "current" to String.format("%.1f", data.getTotalSkillPoints()),
+            "max" to SkillType.TOTAL_SKILL_CAP.toString()
+        )
         sender.sendMessage(Component.text(""))
 
         // Skills by category (same display as /skills command)
@@ -124,14 +131,14 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
 
     private fun handleSet(sender: CommandSender, args: List<String>) {
         if (args.size < 3) {
-            sender.sendMessage("Usage: /skilladmin set <player> <skill> <value>")
-            sender.sendMessage("Note: For skills with spaces, use underscores (e.g., Heat_Resistance)")
+            plugin.messageSender.send(sender, MessageKey.ADMIN_USAGE_SET)
+            plugin.messageSender.send(sender, MessageKey.ADMIN_USAGE_SET_NOTE)
             return
         }
 
         val target = Bukkit.getPlayer(args[0])
         if (target == null) {
-            sender.sendMessage("Player not found: ${args[0]}")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_NOT_FOUND, "player" to args[0])
             return
         }
 
@@ -139,7 +146,11 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
         val valueStr = args.last()
         val value = valueStr.toDoubleOrNull()
         if (value == null || value < 0 || value > 100) {
-            sender.sendMessage("Invalid value: $valueStr (must be 0-100)")
+            plugin.messageSender.send(sender, MessageKey.ADMIN_INVALID_VALUE,
+                "value" to valueStr,
+                "min" to "0",
+                "max" to "100"
+            )
             return
         }
 
@@ -150,24 +161,30 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
             ?: SkillType.entries.find { it.displayName.equals(skillName, ignoreCase = true) }
 
         if (skill == null) {
-            sender.sendMessage("Unknown skill: $skillName")
-            sender.sendMessage("Available skills: ${SkillType.entries.joinToString(", ") { it.displayName }}")
+            plugin.messageSender.send(sender, MessageKey.ADMIN_UNKNOWN_SKILL, "skill" to skillName)
+            plugin.messageSender.send(sender, MessageKey.ADMIN_UNKNOWN_SKILL_LIST,
+                "skills" to SkillType.entries.joinToString(", ") { it.displayName }
+            )
             return
         }
 
         plugin.skillManager.setSkill(target, skill, value)
-        sender.sendMessage("Set ${target.name}'s ${skill.displayName} to $value")
+        plugin.messageSender.send(sender, MessageKey.ADMIN_SKILL_SET_SUCCESS,
+            "player" to target.name,
+            "skill" to skill.displayName,
+            "value" to value.toString()
+        )
     }
 
     private fun handleSetStat(sender: CommandSender, args: List<String>) {
         if (args.size < 3) {
-            sender.sendMessage("Usage: /skilladmin setstat <player> <STR|DEX|INT> <value>")
+            plugin.messageSender.send(sender, MessageKey.ADMIN_USAGE_SETSTAT)
             return
         }
 
         val target = Bukkit.getPlayer(args[0])
         if (target == null) {
-            sender.sendMessage("Player not found: ${args[0]}")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_NOT_FOUND, "player" to args[0])
             return
         }
 
@@ -177,14 +194,18 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
             "DEX" -> StatType.DEX
             "INT" -> StatType.INT
             else -> {
-                sender.sendMessage("Unknown stat: ${args[1]} (must be STR, DEX, or INT)")
+                plugin.messageSender.send(sender, MessageKey.ADMIN_UNKNOWN_STAT, "stat" to args[1])
                 return
             }
         }
 
         val value = args[2].toIntOrNull()
         if (value == null || value < StatType.MIN_STAT_VALUE || value > StatType.MAX_STAT_VALUE) {
-            sender.sendMessage("Invalid value: ${args[2]} (must be ${StatType.MIN_STAT_VALUE}-${StatType.MAX_STAT_VALUE})")
+            plugin.messageSender.send(sender, MessageKey.ADMIN_INVALID_VALUE,
+                "value" to args[2],
+                "min" to StatType.MIN_STAT_VALUE.toString(),
+                "max" to StatType.MAX_STAT_VALUE.toString()
+            )
             return
         }
 
@@ -196,18 +217,22 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
         val armorDexPenalty = plugin.armorManager.getTotalDexPenalty(target)
         com.hacklab.minecraft.skills.skill.StatCalculator.applyAttributeModifiers(target, data, armorDexPenalty)
 
-        sender.sendMessage("Set ${target.name}'s $statName to $value")
+        plugin.messageSender.send(sender, MessageKey.ADMIN_STAT_SET_SUCCESS,
+            "player" to target.name,
+            "stat" to statName,
+            "value" to value.toString()
+        )
     }
 
     private fun handleReset(sender: CommandSender, args: List<String>) {
         if (args.isEmpty()) {
-            sender.sendMessage("Usage: /skilladmin reset <player>")
+            plugin.messageSender.send(sender, MessageKey.ADMIN_USAGE_RESET)
             return
         }
 
         val target = Bukkit.getPlayer(args[0])
         if (target == null) {
-            sender.sendMessage("Player not found: ${args[0]}")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_NOT_FOUND, "player" to args[0])
             return
         }
 
@@ -217,24 +242,24 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
         }
         data.updateMaxStats()
 
-        sender.sendMessage("Reset all skills for ${target.name}")
+        plugin.messageSender.send(sender, MessageKey.ADMIN_SKILLS_RESET, "player" to target.name)
     }
 
     private fun handleReload(sender: CommandSender) {
         plugin.skillsConfig.reload()
         plugin.messageManager.reload()
-        sender.sendMessage("Configuration reloaded")
+        plugin.messageSender.send(sender, MessageKey.ADMIN_CONFIG_RELOADED)
     }
 
     private fun handleGive(sender: CommandSender, args: List<String>) {
         if (args.size < 2) {
-            sender.sendMessage("Usage: /skilladmin give <player> <item>")
+            plugin.messageSender.send(sender, MessageKey.ADMIN_USAGE_GIVE)
             return
         }
 
         val target = Bukkit.getPlayer(args[0])
         if (target == null) {
-            sender.sendMessage("Player not found: ${args[0]}")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_NOT_FOUND, "player" to args[0])
             return
         }
 
@@ -242,18 +267,18 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
             "spellbook" -> {
                 val spellbook = plugin.spellbookManager.createFullSpellbook()
                 target.inventory.addItem(spellbook)
-                sender.sendMessage("Gave full spellbook to ${target.name}")
+                plugin.messageSender.send(sender, MessageKey.ADMIN_GAVE_SPELLBOOK, "player" to target.name)
             }
             "runebook" -> {
                 val useJapanese = plugin.localeManager.getLanguage(target) == com.hacklab.minecraft.skills.i18n.Language.JAPANESE
                 val runebook = plugin.runebookManager.createRunebook(useJapanese)
                 target.inventory.addItem(runebook)
-                sender.sendMessage("Gave runebook to ${target.name}")
+                plugin.messageSender.send(sender, MessageKey.ADMIN_GAVE_RUNEBOOK, "player" to target.name)
             }
             "rune" -> {
                 val rune = plugin.runeManager.createRune()
                 target.inventory.addItem(rune)
-                sender.sendMessage("Gave blank rune to ${target.name}")
+                plugin.messageSender.send(sender, MessageKey.ADMIN_GAVE_RUNE, "player" to target.name)
             }
             "reagents" -> {
                 // Collect all unique materials used by spells
@@ -263,11 +288,11 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
                 allMaterials.forEach { material ->
                     target.inventory.addItem(org.bukkit.inventory.ItemStack(material, 64))
                 }
-                sender.sendMessage("Gave all reagents to ${target.name}")
+                plugin.messageSender.send(sender, MessageKey.ADMIN_GAVE_REAGENTS, "player" to target.name)
             }
             "scroll" -> {
                 if (args.size < 3) {
-                    sender.sendMessage("Usage: /skilladmin give <player> scroll <spell|all>")
+                    plugin.messageSender.send(sender, MessageKey.ADMIN_USAGE_SCROLL)
                     return
                 }
                 val spellArg = args.drop(2).joinToString(" ")
@@ -277,7 +302,7 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
                         val scroll = plugin.scrollManager.createScroll(spell)
                         target.inventory.addItem(scroll)
                     }
-                    sender.sendMessage("Gave all spell scrolls to ${target.name}")
+                    plugin.messageSender.send(sender, MessageKey.ADMIN_GAVE_ALL_SCROLLS, "player" to target.name)
                 } else {
                     // Give specific scroll
                     val spell = com.hacklab.minecraft.skills.magic.SpellType.fromDisplayName(spellArg)
@@ -285,16 +310,21 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
                             it.name.equals(spellArg.replace(" ", "_"), ignoreCase = true)
                         }
                     if (spell == null) {
-                        sender.sendMessage("Unknown spell: $spellArg")
-                        sender.sendMessage("Available spells: ${com.hacklab.minecraft.skills.magic.SpellType.entries.joinToString(", ") { it.displayName }}")
+                        plugin.messageSender.send(sender, MessageKey.ADMIN_UNKNOWN_SPELL, "spell" to spellArg)
+                        plugin.messageSender.send(sender, MessageKey.ADMIN_UNKNOWN_SPELL_LIST,
+                            "spells" to com.hacklab.minecraft.skills.magic.SpellType.entries.joinToString(", ") { it.displayName }
+                        )
                         return
                     }
                     val scroll = plugin.scrollManager.createScroll(spell)
                     target.inventory.addItem(scroll)
-                    sender.sendMessage("Gave Scroll of ${spell.displayName} to ${target.name}")
+                    plugin.messageSender.send(sender, MessageKey.ADMIN_GAVE_SCROLL,
+                        "spell" to spell.displayName,
+                        "player" to target.name
+                    )
                 }
             }
-            else -> sender.sendMessage("Unknown item: ${args[1]}")
+            else -> plugin.messageSender.send(sender, MessageKey.ADMIN_UNKNOWN_ITEM, "item" to args[1])
         }
     }
 

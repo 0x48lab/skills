@@ -127,10 +127,13 @@ object StatCalculator {
 
     /**
      * Sync internal Mana to vanilla food level
+     * Note: Food level is capped at 19 (not 20) so player can always eat.
+     * This allows eating to restore HP via overflow system even when mana is full.
      */
     fun syncManaToVanilla(player: Player, data: PlayerData) {
         val manaPercent = data.getManaPercentage()
-        player.foodLevel = (20 * manaPercent).toInt().coerceIn(0, 20)
+        // Cap at 19 to allow eating even when mana is full
+        player.foodLevel = (20 * manaPercent).toInt().coerceIn(0, 19)
         player.saturation = (5f * manaPercent.toFloat()).coerceIn(0f, 5f)
     }
 

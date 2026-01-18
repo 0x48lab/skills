@@ -14,14 +14,14 @@ class CastCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender !is Player) {
-            sender.sendMessage("This command is for players only.")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_ONLY)
             return true
         }
 
         if (args.isEmpty()) {
-            sender.sendMessage("Usage: /cast <spell name>")
-            sender.sendMessage("Example: /cast fireball")
-            sender.sendMessage("For Power Words, use: /rune <Power Words>")
+            plugin.messageSender.send(sender, MessageKey.CAST_USAGE)
+            plugin.messageSender.send(sender, MessageKey.CAST_EXAMPLE)
+            plugin.messageSender.send(sender, MessageKey.CAST_POWER_WORDS_HINT)
             return true
         }
 
@@ -55,7 +55,7 @@ class CastCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
             if (spell != null && spell.targetType == com.hacklab.minecraft.skills.magic.SpellTargetType.PLAYER_OR_SELF) {
                 targetPlayer = plugin.server.getPlayer(playerArg)
                 if (targetPlayer == null) {
-                    sender.sendMessage("Player not found: $playerArg")
+                    plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_NOT_FOUND, "player" to playerArg)
                     return true
                 }
             } else if (spell != null) {
@@ -66,9 +66,9 @@ class CastCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
         }
 
         if (spell == null) {
-            sender.sendMessage("Unknown spell: $spellName")
-            sender.sendMessage("Use /spellbook list to see available spells.")
-            sender.sendMessage("For Power Words, use: /rune <Power Words>")
+            plugin.messageSender.send(sender, MessageKey.CAST_UNKNOWN_SPELL, "spell" to spellName)
+            plugin.messageSender.send(sender, MessageKey.CAST_SPELL_LIST_HINT)
+            plugin.messageSender.send(sender, MessageKey.CAST_POWER_WORDS_HINT)
             return true
         }
 

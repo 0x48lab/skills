@@ -221,6 +221,8 @@ enum class MessageKey(val path: String) {
     LANGUAGE_CHANGED("language.changed"),
     LANGUAGE_CURRENT("language.current"),
     LANGUAGE_AVAILABLE("language.available"),
+    LANGUAGE_AVAILABLE_LIST("language.available_list"),
+    LANGUAGE_DISABLED("language.disabled"),
     LANGUAGE_RESET("language.reset"),
     LANGUAGE_USING_CLIENT("language.using_client"),
 
@@ -267,7 +269,116 @@ enum class MessageKey(val path: String) {
     COMMON_NONE("common.none"),
     COMMON_UNKNOWN("common.unknown"),
     COMMON_ENABLED("common.enabled"),
-    COMMON_DISABLED("common.disabled");
+    COMMON_DISABLED("common.disabled"),
+
+    // Admin help
+    ADMIN_HELP_HEADER("admin.help.header"),
+    ADMIN_HELP_CHECK("admin.help.check"),
+    ADMIN_HELP_SET("admin.help.set"),
+    ADMIN_HELP_SETSTAT("admin.help.setstat"),
+    ADMIN_HELP_RESET("admin.help.reset"),
+    ADMIN_HELP_RELOAD("admin.help.reload"),
+    ADMIN_HELP_GIVE_SPELLBOOK("admin.help.give_spellbook"),
+    ADMIN_HELP_GIVE_RUNEBOOK("admin.help.give_runebook"),
+    ADMIN_HELP_GIVE_RUNE("admin.help.give_rune"),
+    ADMIN_HELP_GIVE_REAGENTS("admin.help.give_reagents"),
+    ADMIN_HELP_GIVE_SCROLL("admin.help.give_scroll"),
+
+    // Admin usage
+    ADMIN_USAGE_CHECK("admin.usage.check"),
+    ADMIN_USAGE_SET("admin.usage.set"),
+    ADMIN_USAGE_SET_NOTE("admin.usage.set_note"),
+    ADMIN_USAGE_SETSTAT("admin.usage.setstat"),
+    ADMIN_USAGE_RESET("admin.usage.reset"),
+    ADMIN_USAGE_GIVE("admin.usage.give"),
+    ADMIN_USAGE_SCROLL("admin.usage.scroll"),
+
+    // Admin messages
+    ADMIN_PLAYER_NOT_FOUND_OR_NEVER_JOINED("admin.player_not_found_or_never_joined"),
+    ADMIN_PLAYER_SKILLS_HEADER("admin.player_skills_header"),
+    ADMIN_PLAYER_TITLE("admin.player_title"),
+    ADMIN_PLAYER_STATS("admin.player_stats"),
+    ADMIN_PLAYER_TOTAL("admin.player_total"),
+    ADMIN_UNKNOWN_SKILL("admin.unknown_skill"),
+    ADMIN_UNKNOWN_SKILL_LIST("admin.unknown_skill_list"),
+    ADMIN_INVALID_VALUE("admin.invalid_value"),
+    ADMIN_UNKNOWN_STAT("admin.unknown_stat"),
+    ADMIN_SKILL_SET_SUCCESS("admin.skill_set_success"),
+    ADMIN_STAT_SET_SUCCESS("admin.stat_set_success"),
+    ADMIN_SKILLS_RESET("admin.skills_reset"),
+    ADMIN_CONFIG_RELOADED("admin.config_reloaded"),
+    ADMIN_GAVE_SPELLBOOK("admin.gave_spellbook"),
+    ADMIN_GAVE_RUNEBOOK("admin.gave_runebook"),
+    ADMIN_GAVE_RUNE("admin.gave_rune"),
+    ADMIN_GAVE_REAGENTS("admin.gave_reagents"),
+    ADMIN_GAVE_SCROLL("admin.gave_scroll"),
+    ADMIN_GAVE_ALL_SCROLLS("admin.gave_all_scrolls"),
+    ADMIN_UNKNOWN_SPELL("admin.unknown_spell"),
+    ADMIN_UNKNOWN_SPELL_LIST("admin.unknown_spell_list"),
+    ADMIN_UNKNOWN_ITEM("admin.unknown_item"),
+
+    // Skills command
+    SKILLS_HEADER("skills.header"),
+    SKILLS_CATEGORY_HEADER("skills.category_header"),
+    SKILLS_SKILL_ENTRY("skills.skill_entry"),
+    SKILLS_TOTAL("skills.total"),
+    SKILLS_USAGE_LOCK("skills.usage_lock"),
+    SKILLS_USAGE_CATEGORY("skills.usage_category"),
+    SKILLS_UNKNOWN_CATEGORY("skills.unknown_category"),
+    SKILLS_UNKNOWN_SKILL("skills.unknown_skill"),
+    SKILLS_SKILL_DETAIL_HEADER("skills.skill_detail_header"),
+    SKILLS_SKILL_DETAIL_VALUE("skills.skill_detail_value"),
+    SKILLS_SKILL_DETAIL_CATEGORY("skills.skill_detail_category"),
+    SKILLS_SKILL_DETAIL_AFFECTS("skills.skill_detail_affects"),
+    SKILLS_LOCK_CHANGED("skills.lock_changed"),
+
+    // Stats command
+    STATS_HEADER_DISPLAY("stats.header_display"),
+    STATS_HP_DISPLAY("stats.hp_display"),
+    STATS_MANA_DISPLAY("stats.mana_display"),
+    STATS_STAT_TOTAL("stats.stat_total"),
+    STATS_STR_DISPLAY("stats.str_display"),
+    STATS_DEX_DISPLAY("stats.dex_display"),
+    STATS_INT_DISPLAY("stats.int_display"),
+    STATS_TOTAL_SKILLS_DISPLAY("stats.total_skills_display"),
+    STATS_LOCK_HELP("stats.lock_help"),
+    STATS_LOCK_DESCRIPTION("stats.lock_description"),
+    STATS_USAGE_LOCK("stats.usage_lock"),
+    STATS_INVALID_STAT("stats.invalid_stat"),
+    STATS_INVALID_MODE("stats.invalid_mode"),
+
+    // Cast/Rune command
+    CAST_USAGE("cast.usage"),
+    CAST_EXAMPLE("cast.example"),
+    CAST_POWER_WORDS_HINT("cast.power_words_hint"),
+    CAST_UNKNOWN_SPELL("cast.unknown_spell"),
+    CAST_SPELL_LIST_HINT("cast.spell_list_hint"),
+    RUNE_USAGE("rune.usage"),
+    RUNE_EXAMPLE1("rune.example1"),
+    RUNE_EXAMPLE2("rune.example2"),
+    RUNE_UNKNOWN_POWER_WORDS("rune.unknown_power_words"),
+    RUNE_POWER_WORDS_HINT("rune.power_words_hint"),
+
+    // Scribe command
+    SCRIBE_HELP_HEADER("scribe.help_header"),
+    SCRIBE_HELP_LIST("scribe.help_list"),
+    SCRIBE_HELP_SPELL("scribe.help_spell"),
+    SCRIBE_HELP_REQUIREMENTS("scribe.help_requirements"),
+    SCRIBE_SPELLBOOK_EMPTY("scribe.spellbook_empty"),
+    SCRIBE_AVAILABLE_HEADER("scribe.available_header"),
+    SCRIBE_UNKNOWN_SPELL("scribe.unknown_spell"),
+    SCRIBE_UNKNOWN_SPELL_HINT("scribe.unknown_spell_hint"),
+
+    // Arms command
+    ARMS_HOLD_ITEM("arms.hold_item"),
+    ARMS_NOT_WEAPON_ARMOR("arms.not_weapon_armor"),
+
+    // Food/Mana
+    FOOD_OVERFLOW_HEAL("food.overflow_heal"),
+
+    // UI separators
+    UI_SEPARATOR("ui.separator"),
+    UI_SEPARATOR_THIN("ui.separator_thin");
 
     companion object {
         fun fromPath(path: String): MessageKey? =

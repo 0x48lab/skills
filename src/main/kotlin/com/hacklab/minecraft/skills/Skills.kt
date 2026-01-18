@@ -413,7 +413,10 @@ class Skills : JavaPlugin() {
         // Mending integration with Blacksmithy
         pm.registerEvents(MendingListener(this), this)
 
-        // Food consumption (Cooking skill bonus)
+        // Exhaustion disabled (food bar = mana, not hunger)
+        pm.registerEvents(ExhaustionListener(this), this)
+
+        // Food consumption (Mana/HP restoration with overflow)
         pm.registerEvents(FoodListener(this), this)
 
         // Stack size bonus based on production skills

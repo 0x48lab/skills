@@ -3,7 +3,8 @@ package com.hacklab.minecraft.skills.listener
 import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.crafting.CookingDifficulty
 import com.hacklab.minecraft.skills.crafting.QualityType
-import org.bukkit.attribute.Attribute
+import com.hacklab.minecraft.skills.i18n.MessageKey
+import com.hacklab.minecraft.skills.skill.StatCalculator
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -13,35 +14,76 @@ import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 
 /**
- * Listener for food consumption events
- * Applies cooking skill bonuses when players eat food
+ * Listener for food consumption events.
+ *
+ * In this plugin, the food bar represents Mana (magic power).
+ * When eating:
+ * 1. Food restores Mana first (based on food's healing value + cooking bonus)
+ * 2. If Mana overflows (exceeds max), the overflow is converted to HP
+ * 3. HQ/EX quality food also grants Health Boost effect
+ *
+ * Vanilla food mechanics (hunger/saturation) are disabled by ExhaustionListener.
  */
 class FoodListener(private val plugin: Skills) : Listener {
+
+    companion object {
+        // Conversion rate: 1 mana overflow = 5 internal HP (0.25 vanilla hearts)
+        private const val HP_PER_MANA_OVERFLOW = 5.0
+    }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onPlayerEat(event: PlayerItemConsumeEvent) {
         val player = event.player
         val item = event.item
 
-        // Check if the food has a cooking bonus
+        // Get player data for mana/HP management
+        val data = plugin.playerDataManager.getPlayerData(player)
+
+        // Get food's base healing value
+        val cookingInfo = CookingDifficulty.getCookingInfo(item.type)
+        val baseHealing = cookingInfo?.baseHealing ?: getDefaultFoodValue(item.type)
+
+        // Apply cooking skill bonus
         val foodBonusManager = plugin.craftingManager.foodBonusManager
         val bonus = foodBonusManager.getFoodBonus(item)
         val quality = foodBonusManager.getFoodQuality(item)
 
-        if (bonus != 0.0) {
-            // Get base healing from the food
-            val cookingInfo = CookingDifficulty.getCookingInfo(item.type)
-            if (cookingInfo != null) {
-                // Calculate bonus healing
-                val bonusHealing = (cookingInfo.baseHealing * bonus).toInt()
-                val bonusSaturation = (cookingInfo.baseSaturation * bonus).toFloat()
+        // Calculate total mana restoration (base + bonus)
+        val bonusHealing = if (bonus != 0.0) (baseHealing * bonus).toInt() else 0
+        val totalManaRestoration = baseHealing + bonusHealing
 
-                // Apply bonus after the event completes
-                plugin.server.scheduler.runTaskLater(plugin, Runnable {
-                    applyFoodBonus(player, bonusHealing, bonusSaturation)
-                }, 1L)
+        // Calculate available mana space
+        val manaSpace = data.maxMana - data.mana
+
+        // Restore mana and handle overflow
+        if (totalManaRestoration <= manaSpace) {
+            // All goes to mana - no overflow
+            data.restoreMana(totalManaRestoration.toDouble())
+        } else {
+            // Mana overflows - restore full mana, convert overflow to HP
+            val overflow = totalManaRestoration - manaSpace.toInt()
+            data.restoreMana(manaSpace)
+
+            // Convert overflow to HP
+            if (overflow > 0) {
+                val hpHealing = overflow * HP_PER_MANA_OVERFLOW
+                val actualHealed = data.heal(hpHealing)
+
+                // Notify player if HP was restored
+                if (actualHealed > 0) {
+                    plugin.messageSender.send(player, MessageKey.FOOD_OVERFLOW_HEAL,
+                        "amount" to String.format("%.1f", actualHealed))
+                }
+
+                // Sync internal HP to vanilla health
+                StatCalculator.syncHealthToVanilla(player, data)
             }
         }
+
+        // Sync mana to vanilla food level
+        plugin.server.scheduler.runTaskLater(plugin, Runnable {
+            StatCalculator.syncManaToVanilla(player, data)
+        }, 1L)
 
         // Apply Health Boost for HQ/EX quality food
         // Balanced to not overshadow golden apples (which give Absorption + Regeneration)
@@ -73,30 +115,52 @@ class FoodListener(private val plugin: Skills) : Listener {
     }
 
     /**
-     * Apply food bonus to player
-     *
-     * @param player The player who ate
-     * @param bonusHealing Additional food points to restore
-     * @param bonusSaturation Additional saturation to restore
+     * Get default food value for items not in CookingDifficulty table.
+     * Returns the vanilla food point value.
      */
-    private fun applyFoodBonus(player: Player, bonusHealing: Int, bonusSaturation: Float) {
-        // Apply bonus food level (capped at 20)
-        if (bonusHealing > 0) {
-            player.foodLevel = (player.foodLevel + bonusHealing).coerceAtMost(20)
-        } else if (bonusHealing < 0) {
-            // Low quality food reduces the benefit (already happened, so no additional reduction needed)
-        }
-
-        // Apply bonus saturation (capped at food level)
-        if (bonusSaturation > 0) {
-            player.saturation = (player.saturation + bonusSaturation).coerceAtMost(player.foodLevel.toFloat())
-        }
-
-        // Also apply a small HP bonus for high quality food
-        if (bonusHealing > 0) {
-            val maxHealth = player.getAttribute(Attribute.MAX_HEALTH)?.value ?: 20.0
-            val healthBonus = bonusHealing * 0.25  // 25% of food bonus as HP
-            player.health = (player.health + healthBonus).coerceAtMost(maxHealth)
+    private fun getDefaultFoodValue(type: org.bukkit.Material): Int {
+        return when (type) {
+            org.bukkit.Material.APPLE -> 4
+            org.bukkit.Material.GOLDEN_APPLE -> 4
+            org.bukkit.Material.ENCHANTED_GOLDEN_APPLE -> 4
+            org.bukkit.Material.MELON_SLICE -> 2
+            org.bukkit.Material.SWEET_BERRIES -> 2
+            org.bukkit.Material.GLOW_BERRIES -> 2
+            org.bukkit.Material.CHORUS_FRUIT -> 4
+            org.bukkit.Material.CARROT -> 3
+            org.bukkit.Material.GOLDEN_CARROT -> 6
+            org.bukkit.Material.POTATO -> 1
+            org.bukkit.Material.BEETROOT -> 1
+            org.bukkit.Material.DRIED_KELP -> 1
+            org.bukkit.Material.BEEF -> 3
+            org.bukkit.Material.COOKED_BEEF -> 8
+            org.bukkit.Material.PORKCHOP -> 3
+            org.bukkit.Material.COOKED_PORKCHOP -> 8
+            org.bukkit.Material.MUTTON -> 2
+            org.bukkit.Material.COOKED_MUTTON -> 6
+            org.bukkit.Material.CHICKEN -> 2
+            org.bukkit.Material.COOKED_CHICKEN -> 6
+            org.bukkit.Material.RABBIT -> 3
+            org.bukkit.Material.COOKED_RABBIT -> 5
+            org.bukkit.Material.COD -> 2
+            org.bukkit.Material.COOKED_COD -> 5
+            org.bukkit.Material.SALMON -> 2
+            org.bukkit.Material.COOKED_SALMON -> 6
+            org.bukkit.Material.TROPICAL_FISH -> 1
+            org.bukkit.Material.PUFFERFISH -> 1
+            org.bukkit.Material.BREAD -> 5
+            org.bukkit.Material.COOKIE -> 2
+            org.bukkit.Material.PUMPKIN_PIE -> 8
+            org.bukkit.Material.MUSHROOM_STEW -> 6
+            org.bukkit.Material.BEETROOT_SOUP -> 6
+            org.bukkit.Material.RABBIT_STEW -> 10
+            org.bukkit.Material.SUSPICIOUS_STEW -> 6
+            org.bukkit.Material.BAKED_POTATO -> 5
+            org.bukkit.Material.POISONOUS_POTATO -> 2
+            org.bukkit.Material.ROTTEN_FLESH -> 4
+            org.bukkit.Material.SPIDER_EYE -> 2
+            org.bukkit.Material.HONEY_BOTTLE -> 6
+            else -> 2  // Default fallback
         }
     }
 }

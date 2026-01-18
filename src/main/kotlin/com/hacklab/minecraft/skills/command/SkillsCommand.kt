@@ -17,7 +17,7 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender !is Player) {
-            sender.sendMessage("This command is for players only.")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_ONLY)
             return true
         }
 
@@ -31,14 +31,14 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
             "guide" -> giveGuideBook(sender)
             "lock" -> {
                 if (args.size < 2) {
-                    sender.sendMessage("Usage: /skills lock <skill>")
+                    plugin.messageSender.send(sender, MessageKey.SKILLS_USAGE_LOCK)
                     return true
                 }
                 toggleSkillLock(sender, args.drop(1).joinToString(" "))
             }
             "category" -> {
                 if (args.size < 2) {
-                    sender.sendMessage("Usage: /skills category <category>")
+                    plugin.messageSender.send(sender, MessageKey.SKILLS_USAGE_CATEGORY)
                     return true
                 }
                 showCategory(sender, args[1])
@@ -58,14 +58,14 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
 
         // Show title
         val title = plugin.skillTitleManager.getPlayerTitle(player, useJapanese = false)
-        player.sendMessage(Component.text("═══ $title ═══").color(NamedTextColor.GOLD))
+        plugin.messageSender.send(player, MessageKey.SKILLS_HEADER, "title" to title)
 
         // Group by category
         SkillCategory.entries.forEach { category ->
             val categorySkills = SkillType.entries.filter { it.category == category }
             if (categorySkills.isNotEmpty()) {
                 player.sendMessage(Component.text(""))
-                player.sendMessage(Component.text("═══ ${category.displayName} ═══").color(NamedTextColor.GOLD))
+                plugin.messageSender.send(player, MessageKey.SKILLS_CATEGORY_HEADER, "category" to category.displayName)
 
                 categorySkills.forEach { skill ->
                     val value = data.getSkillValue(skill)
@@ -94,9 +94,9 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
 
         // Show total
         player.sendMessage(Component.text(""))
-        player.sendMessage(
-            Component.text("Total: ${String.format("%.1f", data.getTotalSkillPoints())} / ${SkillType.TOTAL_SKILL_CAP}")
-                .color(NamedTextColor.AQUA)
+        plugin.messageSender.send(player, MessageKey.SKILLS_TOTAL,
+            "current" to String.format("%.1f", data.getTotalSkillPoints()),
+            "max" to SkillType.TOTAL_SKILL_CAP.toString()
         )
     }
 
@@ -107,14 +107,14 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
         }
 
         if (category == null) {
-            player.sendMessage(Component.text("Unknown category: $categoryName").color(NamedTextColor.RED))
+            plugin.messageSender.send(player, MessageKey.SKILLS_UNKNOWN_CATEGORY, "category" to categoryName)
             return
         }
 
         val data = plugin.playerDataManager.getPlayerData(player)
         val skills = SkillType.entries.filter { it.category == category }
 
-        player.sendMessage(Component.text("═══ ${category.displayName} Skills ═══").color(NamedTextColor.GOLD))
+        plugin.messageSender.send(player, MessageKey.SKILLS_CATEGORY_HEADER, "category" to "${category.displayName} Skills")
 
         skills.forEach { skill ->
             val value = data.getSkillValue(skill)
@@ -130,16 +130,20 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
             ?: SkillType.entries.find { it.name.equals(skillName.replace(" ", "_"), ignoreCase = true) }
 
         if (skill == null) {
-            player.sendMessage(Component.text("Unknown skill: $skillName").color(NamedTextColor.RED))
+            plugin.messageSender.send(player, MessageKey.SKILLS_UNKNOWN_SKILL, "skill" to skillName)
             return
         }
 
         val data = plugin.playerDataManager.getPlayerData(player)
         val skillData = data.getSkill(skill)
 
-        player.sendMessage(Component.text("═══ ${skill.displayName} ═══").color(NamedTextColor.GOLD))
-        player.sendMessage(Component.text("Value: ${String.format("%.1f", skillData.value)}").color(NamedTextColor.WHITE))
-        player.sendMessage(Component.text("Category: ${skill.category.displayName}").color(NamedTextColor.GRAY))
+        plugin.messageSender.send(player, MessageKey.SKILLS_SKILL_DETAIL_HEADER, "skill" to skill.displayName)
+        plugin.messageSender.send(player, MessageKey.SKILLS_SKILL_DETAIL_VALUE,
+            "value" to String.format("%.1f", skillData.value)
+        )
+        plugin.messageSender.send(player, MessageKey.SKILLS_SKILL_DETAIL_CATEGORY,
+            "category" to skill.category.displayName
+        )
 
         // Show stat contribution
         val statInfo = mutableListOf<String>()
@@ -147,7 +151,9 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
         if (skill.dexWeight > 0) statInfo.add("DEX: ${(skill.dexWeight * 100).toInt()}%")
         if (skill.intWeight > 0) statInfo.add("INT: ${(skill.intWeight * 100).toInt()}%")
         if (statInfo.isNotEmpty()) {
-            player.sendMessage(Component.text("Affects: ${statInfo.joinToString(", ")}").color(NamedTextColor.AQUA))
+            plugin.messageSender.send(player, MessageKey.SKILLS_SKILL_DETAIL_AFFECTS,
+                "stats" to statInfo.joinToString(", ")
+            )
         }
     }
 
@@ -171,14 +177,14 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
             ?: SkillType.entries.find { it.name.equals(skillName.replace(" ", "_"), ignoreCase = true) }
 
         if (skill == null) {
-            player.sendMessage(Component.text("Unknown skill: $skillName").color(NamedTextColor.RED))
+            plugin.messageSender.send(player, MessageKey.SKILLS_UNKNOWN_SKILL, "skill" to skillName)
             return
         }
 
         val data = plugin.playerDataManager.getPlayerData(player)
         val newMode = data.toggleSkillLock(skill)
 
-        val modeColor = when (newMode) {
+        val lockColor = when (newMode) {
             SkillLockMode.UP -> NamedTextColor.GREEN
             SkillLockMode.DOWN -> NamedTextColor.RED
             SkillLockMode.LOCKED -> NamedTextColor.YELLOW
@@ -192,7 +198,7 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
         player.sendMessage(
             Component.text("${skill.displayName} lock: ")
                 .color(NamedTextColor.WHITE)
-                .append(Component.text("${newMode.getSymbol()} $modeText").color(modeColor))
+                .append(Component.text("${newMode.getSymbol()} $modeText").color(lockColor))
         )
     }
 

@@ -17,7 +17,7 @@ class StatsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender !is Player) {
-            sender.sendMessage("This command is for players only.")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_ONLY)
             return true
         }
 
@@ -29,7 +29,7 @@ class StatsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
         val data = plugin.playerDataManager.getPlayerData(sender)
 
         // Header
-        sender.sendMessage(Component.text("═══ Your Stats ═══").color(NamedTextColor.GOLD))
+        plugin.messageSender.send(sender, MessageKey.STATS_HEADER_DISPLAY)
 
         // HP
         val hpPercent = (data.internalHp / data.maxInternalHp * 100).toInt()
@@ -44,18 +44,18 @@ class StatsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
         )
 
         // Mana
-        sender.sendMessage(
-            Component.text("🍖 Mana: ${data.mana.toInt()} / ${data.maxMana.toInt()}")
-                .color(NamedTextColor.BLUE)
+        plugin.messageSender.send(sender, MessageKey.STATS_MANA_DISPLAY,
+            "current" to data.mana.toInt().toString(),
+            "max" to data.maxMana.toInt().toString()
         )
 
-        sender.sendMessage(Component.text("━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY))
+        plugin.messageSender.send(sender, MessageKey.UI_SEPARATOR)
 
         // Total stat points info
         val totalStats = data.getTotalStats()
-        sender.sendMessage(
-            Component.text("Stat Total: $totalStats / ${StatType.TOTAL_STAT_CAP}")
-                .color(NamedTextColor.YELLOW)
+        plugin.messageSender.send(sender, MessageKey.STATS_STAT_TOTAL,
+            "current" to totalStats.toString(),
+            "max" to StatType.TOTAL_STAT_CAP.toString()
         )
 
         // STR with lock
@@ -95,29 +95,23 @@ class StatsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
         )
 
         // Total skills
-        sender.sendMessage(Component.text("━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY))
-        sender.sendMessage(
-            Component.text("Total Skills: ${String.format("%.1f", data.getTotalSkillPoints())} / ${com.hacklab.minecraft.skills.skill.SkillType.TOTAL_SKILL_CAP}")
-                .color(NamedTextColor.AQUA)
+        plugin.messageSender.send(sender, MessageKey.UI_SEPARATOR)
+        plugin.messageSender.send(sender, MessageKey.STATS_TOTAL_SKILLS_DISPLAY,
+            "current" to String.format("%.1f", data.getTotalSkillPoints()),
+            "max" to com.hacklab.minecraft.skills.skill.SkillType.TOTAL_SKILL_CAP.toString()
         )
 
         // Lock help
-        sender.sendMessage(Component.text("━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY))
-        sender.sendMessage(
-            Component.text("/stats lock <stat> [up|down|locked]")
-                .color(NamedTextColor.GRAY)
-        )
-        sender.sendMessage(
-            Component.text("  ▲ UP: can increase  ▼ DOWN: can decrease  🔒 LOCKED: cannot change")
-                .color(NamedTextColor.DARK_GRAY)
-        )
+        plugin.messageSender.send(sender, MessageKey.UI_SEPARATOR)
+        plugin.messageSender.send(sender, MessageKey.STATS_LOCK_HELP)
+        plugin.messageSender.send(sender, MessageKey.STATS_LOCK_DESCRIPTION)
 
         return true
     }
 
     private fun handleLockCommand(player: Player, args: Array<String>): Boolean {
         if (args.size < 2) {
-            player.sendMessage(Component.text("Usage: /stats lock <str|dex|int> [up|down|locked]").color(NamedTextColor.RED))
+            plugin.messageSender.send(player, MessageKey.STATS_USAGE_LOCK)
             return true
         }
 
@@ -126,7 +120,7 @@ class StatsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
             "dex", "dexterity" -> StatType.DEX
             "int", "intelligence" -> StatType.INT
             else -> {
-                player.sendMessage(Component.text("Invalid stat: ${args[1]}").color(NamedTextColor.RED))
+                plugin.messageSender.send(player, MessageKey.STATS_INVALID_STAT, "stat" to args[1])
                 return true
             }
         }
@@ -147,7 +141,7 @@ class StatsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
                 "down" -> StatLockMode.DOWN
                 "locked", "lock" -> StatLockMode.LOCKED
                 else -> {
-                    player.sendMessage(Component.text("Invalid mode: ${args[2]}. Use: up, down, or locked").color(NamedTextColor.RED))
+                    plugin.messageSender.send(player, MessageKey.STATS_INVALID_MODE, "mode" to args[2])
                     return true
                 }
             }

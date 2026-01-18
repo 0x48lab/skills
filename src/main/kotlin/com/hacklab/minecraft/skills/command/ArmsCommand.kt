@@ -17,7 +17,7 @@ class ArmsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         if (sender !is Player) {
-            sender.sendMessage("This command is for players only.")
+            plugin.messageSender.send(sender, MessageKey.SYSTEM_PLAYER_ONLY)
             return true
         }
 
@@ -31,13 +31,13 @@ class ArmsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter {
         // Get item in main hand
         val item = sender.inventory.itemInMainHand
         if (item.type == Material.AIR) {
-            sender.sendMessage("Hold an item to evaluate it with Arms Lore.")
+            plugin.messageSender.send(sender, MessageKey.ARMS_HOLD_ITEM)
             return true
         }
 
         // Check if it's a weapon or armor
         if (!isWeaponOrArmor(item)) {
-            sender.sendMessage("This item is not a weapon or armor.")
+            plugin.messageSender.send(sender, MessageKey.ARMS_NOT_WEAPON_ARMOR)
             return true
         }
 
