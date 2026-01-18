@@ -3,6 +3,7 @@ package com.hacklab.minecraft.skills.command
 import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.i18n.MessageKey
 import com.hacklab.minecraft.skills.skill.SkillCategory
+import com.hacklab.minecraft.skills.skill.SkillLockMode
 import com.hacklab.minecraft.skills.skill.SkillType
 import com.hacklab.minecraft.skills.skill.StatType
 import net.kyori.adventure.text.Component
@@ -88,26 +89,33 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
         sender.sendMessage(Component.text("Total: ${String.format("%.1f", data.getTotalSkillPoints())} / ${SkillType.TOTAL_SKILL_CAP}").color(NamedTextColor.AQUA))
         sender.sendMessage(Component.text(""))
 
-        // Skills by category
+        // Skills by category (same display as /skills command)
         SkillCategory.entries.forEach { category ->
             val categorySkills = SkillType.entries.filter { it.category == category }
-            val nonZeroSkills = categorySkills.filter { data.getSkillValue(it) > 0 }
 
-            if (nonZeroSkills.isNotEmpty()) {
+            if (categorySkills.isNotEmpty()) {
                 sender.sendMessage(Component.text("─── ${category.displayName} ───").color(NamedTextColor.GRAY))
-                nonZeroSkills.forEach { skill ->
+                categorySkills.forEach { skill ->
                     val value = data.getSkillValue(skill)
+                    val lockMode = data.getSkillLock(skill)
                     val color = when {
                         value >= 100 -> NamedTextColor.LIGHT_PURPLE
                         value >= 90 -> NamedTextColor.GOLD
                         value >= 70 -> NamedTextColor.GREEN
                         value >= 50 -> NamedTextColor.YELLOW
-                        else -> NamedTextColor.WHITE
+                        value > 0 -> NamedTextColor.WHITE
+                        else -> NamedTextColor.GRAY
+                    }
+                    val lockColor = when (lockMode) {
+                        SkillLockMode.UP -> NamedTextColor.GREEN
+                        SkillLockMode.DOWN -> NamedTextColor.RED
+                        SkillLockMode.LOCKED -> NamedTextColor.YELLOW
                     }
                     sender.sendMessage(
                         Component.text("  ${skill.displayName}: ")
                             .color(NamedTextColor.WHITE)
                             .append(Component.text(String.format("%.1f", value)).color(color))
+                            .append(Component.text(" ${lockMode.getSymbol()}").color(lockColor))
                     )
                 }
             }
