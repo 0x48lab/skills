@@ -260,17 +260,17 @@
                 </div>
                 <div class="skill-card">
                     <h4>Lumberjacking <span class="badge badge-str">STR</span></h4>
-                    <p>伐採速度（採掘速度上昇）、耐久消費軽減</p>
+                    <p>伐採速度（採掘速度上昇）、連鎖伐採（隣接する原木を自動伐採）</p>
                     <p class="skill-effect">上昇条件：原木を伐採</p>
                 </div>
                 <div class="skill-card">
                     <h4>Fishing <span class="badge badge-dex">DEX</span></h4>
-                    <p>釣り時間短縮、宝物確率向上。</p>
+                    <p>自動釣り（スキルに応じた確率で自動釣り上げ＆再キャスト）</p>
                     <p class="skill-effect">上昇条件：魚を釣る</p>
                 </div>
                 <div class="skill-card">
                     <h4>Farming <span class="badge badge-dex">DEX</span></h4>
-                    <p>ボーナス収穫：スキル/2%、追加種：スキル/4%</p>
+                    <p>自動植え直し + 自動成長（スキルに応じた骨粉効果）</p>
                     <p class="skill-effect">上昇条件：作物を収穫、土を耕す</p>
                 </div>
             </div>
@@ -736,30 +736,123 @@ Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
             </table>
 
             <h3>Lumberjackingスキル</h3>
-            <p>斧で原木を伐採する際、スキルが高いほど効率が上がります。</p>
+            <p>斧で原木を伐採する際、スキルが高いほど効率が上がります。高スキルになると隣接する原木を連鎖して伐採できます。</p>
 
             <h4>速度ボーナス（採掘速度上昇効果）</h4>
             <div class="formula">
-                <code>速度ボーナス = Lumberjackingスキル / 2（最大 +50%）</code>
+                <code>速度ボーナス = Lumberjackingスキル / 10（最大 +10%）</code>
             </div>
 
-            <h4>耐久消費軽減</h4>
-            <div class="formula">
-                <code>軽減確率 = スキル × 0.9%（GM = 100%）</code>
-            </div>
+            <h4>連鎖伐採システム</h4>
+            <p>原木を伐採すると、スキルに応じて隣接する同種の原木が自動的に伐採されます。</p>
+            <table>
+                <tr>
+                    <th>スキル値</th>
+                    <th>連鎖数</th>
+                </tr>
+                <tr><td>0-9</td><td>1（連鎖なし）</td></tr>
+                <tr><td>10-19</td><td>2</td></tr>
+                <tr><td>20-29</td><td>3</td></tr>
+                <tr><td>30-39</td><td>4</td></tr>
+                <tr><td>40-49</td><td>5</td></tr>
+                <tr><td>50-59</td><td>6</td></tr>
+                <tr><td>60-69</td><td>7</td></tr>
+                <tr><td>70-79</td><td>8</td></tr>
+                <tr><td>80-89</td><td>9</td></tr>
+                <tr><td>90-99</td><td>10</td></tr>
+                <tr><td>100（GM）</td><td>無制限（木全体）</td></tr>
+            </table>
+
+            <h4>連鎖伐採のルール</h4>
+            <ul>
+                <li><strong>対象：</strong>原木のみ（葉は破壊しない）</li>
+                <li><strong>範囲：</strong>上方向のみ（上、斜め上の9方向）※下方向には連鎖しない</li>
+                <li><strong>耐久度：</strong>最初の1ブロック分のみ消費</li>
+                <li><strong>スタミナ：</strong>消費なし</li>
+                <li><strong>別種の木：</strong>連鎖しない（オーク→オークのみ）</li>
+                <li><strong>斧の要件：</strong>不要（素手でも連鎖する）</li>
+                <li><strong>ドロップ：</strong>各原木の位置にドロップし、自然落下する</li>
+                <li><strong>処理方式：</strong>分散処理（数tickに分けて破壊、サーバー負荷軽減）</li>
+            </ul>
+
+            <h4>連鎖伐採の挙動</h4>
+            <ul>
+                <li><strong>根本を切る：</strong>木全体が伐採される</li>
+                <li><strong>真ん中を切る：</strong>切った位置から上だけが伐採される（下は残る）</li>
+                <li><strong>上の方を切る：</strong>その部分から上だけが伐採される</li>
+            </ul>
 
             <h3>Fishingスキル</h3>
-            <p>Fishingスキルは釣り待ち時間を短縮し、宝物確率を向上させます。</p>
+            <p>Fishingスキルは自動釣りを可能にします。魚がかかると、スキルに応じた確率で自動釣り上げと再キャストが行われます。</p>
 
-            <h4>待ち時間短縮</h4>
-            <div class="formula">
-                <code>待ち時間短縮 = スキル / 5（最大 -20%）</code>
-            </div>
+            <h4>自動釣りシステム</h4>
+            <ul>
+                <li><strong>手動キャスト</strong>：プレイヤーが手動で釣り竿をキャストして開始</li>
+                <li><strong>自動釣り上げ</strong>：魚がかかると、スキル値%の確率で自動的に釣り上げ</li>
+                <li><strong>自動再キャスト</strong>：自動釣り上げ成功後、自動的に再キャスト</li>
+                <li><strong>ループ</strong>：釣り竿が壊れるかプレイヤーが手動で止めるまで継続</li>
+            </ul>
 
-            <h4>宝物確率</h4>
-            <div class="formula">
-                <code>宝物ボーナス = スキル / 4（最大 +25%）</code>
-            </div>
+            <h4>自動釣り上げ確率</h4>
+            <table>
+                <tr>
+                    <th>スキルレベル</th>
+                    <th>確率</th>
+                    <th>説明</th>
+                </tr>
+                <tr><td>0-19</td><td>なし</td><td>手動のみ（バニラ動作）</td></tr>
+                <tr><td>20-99</td><td>スキル値%</td><td>確率で自動釣り上げ</td></tr>
+                <tr><td>100 (GM)</td><td>100%</td><td>完全自動（放置可能）</td></tr>
+            </table>
+
+            <h4>備考</h4>
+            <p>自動釣りは<strong>ボーナス機能</strong>です。自動釣り上げが失敗しても、手動で釣り上げれば魚は釣れます（バニラ動作）。時間内に反応しなかった場合のみ魚が逃げます。</p>
+
+            <h3>Farmingスキル</h3>
+            <p>成熟した作物を収穫すると、スキルレベルに応じて自動植え直しと自動成長が発動します。</p>
+
+            <h4>自動農業システム</h4>
+            <ul>
+                <li><strong>自動植え直し</strong>：成熟した作物を収穫した時、インベントリに種があれば自動で植え付け（種を消費）</li>
+                <li><strong>自動成長</strong>：植え付け後、スキルに応じて成長段階を進める（骨粉不要）</li>
+            </ul>
+
+            <h4>スキル別成長段階</h4>
+            <table>
+                <tr>
+                    <th>スキルレベル</th>
+                    <th>成長段階</th>
+                </tr>
+                <tr><td>0-19</td><td>+1段階</td></tr>
+                <tr><td>20-39</td><td>+2段階</td></tr>
+                <tr><td>40-59</td><td>+3段階</td></tr>
+                <tr><td>60-79</td><td>+4段階</td></tr>
+                <tr><td>80-99</td><td>+5段階</td></tr>
+                <tr><td>100 (GM)</td><td>即座に成熟</td></tr>
+            </table>
+
+            <h4>対象作物</h4>
+            <table>
+                <tr>
+                    <th>作物</th>
+                    <th>対応する種</th>
+                </tr>
+                <tr><td>小麦</td><td>小麦の種</td></tr>
+                <tr><td>ニンジン</td><td>ニンジン</td></tr>
+                <tr><td>ジャガイモ</td><td>ジャガイモ</td></tr>
+                <tr><td>ビートルート</td><td>ビートルートの種</td></tr>
+                <tr><td>ネザーウォート</td><td>ネザーウォート</td></tr>
+                <tr><td>トーチフラワー</td><td>トーチフラワーの種</td></tr>
+                <tr><td>ピッチャー</td><td>ピッチャーポッド</td></tr>
+            </table>
+
+            <h4>対象外の作物</h4>
+            <ul>
+                <li><strong>メロン・カボチャ</strong>：茎が残るため植え直し不要</li>
+                <li><strong>スイートベリー</strong>：茂みが残るため植え直し不要</li>
+                <li><strong>竹・サトウキビ・サボテン</strong>：積み重ね式の作物</li>
+                <li><strong>ココア</strong>：木に付ける特殊作物</li>
+            </ul>
         </section>
 
         <!-- 修理システム -->

@@ -19,7 +19,11 @@ import com.hacklab.minecraft.skills.crafting.StackBonusManager
 import com.hacklab.minecraft.skills.data.PlayerDataManager
 import com.hacklab.minecraft.skills.database.Database
 import com.hacklab.minecraft.skills.database.SQLiteDatabase
+import com.hacklab.minecraft.skills.gathering.AutoFarmingManager
+import com.hacklab.minecraft.skills.gathering.AutoFishingManager
+import com.hacklab.minecraft.skills.gathering.ChainChoppingManager
 import com.hacklab.minecraft.skills.gathering.GatheringManager
+import com.hacklab.minecraft.skills.nms.NmsManager
 import com.hacklab.minecraft.skills.guide.GuideManager
 import com.hacklab.minecraft.skills.i18n.MessageKey
 import com.hacklab.minecraft.skills.i18n.MessageManager
@@ -125,6 +129,12 @@ class Skills : JavaPlugin() {
 
     // Gathering
     lateinit var gatheringManager: GatheringManager
+        private set
+    lateinit var chainChoppingManager: ChainChoppingManager
+        private set
+    lateinit var autoFarmingManager: AutoFarmingManager
+        private set
+    lateinit var autoFishingManager: AutoFishingManager
         private set
 
     // Thief
@@ -269,6 +279,14 @@ class Skills : JavaPlugin() {
             craftingSessionManager.clearAllSessions()
         }
 
+        // Cleanup auto-fishing
+        if (::autoFishingManager.isInitialized) {
+            autoFishingManager.cleanupAll()
+        }
+
+        // Cleanup NMS
+        NmsManager.cleanup()
+
         // Disconnect database
         database.disconnect()
 
@@ -311,8 +329,15 @@ class Skills : JavaPlugin() {
         durabilityManager = DurabilityManager(this)
         stackBonusManager = StackBonusManager(this)
 
+        // NMS (must be initialized before features that use it)
+        NmsManager.initialize(logger)
+
         // Gathering
         gatheringManager = GatheringManager(this)
+        chainChoppingManager = ChainChoppingManager(this)
+        autoFarmingManager = AutoFarmingManager(this)
+        autoFishingManager = AutoFishingManager(this)
+        autoFishingManager.initialize()  // Uses NmsManager
 
         // Thief
         hidingManager = HidingManager(this)

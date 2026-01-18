@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.9] - 2026-01-18
+
+### Changed
+- **Auto-Fishing Improvement**
+  - Skill 0-19: No auto-fishing (manual only)
+  - Skill 20-99: Roll probability on fish bite
+    - Success: Auto-reel + auto-recast (fishing continues)
+    - Failure: Message displayed, fish escapes, player must manually reel in
+  - Skill 100 (GM): Always auto-reel + auto-recast (true AFK fishing)
+  - This makes the skill progression more meaningful - GM is the only truly AFK-capable level
+  - Added failure message: "You lost your focus... the fish got away!"
+
+### Added
+- **NMS Ecosystem (Centralized NMS Code)**
+  - Created `/nms/` package to consolidate all NMS-related code
+  - `NmsVersion.kt`: Server version detection with Paper 1.20.5+ unversioned package support
+  - `ReflectionCache.kt`: Centralized caching for reflection lookups (classes, methods, fields)
+  - `FishingNms.kt`: Fishing-specific NMS operations (moved from FishingReflectionHelper)
+  - `NmsManager.kt`: Central manager for all NMS features
+  - Future NMS code should follow this pattern for easier version upgrades
+
+### Removed
+- Deleted `FishingReflectionHelper.kt` (migrated to NMS ecosystem)
+
 ## [0.4.8] - 2026-01-17
 
 ### Fixed

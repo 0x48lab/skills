@@ -199,6 +199,12 @@ enum class MessageKey(val path: String) {
     // Gathering
     GATHERING_BONUS_DROP("gathering.bonus_drop"),
     GATHERING_RARE_FIND("gathering.rare_find"),
+    GATHERING_CHAIN_CHOP("gathering.chain_chop"),
+    GATHERING_AUTO_REPLANT("gathering.auto_replant"),
+    GATHERING_AUTO_REPLANT_MATURE("gathering.auto_replant_mature"),
+    GATHERING_AUTO_FISHING_RECAST("gathering.auto_fishing_recast"),
+    GATHERING_AUTO_FISHING_STOPPED("gathering.auto_fishing_stopped"),
+    GATHERING_AUTO_FISHING_FAILED("gathering.auto_fishing_failed"),
 
     // Arms Lore
     ARMS_LORE_HEADER("arms_lore.header"),

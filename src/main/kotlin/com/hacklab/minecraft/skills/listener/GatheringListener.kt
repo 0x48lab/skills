@@ -184,14 +184,28 @@ class GatheringListener(private val plugin: Skills) : Listener {
             // Mark player as cutting log for durability reduction
             recentLogCutting.add(player.uniqueId)
 
-            // Process skill gain only - no bonus drops, vanilla handles drops
+            // Store log type before it's broken
+            val logType = block.type
+
+            // Process skill gain
             plugin.gatheringManager.processLumberjacking(player, block)
+
+            // Process chain chopping (upward only)
+            plugin.chainChoppingManager.processChainChopping(player, block, logType)
         }
         // Check if it's a crop (Farming)
         else if (cropBlocks.contains(block.type)) {
-            // Only process mature crops - skill gain only, vanilla handles drops
+            // Only process mature crops
             if (GatheringDifficulty.isMatureCrop(block.type, block.blockData)) {
+                val cropType = block.type
+
+                // Process skill gain
                 plugin.gatheringManager.processFarmingHarvest(player, block)
+
+                // Process auto-replanting (if supported and player has seeds)
+                if (plugin.autoFarmingManager.isAutoReplantableCrop(cropType)) {
+                    plugin.autoFarmingManager.processAutoReplant(player, block, cropType)
+                }
             }
         }
         // Check if it's a diggable block (soft blocks with shovel)
@@ -256,20 +270,17 @@ class GatheringListener(private val plugin: Skills) : Listener {
         if (player.gameMode == GameMode.CREATIVE) return
 
         when (event.state) {
-            // When casting the fishing rod, reduce wait time based on skill
+            // When casting the fishing rod
             PlayerFishEvent.State.FISHING -> {
+                // Track the hook for auto-fishing
+                // No wait time reduction anymore (removed old system)
+            }
+
+            // When a fish bites (before catching)
+            PlayerFishEvent.State.BITE -> {
+                // Try auto-fishing (handles skill check, probability, and GM logic internally)
                 val hook = event.hook
-                val reduction = plugin.gatheringManager.getFishingWaitReduction(player)
-
-                if (reduction > 0) {
-                    // Default: 100-600 ticks (5-30 seconds)
-                    // Reduce both min and max wait times
-                    val newMinWait = (hook.minWaitTime * (1 - reduction)).toInt().coerceAtLeast(20)
-                    val newMaxWait = (hook.maxWaitTime * (1 - reduction)).toInt().coerceAtLeast(newMinWait + 20)
-
-                    hook.minWaitTime = newMinWait
-                    hook.maxWaitTime = newMaxWait
-                }
+                plugin.autoFishingManager.processFishBite(player, hook)
             }
 
             // When catching something, process skill gain and track for durability
@@ -281,6 +292,18 @@ class GatheringListener(private val plugin: Skills) : Listener {
 
                 // Process fishing skill
                 plugin.gatheringManager.processFishing(player, caught)
+
+                // Process auto-recast if auto-fishing is active
+                plugin.autoFishingManager.processAfterCatch(player)
+            }
+
+            // When fishing is cancelled or fails
+            PlayerFishEvent.State.REEL_IN, PlayerFishEvent.State.IN_GROUND,
+            PlayerFishEvent.State.FAILED_ATTEMPT -> {
+                // Stop auto-fishing if player manually interacts
+                if (event.state == PlayerFishEvent.State.REEL_IN) {
+                    plugin.autoFishingManager.cancelAutoFishing(player)
+                }
             }
 
             else -> { /* ignore other states */ }

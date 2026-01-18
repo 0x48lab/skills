@@ -211,6 +211,12 @@ armor:
 gathering:
   bonus_drop: "<green>ボーナスドロップ！"
   rare_find: "<gold>レア発見！"
+  chain_chop: "<green>連鎖伐採！ +{count}本"
+  auto_replant: "<green>自動植え直し！ +{stages}段階成長"
+  auto_replant_mature: "<gold>自動植え直し！ 即座に成熟！"
+  auto_fishing_recast: "<aqua>自動釣り：再キャスト中..."
+  auto_fishing_stopped: "<yellow>自動釣り停止：釣り竿の耐久度が低下しています。"
+  auto_fishing_failed: "<gray>集中が途切れた...魚に逃げられた！"
 
 # アームズロアメッセージ
 arms_lore:

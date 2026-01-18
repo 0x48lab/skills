@@ -211,6 +211,12 @@ armor:
 gathering:
   bonus_drop: "<green>Bonus drop!"
   rare_find: "<gold>Rare find!"
+  chain_chop: "<green>Chain chop! +{count} logs"
+  auto_replant: "<green>Auto-replanted! +{stages} growth"
+  auto_replant_mature: "<gold>Auto-replanted! Instant maturity!"
+  auto_fishing_recast: "<aqua>Auto-fishing: Recasting..."
+  auto_fishing_stopped: "<yellow>Auto-fishing stopped: Rod durability low."
+  auto_fishing_failed: "<gray>You lost your focus... the fish got away!"
 
 # Arms Lore messages
 arms_lore:

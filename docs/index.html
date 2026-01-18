@@ -260,17 +260,17 @@
                 </div>
                 <div class="skill-card">
                     <h4>Lumberjacking <span class="badge badge-str">STR</span></h4>
-                    <p>Chopping speed (Haste), Durability reduction</p>
+                    <p>Chopping speed (Haste), Chain chopping (auto-chop connected logs)</p>
                     <p class="skill-effect">Gain: Chop logs</p>
                 </div>
                 <div class="skill-card">
                     <h4>Fishing <span class="badge badge-dex">DEX</span></h4>
-                    <p>Faster catches, better loot.</p>
+                    <p>Auto-fishing with skill-based probability.</p>
                     <p class="skill-effect">Gain: Catch fish</p>
                 </div>
                 <div class="skill-card">
                     <h4>Farming <span class="badge badge-dex">DEX</span></h4>
-                    <p>Bonus harvest: Skill/2%, Extra seeds: Skill/4%</p>
+                    <p>Auto-replant + Auto-growth (skill-based bone meal effect)</p>
                     <p class="skill-effect">Gain: Harvest crops, till soil</p>
                 </div>
             </div>
@@ -693,30 +693,123 @@ Final = Base × STR × Tactics × Anatomy × Quality × Enchant</pre>
             </table>
 
             <h3>Lumberjacking Skill</h3>
-            <p>Chopping logs with axes improves with higher skill.</p>
+            <p>Chopping logs with axes improves with higher skill. Higher skill allows chain chopping of connected logs.</p>
 
             <h4>Speed Bonus (Haste Effect)</h4>
             <div class="formula">
-                <code>Speed Bonus = Lumberjacking Skill / 2 (max +50%)</code>
+                <code>Speed Bonus = Lumberjacking Skill / 10 (max +10%)</code>
             </div>
 
-            <h4>Durability Reduction</h4>
-            <div class="formula">
-                <code>Reduction Chance = Skill × 0.9% (GM = 100%)</code>
-            </div>
+            <h4>Chain Chopping System</h4>
+            <p>When you chop a log, adjacent logs of the same type are automatically chopped based on your skill level.</p>
+            <table>
+                <tr>
+                    <th>Skill Level</th>
+                    <th>Chain Count</th>
+                </tr>
+                <tr><td>0-9</td><td>1 (no chain)</td></tr>
+                <tr><td>10-19</td><td>2</td></tr>
+                <tr><td>20-29</td><td>3</td></tr>
+                <tr><td>30-39</td><td>4</td></tr>
+                <tr><td>40-49</td><td>5</td></tr>
+                <tr><td>50-59</td><td>6</td></tr>
+                <tr><td>60-69</td><td>7</td></tr>
+                <tr><td>70-79</td><td>8</td></tr>
+                <tr><td>80-89</td><td>9</td></tr>
+                <tr><td>90-99</td><td>10</td></tr>
+                <tr><td>100 (GM)</td><td>Unlimited (entire tree)</td></tr>
+            </table>
+
+            <h4>Chain Chopping Rules</h4>
+            <ul>
+                <li><strong>Target:</strong> Logs only (leaves are not destroyed)</li>
+                <li><strong>Range:</strong> Upward only (9 directions: up and diagonal-up) - does NOT chain downward</li>
+                <li><strong>Durability:</strong> Only consumed for the first block</li>
+                <li><strong>Stamina:</strong> No stamina cost</li>
+                <li><strong>Different trees:</strong> Only same wood type chains (Oak → Oak only)</li>
+                <li><strong>Axe required:</strong> No (works with bare hands too)</li>
+                <li><strong>Drops:</strong> Items drop at each log's position and fall naturally</li>
+                <li><strong>Processing:</strong> Distributed over multiple ticks (reduces server load)</li>
+            </ul>
+
+            <h4>Chain Chopping Behavior</h4>
+            <ul>
+                <li><strong>Cut at base:</strong> Entire tree is chopped</li>
+                <li><strong>Cut in middle:</strong> Only logs above the cut point are chopped (below remains)</li>
+                <li><strong>Cut near top:</strong> Only logs above that point are chopped</li>
+            </ul>
 
             <h3>Fishing Skill</h3>
-            <p>Fishing skill reduces wait time and improves loot quality.</p>
+            <p>Fishing skill enables automatic fishing. When a fish bites, there's a skill-based chance to auto-reel and auto-recast.</p>
 
-            <h4>Wait Time Reduction</h4>
-            <div class="formula">
-                <code>Wait Reduction = Skill / 5 (max -20%)</code>
-            </div>
+            <h4>Auto-Fishing System</h4>
+            <ul>
+                <li><strong>Manual Cast</strong>: Player casts the fishing rod manually to start</li>
+                <li><strong>Auto-Reel</strong>: When fish bites, skill% chance to automatically reel in</li>
+                <li><strong>Auto-Recast</strong>: After successful auto-reel, automatically recasts</li>
+                <li><strong>Loop</strong>: Continues until rod breaks or player stops manually</li>
+            </ul>
 
-            <h4>Treasure Chance</h4>
-            <div class="formula">
-                <code>Treasure Bonus = Skill / 4 (max +25%)</code>
-            </div>
+            <h4>Auto-Fishing Probability</h4>
+            <table>
+                <tr>
+                    <th>Skill Level</th>
+                    <th>Probability</th>
+                    <th>Description</th>
+                </tr>
+                <tr><td>0-19</td><td>None</td><td>Manual only (vanilla behavior)</td></tr>
+                <tr><td>20-99</td><td>Skill%</td><td>Probability-based auto-fishing</td></tr>
+                <tr><td>100 (GM)</td><td>100%</td><td>Fully automatic (AFK fishing)</td></tr>
+            </table>
+
+            <h4>Note</h4>
+            <p>Auto-fishing is a <strong>bonus feature</strong>. If auto-reel fails, you can still manually reel in the fish (vanilla behavior). The fish only escapes if you don't react in time.</p>
+
+            <h3>Farming Skill</h3>
+            <p>Harvesting mature crops triggers auto-replant and auto-growth based on skill level.</p>
+
+            <h4>Auto Farming System</h4>
+            <ul>
+                <li><strong>Auto-Replant</strong>: When harvesting mature crops, automatically replants if you have seeds in inventory (consumes seeds)</li>
+                <li><strong>Auto-Growth</strong>: After planting, crops advance growth stages based on skill (no bone meal consumed)</li>
+            </ul>
+
+            <h4>Growth Stages by Skill</h4>
+            <table>
+                <tr>
+                    <th>Skill Level</th>
+                    <th>Growth Stages</th>
+                </tr>
+                <tr><td>0-19</td><td>+1 stage</td></tr>
+                <tr><td>20-39</td><td>+2 stages</td></tr>
+                <tr><td>40-59</td><td>+3 stages</td></tr>
+                <tr><td>60-79</td><td>+4 stages</td></tr>
+                <tr><td>80-99</td><td>+5 stages</td></tr>
+                <tr><td>100 (GM)</td><td>Instant maturity</td></tr>
+            </table>
+
+            <h4>Supported Crops</h4>
+            <table>
+                <tr>
+                    <th>Crop</th>
+                    <th>Seed Item</th>
+                </tr>
+                <tr><td>Wheat</td><td>Wheat Seeds</td></tr>
+                <tr><td>Carrot</td><td>Carrot</td></tr>
+                <tr><td>Potato</td><td>Potato</td></tr>
+                <tr><td>Beetroot</td><td>Beetroot Seeds</td></tr>
+                <tr><td>Nether Wart</td><td>Nether Wart</td></tr>
+                <tr><td>Torchflower</td><td>Torchflower Seeds</td></tr>
+                <tr><td>Pitcher</td><td>Pitcher Pod</td></tr>
+            </table>
+
+            <h4>Excluded Crops</h4>
+            <ul>
+                <li><strong>Melon/Pumpkin</strong>: Stem remains after harvest</li>
+                <li><strong>Sweet Berry</strong>: Bush remains after harvest</li>
+                <li><strong>Bamboo/Sugar Cane/Cactus</strong>: Stacking crops</li>
+                <li><strong>Cocoa</strong>: Special crop attached to trees</li>
+            </ul>
         </section>
 
         <!-- Repair System -->
