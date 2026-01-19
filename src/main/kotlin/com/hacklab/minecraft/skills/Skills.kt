@@ -440,7 +440,9 @@ class Skills : JavaPlugin() {
 
     private fun registerCommands() {
         // Player commands
-        getCommand("skills")?.setExecutor(SkillsCommand(this))
+        val skillsCmd = SkillsCommand(this)
+        getCommand("skills")?.setExecutor(skillsCmd)
+        getCommand("skills")?.tabCompleter = skillsCmd
         val statsCmd = StatsCommand(this)
         getCommand("stats")?.setExecutor(statsCmd)
         getCommand("stats")?.tabCompleter = statsCmd
@@ -450,7 +452,6 @@ class Skills : JavaPlugin() {
         val runeCmd = RuneCommand(this)
         getCommand("rune")?.setExecutor(runeCmd)
         getCommand("rune")?.tabCompleter = runeCmd
-        getCommand("language")?.setExecutor(LanguageCommand(this))
 
         // Thief commands
         getCommand("hide")?.setExecutor(HideCommand(this))

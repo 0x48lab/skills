@@ -2275,9 +2275,9 @@ integrations:
 | `/skills lock <スキル名>` | スキルのロックモード切替（UP/DOWN/LOCKED） | skills.use |
 | `/skills guide` | ガイドブック取得 | skills.use |
 | `/skills sb` | スコアボード表示切替 | skills.use |
+| `/skills language [言語]` | 表示言語を変更（en/ja/reset） | skills.use |
 | `/stats` | 自分のSTR/DEX/INT表示 | skills.use |
 | `/arms` | 手持ち武器・防具の詳細表示 | skills.use |
-| `/language [言語]` | 表示言語を変更（en/ja） | skills.use |
 
 #### 魔法コマンド
 | コマンド | 説明 | 権限 |
@@ -3509,28 +3509,13 @@ language:
 #### 言語変更コマンド
 
 ```kotlin
-// /language <言語コード>
-class LanguageCommand(private val plugin: Skills) : CommandExecutor {
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
-        if (sender !is Player) {
-            sender.sendMessage("This command is for players only.")
-            return true
-        }
-
-        if (args.isEmpty()) {
-            // 現在の言語を表示
-            val current = plugin.localeManager.getLanguage(sender)
-            sender.sendMessage("Current language: ${current.displayName}")
-            sender.sendMessage("Available: ${Language.entries.joinToString { "${it.code} (${it.displayName})" }}")
-            return true
-        }
-
-        val lang = Language.fromCode(args[0])
-        plugin.localeManager.setLanguage(sender, lang)
-        plugin.messageSender.send(sender, MessageKey.LANGUAGE_CHANGED, "language" to lang.displayName)
-        return true
-    }
-}
+// /skills language <言語コード|reset>
+// SkillsCommand.kt 内の handleLanguage メソッドで処理
+// 使用例:
+//   /skills language      - 現在の言語と利用可能な言語を表示
+//   /skills language ja   - 日本語に変更
+//   /skills language en   - 英語に変更
+//   /skills language reset - クライアント言語に戻す
 ```
 
 ### クラス関連図

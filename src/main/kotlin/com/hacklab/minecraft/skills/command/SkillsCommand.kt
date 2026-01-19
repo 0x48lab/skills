@@ -1,6 +1,7 @@
 package com.hacklab.minecraft.skills.command
 
 import com.hacklab.minecraft.skills.Skills
+import com.hacklab.minecraft.skills.i18n.Language
 import com.hacklab.minecraft.skills.i18n.MessageKey
 import com.hacklab.minecraft.skills.skill.SkillCategory
 import com.hacklab.minecraft.skills.skill.SkillLockMode
@@ -39,9 +40,12 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
             "sb" -> {
                 toggleScoreboard(sender)
             }
+            "language" -> {
+                handleLanguage(sender, args.drop(1))
+            }
             else -> {
                 sender.sendMessage(Component.text("Unknown subcommand: ${args[0]}").color(NamedTextColor.RED))
-                sender.sendMessage(Component.text("Usage: /skills [list|guide|lock|sb]").color(NamedTextColor.GRAY))
+                sender.sendMessage(Component.text("Usage: /skills [list|guide|lock|sb|language]").color(NamedTextColor.GRAY))
             }
         }
 
@@ -169,14 +173,59 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
         }
     }
 
+    private fun handleLanguage(player: Player, args: List<String>) {
+        if (!plugin.localeManager.canPlayerChangeLanguage()) {
+            plugin.messageSender.send(player, MessageKey.LANGUAGE_DISABLED)
+            return
+        }
+
+        if (args.isEmpty()) {
+            // Show current language
+            val playerData = plugin.playerDataManager.getPlayerData(player)
+            val current = plugin.localeManager.getLanguage(player)
+
+            if (playerData.language == null) {
+                // Using client language
+                plugin.messageSender.send(player, MessageKey.LANGUAGE_USING_CLIENT,
+                    "language" to current.displayName)
+            } else {
+                plugin.messageSender.send(player, MessageKey.LANGUAGE_CURRENT,
+                    "language" to current.displayName)
+            }
+
+            // Show available languages
+            plugin.messageSender.send(player, MessageKey.LANGUAGE_AVAILABLE_LIST,
+                "languages" to Language.entries.joinToString { "${it.code} (${it.displayName})" })
+            return
+        }
+
+        // Reset language
+        if (args[0].equals("reset", ignoreCase = true)) {
+            plugin.localeManager.resetLanguage(player)
+            plugin.messageSender.send(player, MessageKey.LANGUAGE_RESET)
+            return
+        }
+
+        // Set language
+        val lang = Language.fromCode(args[0])
+        plugin.localeManager.setLanguage(player, lang)
+        plugin.messageSender.send(player, MessageKey.LANGUAGE_CHANGED,
+            "language" to lang.displayName)
+    }
+
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<String>): List<String> {
         if (args.size == 1) {
-            val options = listOf("list", "guide", "lock", "sb")
+            val options = listOf("list", "guide", "lock", "sb", "language")
             return options.filter { it.lowercase().startsWith(args[0].lowercase()) }
         }
         if (args.size == 2 && args[0].equals("lock", ignoreCase = true)) {
             return SkillType.entries.map { it.displayName }
                 .filter { it.lowercase().startsWith(args[1].lowercase()) }
+        }
+        if (args.size == 2 && args[0].equals("language", ignoreCase = true)) {
+            val options = mutableListOf("reset")
+            options.addAll(Language.entries.map { it.code })
+            return options.filter { it.lowercase().startsWith(args[1].lowercase()) }
         }
         return emptyList()
     }

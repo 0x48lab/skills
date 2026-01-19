@@ -28,11 +28,6 @@ commands:
     usage: /rune <Power Words>
     aliases: [powerwords, pw]
 
-  language:
-    description: Change your display language
-    usage: /language [code]
-    aliases: [lang]
-
   hide:
     description: Attempt to hide (Hiding skill)
     usage: /hide
