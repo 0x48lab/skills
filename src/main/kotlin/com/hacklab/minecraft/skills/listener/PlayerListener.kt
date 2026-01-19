@@ -60,7 +60,7 @@ class PlayerListener(private val plugin: Skills) : Listener {
         plugin.localeManager.removePlayer(player.uniqueId)
         plugin.cooldownManager.clearCooldowns(player.uniqueId)
         plugin.survivalListener.removePlayer(player.uniqueId)
-        plugin.scoreboardManager.cleanup(player.uniqueId)
+        plugin.scoreboardManager.cleanupPlayer(player.uniqueId)
         plugin.staminaManager.cleanup(player.uniqueId)
         plugin.chunkLimitManager.cleanup(player.uniqueId)
         plugin.summonManager.onPlayerQuit(player)

@@ -271,6 +271,13 @@ chunk_mob_limit:
   breeding: "<red>Breeding blocked: {category} mob limit ({limit}) reached in this chunk."
   info: "<gray>Chunk mob count - {category}: {count}/{limit}"
 
+# Scoreboard messages
+scoreboard:
+  disabled: "<red>Scoreboard feature is disabled."
+  shown: "<green>Scoreboard is now visible."
+  hidden: "<gray>Scoreboard is now hidden."
+  toggle_not_allowed: "<red>You cannot change scoreboard settings."
+
 # Common words
 common:
   "yes": "Yes"

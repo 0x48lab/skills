@@ -250,6 +250,12 @@ enum class MessageKey(val path: String) {
     CHUNK_MOB_LIMIT_BREEDING("chunk_mob_limit.breeding"),
     CHUNK_MOB_LIMIT_INFO("chunk_mob_limit.info"),
 
+    // Scoreboard
+    SCOREBOARD_DISABLED("scoreboard.disabled"),
+    SCOREBOARD_SHOWN("scoreboard.shown"),
+    SCOREBOARD_HIDDEN("scoreboard.hidden"),
+    SCOREBOARD_TOGGLE_NOT_ALLOWED("scoreboard.toggle_not_allowed"),
+
     // Common
     COMMON_YES("common.yes"),
     COMMON_NO("common.no"),

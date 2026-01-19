@@ -2107,6 +2107,10 @@ integrations:
 | コマンド | 説明 | 権限 |
 |---------|------|------|
 | `/skills` | 自分のスキル一覧表示 | skills.use |
+| `/skills list` | 自分のスキル一覧表示（同上） | skills.use |
+| `/skills lock <スキル名>` | スキルのロックモード切替（UP/DOWN/LOCKED） | skills.use |
+| `/skills guide` | ガイドブック取得 | skills.use |
+| `/skills sb` | スコアボード表示切替 | skills.use |
 | `/stats` | 自分のSTR/DEX/INT表示 | skills.use |
 | `/arms` | 手持ち武器・防具の詳細表示 | skills.use |
 | `/language [言語]` | 表示言語を変更（en/ja） | skills.use |

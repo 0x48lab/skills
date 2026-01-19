@@ -36,17 +36,12 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
                 }
                 toggleSkillLock(sender, args.drop(1).joinToString(" "))
             }
-            "category" -> {
-                if (args.size < 2) {
-                    sender.sendMessage("Usage: /skills category <category>")
-                    return true
-                }
-                showCategory(sender, args[1])
+            "sb" -> {
+                toggleScoreboard(sender)
             }
             else -> {
-                // Try to find skill by name
-                val skillName = args.joinToString(" ")
-                showSkill(sender, skillName)
+                sender.sendMessage(Component.text("Unknown subcommand: ${args[0]}").color(NamedTextColor.RED))
+                sender.sendMessage(Component.text("Usage: /skills [list|guide|lock|sb]").color(NamedTextColor.GRAY))
             }
         }
 
@@ -100,57 +95,6 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
         )
     }
 
-    private fun showCategory(player: Player, categoryName: String) {
-        val category = SkillCategory.entries.find {
-            it.name.equals(categoryName, ignoreCase = true) ||
-                    it.displayName.equals(categoryName, ignoreCase = true)
-        }
-
-        if (category == null) {
-            player.sendMessage(Component.text("Unknown category: $categoryName").color(NamedTextColor.RED))
-            return
-        }
-
-        val data = plugin.playerDataManager.getPlayerData(player)
-        val skills = SkillType.entries.filter { it.category == category }
-
-        player.sendMessage(Component.text("═══ ${category.displayName} Skills ═══").color(NamedTextColor.GOLD))
-
-        skills.forEach { skill ->
-            val value = data.getSkillValue(skill)
-            player.sendMessage(
-                Component.text("  ${skill.displayName}: ${String.format("%.1f", value)}")
-                    .color(NamedTextColor.WHITE)
-            )
-        }
-    }
-
-    private fun showSkill(player: Player, skillName: String) {
-        val skill = SkillType.fromDisplayName(skillName)
-            ?: SkillType.entries.find { it.name.equals(skillName.replace(" ", "_"), ignoreCase = true) }
-
-        if (skill == null) {
-            player.sendMessage(Component.text("Unknown skill: $skillName").color(NamedTextColor.RED))
-            return
-        }
-
-        val data = plugin.playerDataManager.getPlayerData(player)
-        val skillData = data.getSkill(skill)
-
-        player.sendMessage(Component.text("═══ ${skill.displayName} ═══").color(NamedTextColor.GOLD))
-        player.sendMessage(Component.text("Value: ${String.format("%.1f", skillData.value)}").color(NamedTextColor.WHITE))
-        player.sendMessage(Component.text("Category: ${skill.category.displayName}").color(NamedTextColor.GRAY))
-
-        // Show stat contribution
-        val statInfo = mutableListOf<String>()
-        if (skill.strWeight > 0) statInfo.add("STR: ${(skill.strWeight * 100).toInt()}%")
-        if (skill.dexWeight > 0) statInfo.add("DEX: ${(skill.dexWeight * 100).toInt()}%")
-        if (skill.intWeight > 0) statInfo.add("INT: ${(skill.intWeight * 100).toInt()}%")
-        if (statInfo.isNotEmpty()) {
-            player.sendMessage(Component.text("Affects: ${statInfo.joinToString(", ")}").color(NamedTextColor.AQUA))
-        }
-    }
-
     private fun giveGuideBook(player: Player) {
         val guidebook = plugin.guideManager.createGuideBook(plugin.localeManager.getLanguage(player))
 
@@ -196,15 +140,39 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
         )
     }
 
+    private fun toggleScoreboard(player: Player) {
+        // Check if scoreboard feature is enabled
+        if (!plugin.skillsConfig.scoreboardEnabled) {
+            plugin.messageSender.send(player, MessageKey.SCOREBOARD_DISABLED)
+            return
+        }
+
+        // Check if player toggle is allowed
+        if (!plugin.skillsConfig.scoreboardAllowToggle) {
+            plugin.messageSender.send(player, MessageKey.SCOREBOARD_TOGGLE_NOT_ALLOWED)
+            return
+        }
+
+        // Get player data and toggle visibility
+        val data = plugin.playerDataManager.getPlayerData(player)
+        val newVisibility = !data.scoreboardVisible
+        data.scoreboardVisible = newVisibility
+        data.dirty = true
+
+        // Update scoreboard display
+        if (newVisibility) {
+            plugin.scoreboardManager.setScoreboardVisibility(player, true)
+            plugin.messageSender.send(player, MessageKey.SCOREBOARD_SHOWN)
+        } else {
+            plugin.scoreboardManager.setScoreboardVisibility(player, false)
+            plugin.messageSender.send(player, MessageKey.SCOREBOARD_HIDDEN)
+        }
+    }
+
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<String>): List<String> {
         if (args.size == 1) {
-            val options = mutableListOf("list", "guide", "category", "lock")
-            options.addAll(SkillType.entries.map { it.displayName })
+            val options = listOf("list", "guide", "lock", "sb")
             return options.filter { it.lowercase().startsWith(args[0].lowercase()) }
-        }
-        if (args.size == 2 && args[0].equals("category", ignoreCase = true)) {
-            return SkillCategory.entries.map { it.displayName }
-                .filter { it.lowercase().startsWith(args[1].lowercase()) }
         }
         if (args.size == 2 && args[0].equals("lock", ignoreCase = true)) {
             return SkillType.entries.map { it.displayName }

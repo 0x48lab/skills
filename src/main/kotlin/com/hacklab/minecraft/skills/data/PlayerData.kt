@@ -27,7 +27,9 @@ data class PlayerData(
     // Stat lock modes
     var strLock: StatLockMode = StatLockMode.UP,
     var dexLock: StatLockMode = StatLockMode.UP,
-    var intLock: StatLockMode = StatLockMode.UP
+    var intLock: StatLockMode = StatLockMode.UP,
+    // Scoreboard visibility
+    var scoreboardVisible: Boolean = true
 ) {
     init {
         // Initialize all skills with default values if not present
