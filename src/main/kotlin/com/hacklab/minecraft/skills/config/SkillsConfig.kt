@@ -1,6 +1,7 @@
 package com.hacklab.minecraft.skills.config
 
 import com.hacklab.minecraft.skills.Skills
+import com.hacklab.minecraft.skills.scoreboard.ConflictMode
 import org.bukkit.configuration.file.FileConfiguration
 
 class SkillsConfig(private val plugin: Skills) {
@@ -73,6 +74,14 @@ class SkillsConfig(private val plugin: Skills) {
     val chunkMobLimitWaterAmbient: Int get() = config.getInt("chunk_mob_limit.limits.water_ambient", 16)
     val chunkMobLimitCheckInterval: Long get() = config.getLong("chunk_mob_limit.check_interval_ticks", 100)
     val chunkMobLimitNotify: Boolean get() = config.getBoolean("chunk_mob_limit.notify_on_limit", true)
+
+    // Scoreboard settings
+    val scoreboardEnabled: Boolean get() = config.getBoolean("scoreboard.enabled", true)
+    val scoreboardUpdateInterval: Long get() = config.getLong("scoreboard.update_interval_ticks", 20)
+    val scoreboardConflictMode: ConflictMode get() =
+        ConflictMode.fromString(config.getString("scoreboard.conflict_mode", "RESPECT") ?: "RESPECT")
+    val scoreboardShowByDefault: Boolean get() = config.getBoolean("scoreboard.show_by_default", true)
+    val scoreboardAllowToggle: Boolean get() = config.getBoolean("scoreboard.allow_player_toggle", true)
 
     /**
      * Get reward limit for a specific world

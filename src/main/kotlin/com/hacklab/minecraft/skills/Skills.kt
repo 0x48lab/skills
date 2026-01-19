@@ -259,9 +259,9 @@ class Skills : JavaPlugin() {
             meditationListener.cleanup()
         }
 
-        // Cleanup scoreboard
+        // Cleanup scoreboard (restore all players to mainScoreboard)
         if (::scoreboardManager.isInitialized) {
-            scoreboardManager.stopUpdateTask()
+            scoreboardManager.cleanup()
         }
 
         // Cleanup stamina
@@ -359,8 +359,10 @@ class Skills : JavaPlugin() {
         // VengefulMobs
         vengefulMobsManager = VengefulMobsManager(this)
 
-        // Scoreboard
-        scoreboardManager = ScoreboardManager(this)
+        // Scoreboard (only initialize if enabled)
+        if (skillsConfig.scoreboardEnabled) {
+            scoreboardManager = ScoreboardManager(this)
+        }
 
         // Stamina
         staminaManager = StaminaManager(this)
@@ -509,8 +511,10 @@ class Skills : JavaPlugin() {
         // VengefulMobs aggression task
         vengefulMobsManager.startAggressionTask()
 
-        // Scoreboard update task
-        scoreboardManager.startUpdateTask()
+        // Scoreboard update task (only if enabled)
+        if (skillsConfig.scoreboardEnabled && ::scoreboardManager.isInitialized) {
+            scoreboardManager.startUpdateTask()
+        }
 
         // Stamina update task
         staminaManager.startUpdateTask()

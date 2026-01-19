@@ -81,6 +81,9 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
         // Migration: Add stat columns if they don't exist (for existing databases)
         migrateStatColumns()
 
+        // Migration: Add scoreboard_visible column if it doesn't exist
+        migrateScoreboardColumn()
+
         plugin.logger.info("Database tables created/verified")
     }
 
@@ -119,6 +122,22 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
         }
     }
 
+    /**
+     * Migration: Add scoreboard_visible column to players table
+     */
+    private fun migrateScoreboardColumn() {
+        val conn = connection ?: return
+
+        try {
+            conn.createStatement().use { stmt ->
+                stmt.executeUpdate("ALTER TABLE players ADD COLUMN scoreboard_visible INTEGER DEFAULT 1")
+            }
+            plugin.logger.info("Added column scoreboard_visible to players table")
+        } catch (e: Exception) {
+            // Column already exists, ignore
+        }
+    }
+
     override fun loadPlayerData(uuid: UUID): PlayerData? {
         val conn = connection ?: return null
 
@@ -147,7 +166,8 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
             int = playerResult.getInt("int").takeIf { it > 0 } ?: StatType.DEFAULT_STAT_VALUE,
             strLock = playerResult.getString("str_lock")?.let { StatLockMode.valueOf(it) } ?: StatLockMode.UP,
             dexLock = playerResult.getString("dex_lock")?.let { StatLockMode.valueOf(it) } ?: StatLockMode.UP,
-            intLock = playerResult.getString("int_lock")?.let { StatLockMode.valueOf(it) } ?: StatLockMode.UP
+            intLock = playerResult.getString("int_lock")?.let { StatLockMode.valueOf(it) } ?: StatLockMode.UP,
+            scoreboardVisible = playerResult.getInt("scoreboard_visible") != 0
         )
         playerStmt.close()
 
@@ -186,8 +206,8 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
 
         // Save/update player base data
         val playerStmt = conn.prepareStatement("""
-            INSERT OR REPLACE INTO players (uuid, player_name, internal_hp, max_internal_hp, mana, max_mana, language, last_login, str, dex, int, str_lock, dex_lock, int_lock)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO players (uuid, player_name, internal_hp, max_internal_hp, mana, max_mana, language, last_login, str, dex, int, str_lock, dex_lock, int_lock, scoreboard_visible)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.trimIndent())
 
         playerStmt.setString(1, data.uuid.toString())
@@ -204,6 +224,7 @@ class SQLiteDatabase(private val plugin: Skills) : Database {
         playerStmt.setString(12, data.strLock.name)
         playerStmt.setString(13, data.dexLock.name)
         playerStmt.setString(14, data.intLock.name)
+        playerStmt.setInt(15, if (data.scoreboardVisible) 1 else 0)
         playerStmt.executeUpdate()
         playerStmt.close()
 

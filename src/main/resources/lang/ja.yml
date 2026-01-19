@@ -329,6 +329,13 @@ chunk_mob_limit:
   breeding: "<red>繁殖がブロックされました: このチャンクの{category}モブ数が上限({limit})に達しています。"
   info: "<gray>チャンクのモブ数 - {category}: {count}/{limit}"
 
+# スコアボードメッセージ
+scoreboard:
+  disabled: "<red>スコアボード機能は無効です。"
+  shown: "<green>スコアボードを表示しました。"
+  hidden: "<gray>スコアボードを非表示にしました。"
+  toggle_not_allowed: "<red>スコアボード設定を変更できません。"
+
 # 共通
 common:
   "yes": "はい"

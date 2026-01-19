@@ -22,6 +22,11 @@ class ScoreboardManager(private val plugin: Skills) {
     private var updateTask: BukkitRunnable? = null
     private var tickCounter = 0
 
+    companion object {
+        /** Unique objective name to identify Skills plugin's scoreboard */
+        const val OBJECTIVE_NAME = "skills_stats"
+    }
+
     /**
      * Start the scoreboard update task
      */
@@ -32,7 +37,9 @@ class ScoreboardManager(private val plugin: Skills) {
                 val shouldRegenMana = tickCounter % 5 == 0  // Every 5 seconds
 
                 Bukkit.getOnlinePlayers().forEach { player ->
-                    updateScoreboard(player)
+                    if (shouldUpdateScoreboard(player)) {
+                        updateScoreboard(player)
+                    }
 
                     // Natural mana regeneration (INT-based) every 5 seconds
                     if (shouldRegenMana) {
@@ -41,8 +48,34 @@ class ScoreboardManager(private val plugin: Skills) {
                 }
             }
         }
-        // Update every second (20 ticks)
-        updateTask?.runTaskTimer(plugin, 20L, 20L)
+        // Update interval from config (default: 20 ticks = 1 second)
+        val interval = plugin.skillsConfig.scoreboardUpdateInterval
+        updateTask?.runTaskTimer(plugin, interval, interval)
+    }
+
+    /**
+     * Check if scoreboard should be updated for this player.
+     * Returns false when:
+     * - Player has disabled their scoreboard visibility
+     * - RESPECT mode is active and another plugin is using SIDEBAR
+     */
+    fun shouldUpdateScoreboard(player: Player): Boolean {
+        val data = plugin.playerDataManager.getPlayerData(player)
+
+        // Player has disabled scoreboard
+        if (!data.scoreboardVisible) return false
+
+        // Check conflict mode
+        if (plugin.skillsConfig.scoreboardConflictMode == ConflictMode.ALWAYS) {
+            return true
+        }
+
+        // RESPECT mode: check if other plugin is using SIDEBAR
+        val currentBoard = player.scoreboard
+        val sidebarObj = currentBoard.getObjective(DisplaySlot.SIDEBAR)
+
+        // OK if SIDEBAR is empty or is our own objective
+        return sidebarObj == null || sidebarObj.name == OBJECTIVE_NAME
     }
 
     /**
@@ -64,10 +97,10 @@ class ScoreboardManager(private val plugin: Skills) {
         copyTeamsFromMainScoreboard(scoreboard)
 
         // Get or create objective
-        var objective = scoreboard.getObjective("skills_stats")
+        var objective = scoreboard.getObjective(OBJECTIVE_NAME)
         if (objective == null) {
             objective = scoreboard.registerNewObjective(
-                "skills_stats",
+                OBJECTIVE_NAME,
                 Criteria.DUMMY,
                 Component.text("Stats").color(NamedTextColor.GOLD).decorate(TextDecoration.BOLD)
             )
@@ -254,7 +287,35 @@ class ScoreboardManager(private val plugin: Skills) {
     /**
      * Cleanup when player leaves
      */
-    fun cleanup(playerId: UUID) {
+    fun cleanupPlayer(playerId: UUID) {
         playerScoreboards.remove(playerId)
+    }
+
+    /**
+     * Cleanup all scoreboards (called on plugin disable).
+     * Restores all players to mainScoreboard and clears cache.
+     */
+    fun cleanup() {
+        stopUpdateTask()
+
+        // Restore all players to main scoreboard
+        Bukkit.getOnlinePlayers().forEach { player ->
+            player.scoreboard = Bukkit.getScoreboardManager().mainScoreboard
+        }
+
+        playerScoreboards.clear()
+    }
+
+    /**
+     * Set scoreboard visibility for a player and update accordingly.
+     */
+    fun setScoreboardVisibility(player: Player, visible: Boolean) {
+        if (visible) {
+            if (shouldUpdateScoreboard(player)) {
+                updateScoreboard(player)
+            }
+        } else {
+            removeScoreboard(player)
+        }
     }
 }

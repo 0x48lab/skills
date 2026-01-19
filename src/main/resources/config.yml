@@ -183,6 +183,26 @@ vengeful_mobs:
       attack_cooldown: 1000
       mode: RETALIATE_ONCE
 
+# Scoreboard settings - Control sidebar display and plugin compatibility
+scoreboard:
+  # Enable/disable scoreboard feature entirely
+  # When false, no scoreboard will be shown and related features are disabled
+  enabled: true
+
+  # Update interval in ticks (20 = 1 second)
+  update_interval_ticks: 20
+
+  # Conflict mode when other plugins use SIDEBAR display slot
+  # ALWAYS: Always show Skills scoreboard (may overwrite other plugins)
+  # RESPECT: Don't show if another plugin is using SIDEBAR
+  conflict_mode: RESPECT
+
+  # Default scoreboard visibility for new players
+  show_by_default: true
+
+  # Allow players to toggle scoreboard with /togglescoreboard command
+  allow_player_toggle: true
+
 # Chunk Mob Limit settings - Prevents server lag from mob farms
 chunk_mob_limit:
   # Enable/disable the feature
