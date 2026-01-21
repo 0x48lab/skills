@@ -44,6 +44,9 @@ import com.hacklab.minecraft.skills.util.CooldownManager
 import com.hacklab.minecraft.skills.vengeful.VengefulMobsListener
 import com.hacklab.minecraft.skills.vengeful.VengefulMobsManager
 import com.hacklab.minecraft.skills.integration.NotorietyIntegration
+import com.hacklab.minecraft.skills.api.SkillsAPI
+import com.hacklab.minecraft.skills.api.SkillsAPIImpl
+import org.bukkit.plugin.ServicePriority
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.plugin.java.JavaPlugin
@@ -246,11 +249,17 @@ class Skills : JavaPlugin() {
             playerDataManager.loadPlayer(player)
         }
 
+        // Register API for other plugins
+        registerAPI()
+
         messageSender.log(MessageKey.SYSTEM_PLUGIN_ENABLED)
         logger.info("Skills plugin enabled!")
     }
 
     override fun onDisable() {
+        // Unregister API
+        server.servicesManager.unregisterAll(this)
+
         // Save all player data
         playerDataManager.saveAllPlayers()
 
@@ -528,5 +537,16 @@ class Skills : JavaPlugin() {
                 chunkLimitManager.cleanupExpired()
             }
         }.runTaskTimerAsynchronously(this, 6000L, 6000L) // Every 5 minutes
+    }
+
+    private fun registerAPI() {
+        val api = SkillsAPIImpl(this)
+        server.servicesManager.register(
+            SkillsAPI::class.java,
+            api,
+            this,
+            ServicePriority.Normal
+        )
+        logger.info("SkillsAPI registered for other plugins")
     }
 }
