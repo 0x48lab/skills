@@ -265,9 +265,19 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
 
         when (args[1].lowercase()) {
             "spellbook" -> {
-                val spellbook = plugin.spellbookManager.createFullSpellbook()
+                val option = args.getOrNull(2)?.lowercase()
+                val spellbook = if (option == "blank") {
+                    plugin.spellbookManager.createSpellbook()
+                } else {
+                    plugin.spellbookManager.createFullSpellbook()
+                }
                 target.inventory.addItem(spellbook)
-                plugin.messageSender.send(sender, MessageKey.ADMIN_GAVE_SPELLBOOK, "player" to target.name)
+                val messageKey = if (option == "blank") {
+                    MessageKey.ADMIN_GAVE_BLANK_SPELLBOOK
+                } else {
+                    MessageKey.ADMIN_GAVE_SPELLBOOK
+                }
+                plugin.messageSender.send(sender, messageKey, "player" to target.name)
             }
             "runebook" -> {
                 val useJapanese = plugin.localeManager.getLanguage(target) == com.hacklab.minecraft.skills.i18n.Language.JAPANESE
@@ -350,6 +360,9 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
                     val suggestions = mutableListOf("all")
                     suggestions.addAll(com.hacklab.minecraft.skills.magic.SpellType.entries.map { it.displayName })
                     suggestions.filter { it.lowercase().startsWith(args[3].lowercase()) }
+                }
+                args[0].equals("give", ignoreCase = true) && args[2].equals("spellbook", ignoreCase = true) -> {
+                    listOf("blank", "full").filter { it.startsWith(args[3].lowercase()) }
                 }
                 else -> emptyList()
             }

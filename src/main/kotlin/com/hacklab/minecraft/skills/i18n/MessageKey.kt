@@ -314,6 +314,7 @@ enum class MessageKey(val path: String) {
     ADMIN_SKILLS_RESET("admin.skills_reset"),
     ADMIN_CONFIG_RELOADED("admin.config_reloaded"),
     ADMIN_GAVE_SPELLBOOK("admin.gave_spellbook"),
+    ADMIN_GAVE_BLANK_SPELLBOOK("admin.gave_blank_spellbook"),
     ADMIN_GAVE_RUNEBOOK("admin.gave_runebook"),
     ADMIN_GAVE_RUNE("admin.gave_rune"),
     ADMIN_GAVE_REAGENTS("admin.gave_reagents"),
