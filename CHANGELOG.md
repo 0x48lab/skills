@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.13] - 2026-01-21
+
+### Added
+- **SkillsAPI for External Plugin Integration**
+  - New `SkillsAPI` interface for other plugins to interact with Skills
+  - Registered via Bukkit ServicesManager (Vault-style integration)
+  - Skill operations: `getSkill`, `setSkill`, `addSkill`, `hasSkillLevel`, `getAllSkills`, `getTotalSkillPoints`
+  - Stat operations: `getStat`, `getAllStats` (STR/DEX/INT)
+  - HP/Mana/Stamina: `getCurrentHp`, `getMaxHp`, `getCurrentMana`, `getMaxMana`, `getCurrentStamina`, `getMaxStamina`, `restoreMana`, `restoreStamina`
+  - Utility: `getAvailableSkillNames`, `isValidSkillName`, `getTitle`
+  - Supports skill name resolution (display name, enum name, with/without underscores)
+
+### Example Usage (for other plugins)
+```kotlin
+val registration = Bukkit.getServicesManager().getRegistration(SkillsAPI::class.java)
+val api = registration?.provider ?: return
+
+// Get skill value
+val swordSkill = api.getSkill(player, "Swordsmanship") // Returns 0.0-100.0
+
+// Set skill if below threshold
+if (api.getSkill(player, "Mining") < 10.0) {
+    api.setSkill(player, "Mining", 10.0)
+}
+
+// Check stats
+val str = api.getStat(player, "STR")
+val currentHp = api.getCurrentHp(player)
+```
+
+## [0.4.12] - 2026-01-19
+
+### Added
+- **Blank Spellbook Admin Command**
+  - `/skilladmin give <player> spellbook blank` - Gives an empty spellbook with no spells
+  - `/skilladmin give <player> spellbook full` - Gives a spellbook with all spells (existing behavior)
+  - Tab completion support for `blank` and `full` options
+
 ## [0.4.11] - 2026-01-18
 
 ### Changed

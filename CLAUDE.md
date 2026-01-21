@@ -2326,6 +2326,77 @@ integrations:
 |-----------|------|------|
 | notoriety | ソフト依存 | 犯罪フラグ連携（Stealing時） |
 
+### 外部プラグイン向けAPI（SkillsAPI）
+
+Skills プラグインは Bukkit ServicesManager を通じて API を公開しています。
+他のプラグインから Skills の機能にアクセスできます。
+
+#### API取得方法
+```kotlin
+val registration = Bukkit.getServicesManager().getRegistration(SkillsAPI::class.java)
+val api = registration?.provider ?: return
+```
+
+#### SkillsAPI インターフェース
+```kotlin
+interface SkillsAPI {
+    // スキル操作
+    fun getSkill(player: Player, skillName: String): Double?
+    fun getSkill(uuid: UUID, skillName: String): Double?
+    fun setSkill(player: Player, skillName: String, value: Double): Boolean
+    fun addSkill(player: Player, skillName: String, amount: Double): Double?
+    fun hasSkillLevel(player: Player, skillName: String, minLevel: Double): Boolean
+    fun getAllSkills(player: Player): Map<String, Double>
+    fun getTotalSkillPoints(player: Player): Double
+
+    // ステータス操作
+    fun getStat(player: Player, statName: String): Int?  // "STR", "DEX", "INT"
+    fun getAllStats(player: Player): Map<String, Int>
+
+    // HP/マナ/スタミナ
+    fun getCurrentHp(player: Player): Double
+    fun getMaxHp(player: Player): Double
+    fun getCurrentMana(player: Player): Double
+    fun getMaxMana(player: Player): Double
+    fun getCurrentStamina(player: Player): Double
+    fun getMaxStamina(player: Player): Double
+    fun restoreMana(player: Player, amount: Double)
+    fun restoreStamina(player: Player, amount: Double)
+
+    // ユーティリティ
+    fun getAvailableSkillNames(): List<String>
+    fun isValidSkillName(skillName: String): Boolean
+    fun getTitle(player: Player): String
+}
+```
+
+#### スキル名の指定方法
+スキル名は以下の形式で指定可能（大文字小文字は区別しない）:
+- 表示名: `"Swordsmanship"`, `"Mace Fighting"`
+- enum名: `"SWORDSMANSHIP"`, `"MACE_FIGHTING"`
+- スペース/アンダースコア互換: `"mace fighting"` ↔ `"mace_fighting"`
+
+#### 使用例
+```kotlin
+// スキル値を取得
+val swordSkill = api.getSkill(player, "Swordsmanship") ?: 0.0
+
+// スキル値が10未満なら10に設定
+if ((api.getSkill(player, "Mining") ?: 0.0) < 10.0) {
+    api.setSkill(player, "Mining", 10.0)
+}
+
+// ステータス確認
+val str = api.getStat(player, "STR") ?: 0
+val currentHp = api.getCurrentHp(player)
+
+// 全スキル取得
+val allSkills = api.getAllSkills(player)
+allSkills.forEach { (name, value) ->
+    println("$name: $value")
+}
+```
+
 ## クラス設計
 
 ### パッケージ構造
@@ -3566,4 +3637,6 @@ Skills (メインプラグイン)
 - SQLite (既存の player_skills, player_data テーブル) (001-spellbook-scroll-acquisition)
 
 ## Recent Changes
+- 0.4.13: Added SkillsAPI for external plugin integration via ServicesManager
+- 0.4.12: Added blank spellbook option to admin give command
 - 001-spellbook-scroll-acquisition: Added Kotlin 2.3.0, JVM 21 + Paper API 1.21.11-R0.1-SNAPSHOT
