@@ -201,7 +201,12 @@ class ScoreboardManager(private val plugin: Skills) {
         // チーム情報をコピー
         mainBoard.teams.forEach { mainTeam ->
             val team = targetBoard.getTeam(mainTeam.name) ?: targetBoard.registerNewTeam(mainTeam.name)
-            (mainTeam.color() as? NamedTextColor)?.let { team.color(it) }
+            // チームカラーをコピー（RESET色や特殊な色の場合はスキップ）
+            try {
+                (mainTeam.color() as? NamedTextColor)?.let { team.color(it) }
+            } catch (e: IllegalStateException) {
+                // "Team colors must have hex values" - 特殊な色の場合は無視
+            }
             team.prefix(mainTeam.prefix())
             team.suffix(mainTeam.suffix())
             mainTeam.entries.forEach { entry ->
