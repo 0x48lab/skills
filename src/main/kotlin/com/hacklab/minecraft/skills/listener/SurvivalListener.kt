@@ -48,11 +48,13 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         }
 
         // Compensate for internal HP system (x10 multiplier)
-        // Base: 90% reduction to match vanilla feel
-        // Skill: additional reduction up to 90% at skill 100
-        val baseReduction = 0.1  // 90% base reduction
-        val skillReductionPercent = (athleticsSkill * 0.9).coerceAtMost(90.0)
-        val damageMultiplier = baseReduction * (1.0 - (skillReductionPercent / 100.0))
+        // Internal HP max = 100 (STR 0), Vanilla HP max = 20
+        // To match vanilla: internal damage = vanilla damage * 5 (100/20)
+        // Since CombatListener multiplies by 10, we use 0.5 here (0.5 * 10 = 5)
+        // Skill: additional reduction up to 50% at skill 100
+        val baseMultiplier = 0.5  // Converts to 5x total (matches vanilla percentage)
+        val skillReductionPercent = (athleticsSkill * 0.5).coerceAtMost(50.0)
+        val damageMultiplier = baseMultiplier * (1.0 - (skillReductionPercent / 100.0))
         event.damage = event.damage * damageMultiplier
 
         // At very high skill (90+), chance to completely negate small falls
@@ -133,11 +135,13 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         }
 
         // Compensate for internal HP system (x10 multiplier)
-        // Base: 90% reduction to match vanilla feel
-        // Skill: additional reduction up to 90% at skill 100
-        val baseReduction = 0.1  // 90% base reduction
-        val skillReductionPercent = (swimmingSkill * 0.9).coerceAtMost(90.0)
-        val damageMultiplier = baseReduction * (1.0 - (skillReductionPercent / 100.0))
+        // Internal HP max = 100 (STR 0), Vanilla HP max = 20
+        // To match vanilla: internal damage = vanilla damage * 5 (100/20)
+        // Since CombatListener multiplies by 10, we use 0.5 here (0.5 * 10 = 5)
+        // Skill: additional reduction up to 50% at skill 100
+        val baseMultiplier = 0.5  // Converts to 5x total (matches vanilla percentage)
+        val skillReductionPercent = (swimmingSkill * 0.5).coerceAtMost(50.0)
+        val damageMultiplier = baseMultiplier * (1.0 - (skillReductionPercent / 100.0))
         event.damage = event.damage * damageMultiplier
     }
 
@@ -183,11 +187,13 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         }
 
         // Compensate for internal HP system (x10 multiplier)
-        // Base: 90% reduction to match vanilla feel
-        // Skill: additional reduction up to 90% at skill 100
-        val baseReduction = 0.1  // 90% base reduction
-        val skillReductionPercent = (heatResistSkill * 0.9).coerceAtMost(90.0)
-        val damageMultiplier = baseReduction * (1.0 - (skillReductionPercent / 100.0))
+        // Internal HP max = 100 (STR 0), Vanilla HP max = 20
+        // To match vanilla: internal damage = vanilla damage * 5 (100/20)
+        // Since CombatListener multiplies by 10, we use 0.5 here (0.5 * 10 = 5)
+        // Skill: additional reduction up to 50% at skill 100
+        val baseMultiplier = 0.5  // Converts to 5x total (matches vanilla percentage)
+        val skillReductionPercent = (heatResistSkill * 0.5).coerceAtMost(50.0)
+        val damageMultiplier = baseMultiplier * (1.0 - (skillReductionPercent / 100.0))
         event.damage = event.damage * damageMultiplier
 
         // Reduce fire ticks (burn time) based on skill
@@ -232,11 +238,13 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         }
 
         // Compensate for internal HP system (x10 multiplier)
-        // Base: 90% reduction to match vanilla feel
-        // Skill: additional reduction up to 90% at skill 100
-        val baseReduction = 0.1  // 90% base reduction
-        val skillReductionPercent = (coldResistSkill * 0.9).coerceAtMost(90.0)
-        val damageMultiplier = baseReduction * (1.0 - (skillReductionPercent / 100.0))
+        // Internal HP max = 100 (STR 0), Vanilla HP max = 20
+        // To match vanilla: internal damage = vanilla damage * 5 (100/20)
+        // Since CombatListener multiplies by 10, we use 0.5 here (0.5 * 10 = 5)
+        // Skill: additional reduction up to 50% at skill 100
+        val baseMultiplier = 0.5  // Converts to 5x total (matches vanilla percentage)
+        val skillReductionPercent = (coldResistSkill * 0.5).coerceAtMost(50.0)
+        val damageMultiplier = baseMultiplier * (1.0 - (skillReductionPercent / 100.0))
         event.damage = event.damage * damageMultiplier
 
         // Reduce freeze ticks based on skill
@@ -283,11 +291,13 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         }
 
         // Compensate for internal HP system (x10 multiplier)
-        // Base: 90% reduction to match vanilla feel
-        // Skill: additional reduction up to 90% at skill 100
-        val baseReduction = 0.1  // 90% base reduction
-        val skillReductionPercent = (enduranceSkill * 0.9).coerceAtMost(90.0)
-        val damageMultiplier = baseReduction * (1.0 - (skillReductionPercent / 100.0))
+        // Internal HP max = 100 (STR 0), Vanilla HP max = 20
+        // To match vanilla: internal damage = vanilla damage * 5 (100/20)
+        // Since CombatListener multiplies by 10, we use 0.5 here (0.5 * 10 = 5)
+        // Skill: additional reduction up to 50% at skill 100
+        val baseMultiplier = 0.5  // Converts to 5x total (matches vanilla percentage)
+        val skillReductionPercent = (enduranceSkill * 0.5).coerceAtMost(50.0)
+        val damageMultiplier = baseMultiplier * (1.0 - (skillReductionPercent / 100.0))
         event.damage = event.damage * damageMultiplier
 
         // At very high skill (90+), chance to resist damage completely for this tick
@@ -327,13 +337,14 @@ class SurvivalListener(private val plugin: Skills) : Listener {
             return
         }
 
-        // Contact damage needs heavy reduction to compensate for internal HP system (x10 multiplier)
-        // Base: 90% reduction to match vanilla feel
-        // Skill: additional reduction up to 90% at skill 100
-        // Result: Skill 0 = ~vanilla damage, Skill 100 = nearly immune
-        val baseReduction = 0.1  // 90% base reduction
-        val skillReductionPercent = (enduranceSkill * 0.9).coerceAtMost(90.0)  // up to 90% more
-        val damageMultiplier = baseReduction * (1.0 - (skillReductionPercent / 100.0))
+        // Compensate for internal HP system (x10 multiplier)
+        // Internal HP max = 100 (STR 0), Vanilla HP max = 20
+        // To match vanilla: internal damage = vanilla damage * 5 (100/20)
+        // Since CombatListener multiplies by 10, we use 0.5 here (0.5 * 10 = 5)
+        // Skill: additional reduction up to 50% at skill 100
+        val baseMultiplier = 0.5  // Converts to 5x total (matches vanilla percentage)
+        val skillReductionPercent = (enduranceSkill * 0.5).coerceAtMost(50.0)
+        val damageMultiplier = baseMultiplier * (1.0 - (skillReductionPercent / 100.0))
         event.damage = event.damage * damageMultiplier
     }
 
