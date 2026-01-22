@@ -20,14 +20,14 @@ class SurvivalListener(private val plugin: Skills) : Listener {
     private val lastAirLevel = mutableMapOf<UUID, Int>()
 
     /**
-     * Athletics skill - reduces fall damage
-     * Effect: Fall damage reduced by skill% - linear from 0% to 100%
-     * Skill gain: When taking fall damage
+     * Athletics skill - reduces fall damage and elytra crash damage
+     * Effect: Damage reduced by skill% - linear from 0% to 100%
+     * Skill gain: When taking fall/crash damage
      * Note: Runs at NORMAL priority so CombatListener (HIGH) can apply to internal HP
      */
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     fun onFallDamage(event: EntityDamageEvent) {
-        if (event.cause != DamageCause.FALL) return
+        if (event.cause != DamageCause.FALL && event.cause != DamageCause.FLY_INTO_WALL) return
         val player = event.entity as? Player ?: return
 
         val data = plugin.playerDataManager.getPlayerData(player)
@@ -137,10 +137,10 @@ class SurvivalListener(private val plugin: Skills) : Listener {
     }
 
     /**
-     * Heat Resistance skill - reduces fire and lava damage
-     * Effect: Fire/lava damage reduced by skill% - linear from 0% to 100%
+     * Heat Resistance skill - reduces fire, lava, and lightning damage
+     * Effect: Damage reduced by skill% - linear from 0% to 100%
      * Also reduces burn time
-     * Skill gain: When taking fire/lava damage
+     * Skill gain: When taking fire/lava/lightning damage
      * Note: Runs at NORMAL priority so CombatListener (HIGH) can apply to internal HP
      */
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -149,7 +149,8 @@ class SurvivalListener(private val plugin: Skills) : Listener {
             DamageCause.FIRE,
             DamageCause.FIRE_TICK,
             DamageCause.LAVA,
-            DamageCause.HOT_FLOOR  // Magma blocks
+            DamageCause.HOT_FLOOR,  // Magma blocks
+            DamageCause.LIGHTNING   // Lightning strikes
         )
 
         if (event.cause !in validCauses) return
@@ -161,9 +162,10 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         // Calculate difficulty based on damage source
         val difficulty = when (event.cause) {
             DamageCause.LAVA -> 60       // Hardest - lava
+            DamageCause.LIGHTNING -> 50  // Hard - lightning
             DamageCause.FIRE -> 30       // Medium - standing in fire
-            DamageCause.FIRE_TICK -> 20  // Easy - burning
             DamageCause.HOT_FLOOR -> 25  // Medium-easy - magma blocks
+            DamageCause.FIRE_TICK -> 20  // Easy - burning
             else -> 20
         }
 
@@ -255,22 +257,90 @@ class SurvivalListener(private val plugin: Skills) : Listener {
     }
 
     /**
-     * Endurance skill - reduces suffocation damage (being buried in blocks)
-     * Effect: Suffocation damage reduced by skill% - linear from 0% to 100%
-     * Skill gain: When taking suffocation damage
+     * Resisting Spells skill - reduces magical/supernatural damage
+     * Effect: Damage reduced by skill% - linear from 0% to 100%
+     * Covers: Dragon breath, Wither effect, Sonic boom (Warden), Poison
+     * Skill gain: When taking magical damage
+     * Note: Runs at NORMAL priority so CombatListener (HIGH) can apply to internal HP
+     */
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    fun onMagicalDamage(event: EntityDamageEvent) {
+        val validCauses = setOf(
+            DamageCause.DRAGON_BREATH,  // Ender Dragon breath
+            DamageCause.WITHER,         // Wither effect
+            DamageCause.SONIC_BOOM,     // Warden's sonic attack
+            DamageCause.POISON,         // Poison effect
+            DamageCause.MAGIC           // Instant damage potions, etc.
+        )
+
+        if (event.cause !in validCauses) return
+        val player = event.entity as? Player ?: return
+
+        val data = plugin.playerDataManager.getPlayerData(player)
+        val resistSpellsSkill = data.getSkillValue(SkillType.RESISTING_SPELLS)
+
+        // Calculate difficulty based on damage source
+        val difficulty = when (event.cause) {
+            DamageCause.SONIC_BOOM -> 80      // Warden - hardest
+            DamageCause.DRAGON_BREATH -> 70   // Ender Dragon
+            DamageCause.WITHER -> 60          // Wither effect
+            DamageCause.MAGIC -> 50           // Instant damage
+            DamageCause.POISON -> 40          // Poison effect
+            else -> 50
+        }
+
+        // Try to gain skill
+        plugin.skillManager.tryGainSkill(player, SkillType.RESISTING_SPELLS, difficulty)
+
+        // GM (skill 100) - completely immune, no screen shake
+        if (resistSpellsSkill >= 100.0) {
+            event.isCancelled = true
+            return
+        }
+
+        // Compensate for internal HP system (x10 multiplier)
+        // Internal HP max = 100 (STR 0), Vanilla HP max = 20
+        // To match vanilla: internal damage = vanilla damage * 5 (100/20)
+        // Since CombatListener multiplies by 10, we use 0.5 here (0.5 * 10 = 5)
+        // Skill 0 = 0% reduction (vanilla), Skill 100 = 100% reduction (immune)
+        val baseMultiplier = 0.5  // Converts to 5x total (matches vanilla percentage)
+        val skillReductionPercent = resistSpellsSkill.coerceAtMost(100.0)
+        val damageMultiplier = baseMultiplier * (1.0 - (skillReductionPercent / 100.0))
+        event.damage = event.damage * damageMultiplier
+    }
+
+    /**
+     * Endurance skill - reduces physical damage (suffocation, explosion, cramming, thorns)
+     * Effect: Damage reduced by skill% - linear from 0% to 100%
+     * Skill gain: When taking physical damage
      * Note: Runs at NORMAL priority so CombatListener (HIGH) can apply to internal HP
      * Note: Drowning is handled by Swimming skill (onDrowningDamage)
      */
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    fun onSuffocationDamage(event: EntityDamageEvent) {
-        if (event.cause != DamageCause.SUFFOCATION) return
+    fun onPhysicalDamage(event: EntityDamageEvent) {
+        val validCauses = setOf(
+            DamageCause.SUFFOCATION,
+            DamageCause.ENTITY_EXPLOSION,  // Creeper, Ghast fireball, etc.
+            DamageCause.BLOCK_EXPLOSION,   // TNT, bed in nether, etc.
+            DamageCause.CRAMMING,          // Entity cramming
+            DamageCause.THORNS             // Thorns enchantment
+        )
+
+        if (event.cause !in validCauses) return
         val player = event.entity as? Player ?: return
 
         val data = plugin.playerDataManager.getPlayerData(player)
         val enduranceSkill = data.getSkillValue(SkillType.ENDURANCE)
 
-        // Difficulty for suffocation (being crushed/buried)
-        val difficulty = 50
+        // Calculate difficulty based on damage source
+        val difficulty = when (event.cause) {
+            DamageCause.ENTITY_EXPLOSION -> 55  // Creeper, Ghast
+            DamageCause.BLOCK_EXPLOSION -> 50   // TNT
+            DamageCause.SUFFOCATION -> 40       // Being buried
+            DamageCause.CRAMMING -> 30          // Entity cramming
+            DamageCause.THORNS -> 20            // Thorns reflection
+            else -> 30
+        }
 
         // Try to gain skill
         plugin.skillManager.tryGainSkill(player, SkillType.ENDURANCE, difficulty)
