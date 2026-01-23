@@ -47,14 +47,8 @@ class SurvivalListener(private val plugin: Skills) : Listener {
             return
         }
 
-        // Compensate for internal HP system (x10 multiplier)
-        // Internal HP max = 100 (STR 0), Vanilla HP max = 20
-        // To match vanilla: internal damage = vanilla damage * 5 (100/20)
-        // Since CombatListener multiplies by 10, we use 0.5 here (0.5 * 10 = 5)
-        // Skill 0 = 0% reduction (vanilla), Skill 100 = 100% reduction (immune)
-        val baseMultiplier = 0.5  // Converts to 5x total (matches vanilla percentage)
-        val skillReductionPercent = athleticsSkill.coerceAtMost(100.0)
-        val damageMultiplier = baseMultiplier * (1.0 - (skillReductionPercent / 100.0))
+        // Apply damage with STR scaling
+        val damageMultiplier = calculateEnvironmentalDamageMultiplier(data.maxInternalHp, athleticsSkill)
         event.damage = event.damage * damageMultiplier
     }
 
@@ -125,14 +119,8 @@ class SurvivalListener(private val plugin: Skills) : Listener {
             return
         }
 
-        // Compensate for internal HP system (x10 multiplier)
-        // Internal HP max = 100 (STR 0), Vanilla HP max = 20
-        // To match vanilla: internal damage = vanilla damage * 5 (100/20)
-        // Since CombatListener multiplies by 10, we use 0.5 here (0.5 * 10 = 5)
-        // Skill 0 = 0% reduction (vanilla), Skill 100 = 100% reduction (immune)
-        val baseMultiplier = 0.5  // Converts to 5x total (matches vanilla percentage)
-        val skillReductionPercent = swimmingSkill.coerceAtMost(100.0)
-        val damageMultiplier = baseMultiplier * (1.0 - (skillReductionPercent / 100.0))
+        // Apply damage with STR scaling
+        val damageMultiplier = calculateEnvironmentalDamageMultiplier(data.maxInternalHp, swimmingSkill)
         event.damage = event.damage * damageMultiplier
     }
 
@@ -179,14 +167,8 @@ class SurvivalListener(private val plugin: Skills) : Listener {
             return
         }
 
-        // Compensate for internal HP system (x10 multiplier)
-        // Internal HP max = 100 (STR 0), Vanilla HP max = 20
-        // To match vanilla: internal damage = vanilla damage * 5 (100/20)
-        // Since CombatListener multiplies by 10, we use 0.5 here (0.5 * 10 = 5)
-        // Skill 0 = 0% reduction (vanilla), Skill 100 = 100% reduction (immune)
-        val baseMultiplier = 0.5  // Converts to 5x total (matches vanilla percentage)
-        val skillReductionPercent = heatResistSkill.coerceAtMost(100.0)
-        val damageMultiplier = baseMultiplier * (1.0 - (skillReductionPercent / 100.0))
+        // Apply damage with STR scaling
+        val damageMultiplier = calculateEnvironmentalDamageMultiplier(data.maxInternalHp, heatResistSkill)
         event.damage = event.damage * damageMultiplier
 
         // Reduce fire ticks (burn time) based on skill
@@ -230,14 +212,8 @@ class SurvivalListener(private val plugin: Skills) : Listener {
             return
         }
 
-        // Compensate for internal HP system (x10 multiplier)
-        // Internal HP max = 100 (STR 0), Vanilla HP max = 20
-        // To match vanilla: internal damage = vanilla damage * 5 (100/20)
-        // Since CombatListener multiplies by 10, we use 0.5 here (0.5 * 10 = 5)
-        // Skill 0 = 0% reduction (vanilla), Skill 100 = 100% reduction (immune)
-        val baseMultiplier = 0.5  // Converts to 5x total (matches vanilla percentage)
-        val skillReductionPercent = coldResistSkill.coerceAtMost(100.0)
-        val damageMultiplier = baseMultiplier * (1.0 - (skillReductionPercent / 100.0))
+        // Apply damage with STR scaling
+        val damageMultiplier = calculateEnvironmentalDamageMultiplier(data.maxInternalHp, coldResistSkill)
         event.damage = event.damage * damageMultiplier
 
         // Reduce freeze ticks based on skill
@@ -298,14 +274,8 @@ class SurvivalListener(private val plugin: Skills) : Listener {
             return
         }
 
-        // Compensate for internal HP system (x10 multiplier)
-        // Internal HP max = 100 (STR 0), Vanilla HP max = 20
-        // To match vanilla: internal damage = vanilla damage * 5 (100/20)
-        // Since CombatListener multiplies by 10, we use 0.5 here (0.5 * 10 = 5)
-        // Skill 0 = 0% reduction (vanilla), Skill 100 = 100% reduction (immune)
-        val baseMultiplier = 0.5  // Converts to 5x total (matches vanilla percentage)
-        val skillReductionPercent = resistSpellsSkill.coerceAtMost(100.0)
-        val damageMultiplier = baseMultiplier * (1.0 - (skillReductionPercent / 100.0))
+        // Apply damage with STR scaling
+        val damageMultiplier = calculateEnvironmentalDamageMultiplier(data.maxInternalHp, resistSpellsSkill)
         event.damage = event.damage * damageMultiplier
     }
 
@@ -351,14 +321,8 @@ class SurvivalListener(private val plugin: Skills) : Listener {
             return
         }
 
-        // Compensate for internal HP system (x10 multiplier)
-        // Internal HP max = 100 (STR 0), Vanilla HP max = 20
-        // To match vanilla: internal damage = vanilla damage * 5 (100/20)
-        // Since CombatListener multiplies by 10, we use 0.5 here (0.5 * 10 = 5)
-        // Skill 0 = 0% reduction (vanilla), Skill 100 = 100% reduction (immune)
-        val baseMultiplier = 0.5  // Converts to 5x total (matches vanilla percentage)
-        val skillReductionPercent = enduranceSkill.coerceAtMost(100.0)
-        val damageMultiplier = baseMultiplier * (1.0 - (skillReductionPercent / 100.0))
+        // Apply damage with STR scaling
+        val damageMultiplier = calculateEnvironmentalDamageMultiplier(data.maxInternalHp, enduranceSkill)
         event.damage = event.damage * damageMultiplier
     }
 
@@ -388,14 +352,8 @@ class SurvivalListener(private val plugin: Skills) : Listener {
             return
         }
 
-        // Compensate for internal HP system (x10 multiplier)
-        // Internal HP max = 100 (STR 0), Vanilla HP max = 20
-        // To match vanilla: internal damage = vanilla damage * 5 (100/20)
-        // Since CombatListener multiplies by 10, we use 0.5 here (0.5 * 10 = 5)
-        // Skill 0 = 0% reduction (vanilla), Skill 100 = 100% reduction (immune)
-        val baseMultiplier = 0.5  // Converts to 5x total (matches vanilla percentage)
-        val skillReductionPercent = enduranceSkill.coerceAtMost(100.0)
-        val damageMultiplier = baseMultiplier * (1.0 - (skillReductionPercent / 100.0))
+        // Apply damage with STR scaling
+        val damageMultiplier = calculateEnvironmentalDamageMultiplier(data.maxInternalHp, enduranceSkill)
         event.damage = event.damage * damageMultiplier
     }
 
@@ -410,6 +368,23 @@ class SurvivalListener(private val plugin: Skills) : Listener {
             fallHeight <= 30 -> 60   // Very high fall
             else -> 80               // Extreme fall
         }
+    }
+
+    /**
+     * Calculate damage multiplier for environmental damage with STR scaling.
+     *
+     * STR increases maxHp, which would make environmental damage less deadly.
+     * To keep damage roughly vanilla-equivalent, we scale damage with maxHp.
+     * STR benefit is limited to 20% (80% of HP bonus is applied to damage scaling).
+     *
+     * Example: STR 25 (maxHp 125) → only 5% damage reduction instead of 25%
+     */
+    private fun calculateEnvironmentalDamageMultiplier(maxHp: Double, skillValue: Double): Double {
+        val hpRatio = maxHp / 100.0
+        val strScaleFactor = 1.0 + ((hpRatio - 1.0) * 0.8)  // 80% of HP bonus scales damage
+        val baseMultiplier = 0.5 * strScaleFactor
+        val skillReductionPercent = skillValue.coerceAtMost(100.0)
+        return baseMultiplier * (1.0 - (skillReductionPercent / 100.0))
     }
 
 
