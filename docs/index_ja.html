@@ -276,32 +276,41 @@
             </div>
 
             <h3>サバイバル系スキル</h3>
-            <p class="note">※内部HPシステム（×10倍ダメージ）対応。90%基本軽減 + スキル×0.9%軽減。スキル100で完全免疫（画面揺れなし）</p>
+            <p class="note">※環境ダメージはバニラと同等の致死性を維持。STRによるHP増加の恩恵は20%に制限（80%はダメージスケールに反映）。スキル100で完全免疫。</p>
+            <div class="formula">
+                <pre>ダメージ倍率 = 0.5 × STRスケール × (1 - スキル/100)
+STRスケール = 1.0 + ((maxHP/100 - 1) × 0.8)
+
+例: STR 25 (maxHP 125), スキル 0
+  STRスケール = 1.0 + (0.25 × 0.8) = 1.2
+  ダメージ倍率 = 0.5 × 1.2 × 1.0 = 0.6
+  → バニラ致死ダメージでほぼ死亡（STRの恩恵は5%程度）</pre>
+            </div>
             <div class="skill-category">
                 <div class="skill-card">
                     <h4>Athletics <span class="badge badge-dex">DEX</span></h4>
-                    <p>落下ダメージ軽減：90%基本 + スキル×0.9%</p>
+                    <p>落下ダメージ軽減：スキル%で軽減（エリトラ衝突も対象）</p>
                     <p class="skill-effect">スキル100で完全免疫。上昇条件：落下ダメージを受ける</p>
                 </div>
                 <div class="skill-card">
                     <h4>Swimming <span class="badge badge-dex">DEX</span></h4>
-                    <p>溺れダメージ軽減：90%基本 + スキル×0.9%</p>
-                    <p class="skill-effect">スキル100で完全免疫。上昇条件：溺れダメージを受ける</p>
+                    <p>溺れダメージ軽減：スキル%で軽減。空気消費軽減：スキル/2%の確率で消費なし</p>
+                    <p class="skill-effect">スキル100で完全免疫。スキル80+で水中呼吸付与。上昇条件：溺れダメージを受ける</p>
                 </div>
                 <div class="skill-card">
                     <h4>Heat Resistance <span class="badge badge-str">STR</span></h4>
-                    <p>炎・溶岩ダメージ軽減：90%基本 + スキル×0.9%</p>
-                    <p class="skill-effect">スキル100で完全免疫+即消火。上昇条件：炎ダメージを受ける</p>
+                    <p>炎・溶岩・雷ダメージ軽減：スキル%で軽減。燃焼時間短縮：スキル/200%</p>
+                    <p class="skill-effect">スキル95+で消火チャンス。スキル100で完全免疫+即消火。上昇条件：炎ダメージを受ける</p>
                 </div>
                 <div class="skill-card">
                     <h4>Cold Resistance <span class="badge badge-str">STR</span></h4>
-                    <p>凍結ダメージ軽減：90%基本 + スキル×0.9%</p>
-                    <p class="skill-effect">スキル100で完全免疫+即解凍。上昇条件：凍結ダメージを受ける</p>
+                    <p>凍結ダメージ軽減：スキル%で軽減。凍結蓄積軽減：スキル/200%</p>
+                    <p class="skill-effect">スキル95+で解凍チャンス。スキル100で完全免疫+即解凍。上昇条件：凍結ダメージを受ける</p>
                 </div>
                 <div class="skill-card">
                     <h4>Endurance <span class="badge badge-str">STR</span></h4>
-                    <p>窒息/接触ダメージ軽減：90%基本 + スキル×0.9%</p>
-                    <p class="skill-effect">スキル100で完全免疫。上昇条件：窒息/接触ダメージを受ける</p>
+                    <p>窒息・爆発・接触ダメージ軽減：スキル%で軽減</p>
+                    <p class="skill-effect">スキル100で完全免疫。上昇条件：窒息/爆発/接触ダメージを受ける</p>
                 </div>
             </div>
         </section>
@@ -1036,7 +1045,7 @@ Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
                 <ul>
                     <li><strong>HQ/EX食べ物のHealth Boost</strong> - HQ食べ物で+2ハート(30秒)、EX食べ物で+2ハート(1分)</li>
                     <li><strong>GM（スキル100）完全免疫</strong> - サバイバルスキル100で完全免疫、画面揺れなし</li>
-                    <li><strong>サバイバルスキルリバランス</strong> - 内部HPシステム対応（90%基本軽減 + スキル×0.9%）</li>
+                    <li><strong>サバイバルスキルリバランス</strong> - 環境ダメージがバニラと同等の致死性を維持するようSTRスケーリングを導入</li>
                     <li><strong>修正:</strong> 食べ物のスタック問題（浮動小数点精度）</li>
                     <li><strong>修正:</strong> 管理コマンドのスペース入りスキル名パース</li>
                 </ul>

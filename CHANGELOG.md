@@ -368,10 +368,11 @@ val currentHp = api.getCurrentHp(player)
   - Old and new items can now stack together after picking up any food item
 
 - **Survival Skills Damage Rebalancing** (Breaking Change)
-  - All survival skills now compensate for internal HP system (x10 damage multiplier)
-  - New formula: 90% base reduction + up to 90% skill-based reduction
-  - Skill 0: ~vanilla damage (10% of internal damage)
-  - Skill 100: 1% damage (effectively immune, but with screen shake)
+  - Environmental damage now maintains vanilla lethality regardless of STR
+  - STR HP bonus benefit limited to 20% (80% scales with damage)
+  - Formula: `0.5 × STRScale × (1 - Skill/100)` where `STRScale = 1 + ((maxHP/100 - 1) × 0.8)`
+  - Example: STR 25 (maxHP 125), Skill 0 → Damage multiplier 0.6 (near-vanilla lethality)
+  - Skill 100: Complete immunity (no damage, no screen shake)
   - Affected skills: Athletics, Swimming, Heat Resistance, Cold Resistance, Endurance
   - Contact damage (cactus/berry bush) now uses same formula via Endurance skill
 

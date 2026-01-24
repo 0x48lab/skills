@@ -276,32 +276,41 @@
             </div>
 
             <h3>Survival Skills</h3>
-            <p class="note">※ Compensates for internal HP system (×10 damage). 90% base reduction + Skill×0.9% reduction. Skill 100 = complete immunity (no screen shake)</p>
+            <p class="note">※ Environmental damage maintains vanilla lethality. STR HP bonus benefit limited to 20% (80% scales with damage). Skill 100 = complete immunity.</p>
+            <div class="formula">
+                <pre>Damage Multiplier = 0.5 × STR Scale × (1 - Skill/100)
+STR Scale = 1.0 + ((maxHP/100 - 1) × 0.8)
+
+Example: STR 25 (maxHP 125), Skill 0
+  STR Scale = 1.0 + (0.25 × 0.8) = 1.2
+  Damage Multiplier = 0.5 × 1.2 × 1.0 = 0.6
+  → Vanilla lethal damage is still nearly lethal (STR benefit ~5%)</pre>
+            </div>
             <div class="skill-category">
                 <div class="skill-card">
                     <h4>Athletics <span class="badge badge-dex">DEX</span></h4>
-                    <p>Fall damage reduction: 90% base + Skill×0.9%</p>
+                    <p>Fall damage reduction: Skill% reduction (includes elytra crash)</p>
                     <p class="skill-effect">Skill 100 = immune. Gain: Take fall damage</p>
                 </div>
                 <div class="skill-card">
                     <h4>Swimming <span class="badge badge-dex">DEX</span></h4>
-                    <p>Drowning damage reduction: 90% base + Skill×0.9%</p>
-                    <p class="skill-effect">Skill 100 = immune. Gain: Take drowning damage</p>
+                    <p>Drowning damage reduction: Skill% reduction. Air save: Skill/2% chance</p>
+                    <p class="skill-effect">Skill 80+ grants water breathing. Skill 100 = immune. Gain: Take drowning damage</p>
                 </div>
                 <div class="skill-card">
                     <h4>Heat Resistance <span class="badge badge-str">STR</span></h4>
-                    <p>Fire/lava damage reduction: 90% base + Skill×0.9%</p>
-                    <p class="skill-effect">Skill 100 = immune + extinguish. Gain: Take fire damage</p>
+                    <p>Fire/lava/lightning damage reduction: Skill% reduction. Burn time reduced by Skill/200%</p>
+                    <p class="skill-effect">Skill 95+ chance to extinguish. Skill 100 = immune + instant extinguish. Gain: Take fire damage</p>
                 </div>
                 <div class="skill-card">
                     <h4>Cold Resistance <span class="badge badge-str">STR</span></h4>
-                    <p>Freeze damage reduction: 90% base + Skill×0.9%</p>
-                    <p class="skill-effect">Skill 100 = immune + thaw. Gain: Take freeze damage</p>
+                    <p>Freeze damage reduction: Skill% reduction. Freeze buildup reduced by Skill/200%</p>
+                    <p class="skill-effect">Skill 95+ chance to thaw. Skill 100 = immune + instant thaw. Gain: Take freeze damage</p>
                 </div>
                 <div class="skill-card">
                     <h4>Endurance <span class="badge badge-str">STR</span></h4>
-                    <p>Suffocation/Contact damage reduction: 90% base + Skill×0.9%</p>
-                    <p class="skill-effect">Skill 100 = immune. Gain: Take suffocation/contact damage</p>
+                    <p>Suffocation/Explosion/Contact damage reduction: Skill% reduction</p>
+                    <p class="skill-effect">Skill 100 = immune. Gain: Take suffocation/explosion/contact damage</p>
                 </div>
             </div>
         </section>
@@ -993,7 +1002,7 @@ Final = Base × STR × Tactics × Anatomy × Quality × Enchant</pre>
                 <ul>
                     <li><strong>Health Boost for HQ/EX Food</strong> - HQ food grants +2 hearts (30s), EX food grants +2 hearts (1min)</li>
                     <li><strong>GM (Skill 100) Complete Immunity</strong> - All survival skills at 100 grant complete immunity with no screen shake</li>
-                    <li><strong>Survival Skills Rebalance</strong> - Compensates for internal HP system (90% base + Skill×0.9% reduction)</li>
+                    <li><strong>Survival Skills Rebalance</strong> - Environmental damage maintains vanilla lethality with STR scaling (80% of HP bonus applies to damage)</li>
                     <li><strong>Fixed:</strong> Food stacking issue (floating point precision)</li>
                     <li><strong>Fixed:</strong> Admin command parsing for skill names with spaces</li>
                 </ul>
