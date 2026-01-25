@@ -26,6 +26,7 @@
             <li><a href="#crafting">生産</a></li>
             <li><a href="#gathering">採集</a></li>
             <li><a href="#repair">修理システム</a></li>
+            <li><a href="#scoreboard">スコアボード</a></li>
             <li><a href="#commands">コマンド</a></li>
             <li><a href="#changelog">変更履歴</a></li>
         </ul>
@@ -917,6 +918,119 @@ Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
                 <tr><td>40</td><td>67%</td></tr>
                 <tr><td>50</td><td>83%</td></tr>
                 <tr><td>60+</td><td>100%</td></tr>
+            </table>
+        </section>
+
+        <!-- スコアボード -->
+        <section id="scoreboard">
+            <h2>スコアボード</h2>
+            <p>サイドバーに表示されるスコアボードには、プレイヤーの現在の状態がリアルタイムで表示されます。<code>/skills sb</code>コマンドで表示/非表示を切り替えられます。</p>
+
+            <h3>スコアボード表示例</h3>
+            <div class="formula">
+                <pre>Grandmaster
+Swordsman
+
+H 156/180
+M 15/20
+S 145/200
+$ 1,234
+
+Stats: 75/225
+STR: 25 ▲
+DEX: 25 ▲
+INT: 25 ▼</pre>
+            </div>
+
+            <h3>表示項目</h3>
+            <table>
+                <tr>
+                    <th>項目</th>
+                    <th>説明</th>
+                </tr>
+                <tr>
+                    <td><strong>タイトル</strong></td>
+                    <td>プレイヤーの称号（最も高いスキルに基づく）。例：「Grandmaster Swordsman」</td>
+                </tr>
+                <tr>
+                    <td><strong>H（HP）</strong></td>
+                    <td>現在HP / 最大HP。最大HP = 100 + STR</td>
+                </tr>
+                <tr>
+                    <td><strong>M（マナ）</strong></td>
+                    <td>現在マナ / 最大マナ。魔法詠唱に使用。最大マナは固定で20</td>
+                </tr>
+                <tr>
+                    <td><strong>S（スタミナ）</strong></td>
+                    <td>現在スタミナ / 最大スタミナ。ダッシュで消費。最大スタミナ = 100 + DEX + (Focus/2)</td>
+                </tr>
+                <tr>
+                    <td><strong>$（所持金）</strong></td>
+                    <td>経済システムが有効な場合のみ表示。Vaultプラグインと連携</td>
+                </tr>
+                <tr>
+                    <td><strong>Stats</strong></td>
+                    <td>ステータス合計 / ステータス上限（225）</td>
+                </tr>
+                <tr>
+                    <td><strong>STR/DEX/INT</strong></td>
+                    <td>各ステータス値とロックモード</td>
+                </tr>
+            </table>
+
+            <h3>ステータスロックモード</h3>
+            <p>各ステータスの右側に表示されるアイコンは、そのステータスの変動モードを示します。ステータス合計上限（225）に達すると、あるステータスを上げるには別のステータスを下げる必要があります。</p>
+
+            <table>
+                <tr>
+                    <th>アイコン</th>
+                    <th>モード</th>
+                    <th>説明</th>
+                </tr>
+                <tr>
+                    <td class="str"><strong>▲</strong></td>
+                    <td>UP（上昇）</td>
+                    <td>ステータスが上昇可能。合計上限に達している場合、他のステータス（DOWNまたはUPモード）を下げて上昇</td>
+                </tr>
+                <tr>
+                    <td class="dex"><strong>▼</strong></td>
+                    <td>DOWN（下降）</td>
+                    <td>ステータスが下降のみ可能。他のステータスが上昇する際に優先的に下がる</td>
+                </tr>
+                <tr>
+                    <td class="int"><strong>■</strong></td>
+                    <td>LOCKED（固定）</td>
+                    <td>ステータスは一切変化しない。上昇も下降もしない</td>
+                </tr>
+            </table>
+
+            <h3>ロックモードの切り替え</h3>
+            <p><code>/stats lock &lt;str|dex|int&gt;</code>コマンドでロックモードを切り替えられます。</p>
+            <p>切り替え順序: UP → DOWN → LOCKED → UP...</p>
+
+            <h4>使用例</h4>
+            <ul>
+                <li><strong>戦士ビルド</strong>：STRをUP、DEXをUP、INTをDOWNに設定 → INTを犠牲にSTR/DEXが上昇</li>
+                <li><strong>魔法使いビルド</strong>：INTをUP、STR/DEXをDOWNに設定 → STR/DEXを犠牲にINTが上昇</li>
+                <li><strong>バランス型</strong>：全てUPに設定 → 均等に上昇（上限到達後は最も低いものが優先的に下がる）</li>
+                <li><strong>特定値を維持</strong>：維持したいステータスをLOCKEDに設定 → そのステータスは変化しない</li>
+            </ul>
+
+            <h3>他プラグインとの競合</h3>
+            <p>設定ファイルの<code>scoreboard.conflict_mode</code>で他プラグインとのスコアボード競合時の動作を設定できます。</p>
+            <table>
+                <tr>
+                    <th>モード</th>
+                    <th>説明</th>
+                </tr>
+                <tr>
+                    <td><code>ALWAYS</code></td>
+                    <td>常にSkillsのスコアボードを表示（他プラグインを上書き）</td>
+                </tr>
+                <tr>
+                    <td><code>RESPECT</code></td>
+                    <td>他プラグインがサイドバーを使用している場合は表示しない（デフォルト）</td>
+                </tr>
             </table>
         </section>
 

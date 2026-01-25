@@ -26,6 +26,7 @@
             <li><a href="#crafting">Crafting</a></li>
             <li><a href="#gathering">Gathering</a></li>
             <li><a href="#repair">Repair System</a></li>
+            <li><a href="#scoreboard">Scoreboard</a></li>
             <li><a href="#commands">Commands</a></li>
             <li><a href="#changelog">Changelog</a></li>
         </ul>
@@ -874,6 +875,119 @@ Final = Base × STR × Tactics × Anatomy × Quality × Enchant</pre>
                 <tr><td>40</td><td>67%</td></tr>
                 <tr><td>50</td><td>83%</td></tr>
                 <tr><td>60+</td><td>100%</td></tr>
+            </table>
+        </section>
+
+        <!-- Scoreboard -->
+        <section id="scoreboard">
+            <h2>Scoreboard</h2>
+            <p>The sidebar scoreboard displays your current status in real-time. Use <code>/skills sb</code> command to toggle visibility.</p>
+
+            <h3>Scoreboard Display Example</h3>
+            <div class="formula">
+                <pre>Grandmaster
+Swordsman
+
+H 156/180
+M 15/20
+S 145/200
+$ 1,234
+
+Stats: 75/225
+STR: 25 ▲
+DEX: 25 ▲
+INT: 25 ▼</pre>
+            </div>
+
+            <h3>Display Items</h3>
+            <table>
+                <tr>
+                    <th>Item</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><strong>Title</strong></td>
+                    <td>Player title based on highest skill. Example: "Grandmaster Swordsman"</td>
+                </tr>
+                <tr>
+                    <td><strong>H (HP)</strong></td>
+                    <td>Current HP / Max HP. Max HP = 100 + STR</td>
+                </tr>
+                <tr>
+                    <td><strong>M (Mana)</strong></td>
+                    <td>Current Mana / Max Mana. Used for spellcasting. Max Mana is fixed at 20</td>
+                </tr>
+                <tr>
+                    <td><strong>S (Stamina)</strong></td>
+                    <td>Current Stamina / Max Stamina. Consumed by sprinting. Max Stamina = 100 + DEX + (Focus/2)</td>
+                </tr>
+                <tr>
+                    <td><strong>$ (Gold)</strong></td>
+                    <td>Only shown when economy system is enabled. Integrates with Vault plugin</td>
+                </tr>
+                <tr>
+                    <td><strong>Stats</strong></td>
+                    <td>Total Stats / Stat Cap (225)</td>
+                </tr>
+                <tr>
+                    <td><strong>STR/DEX/INT</strong></td>
+                    <td>Each stat value with lock mode indicator</td>
+                </tr>
+            </table>
+
+            <h3>Stat Lock Modes</h3>
+            <p>The icon displayed next to each stat indicates its lock mode. When the stat total reaches the cap (225), increasing one stat requires decreasing another.</p>
+
+            <table>
+                <tr>
+                    <th>Icon</th>
+                    <th>Mode</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td class="str"><strong>▲</strong></td>
+                    <td>UP</td>
+                    <td>Stat can increase. When at cap, other stats (DOWN or UP mode) will decrease to make room</td>
+                </tr>
+                <tr>
+                    <td class="dex"><strong>▼</strong></td>
+                    <td>DOWN</td>
+                    <td>Stat can only decrease. Prioritized for reduction when other stats need to increase</td>
+                </tr>
+                <tr>
+                    <td class="int"><strong>■</strong></td>
+                    <td>LOCKED</td>
+                    <td>Stat cannot change at all. Will not increase or decrease</td>
+                </tr>
+            </table>
+
+            <h3>Changing Lock Mode</h3>
+            <p>Use <code>/stats lock &lt;str|dex|int&gt;</code> command to cycle through lock modes.</p>
+            <p>Cycle order: UP → DOWN → LOCKED → UP...</p>
+
+            <h4>Example Builds</h4>
+            <ul>
+                <li><strong>Warrior Build</strong>: Set STR to UP, DEX to UP, INT to DOWN → INT decreases to raise STR/DEX</li>
+                <li><strong>Mage Build</strong>: Set INT to UP, STR/DEX to DOWN → STR/DEX decrease to raise INT</li>
+                <li><strong>Balanced Build</strong>: Set all to UP → Stats rise evenly (lowest stat decreases when at cap)</li>
+                <li><strong>Maintain Specific Value</strong>: Set desired stat to LOCKED → That stat won't change</li>
+            </ul>
+
+            <h3>Plugin Conflict Handling</h3>
+            <p>The <code>scoreboard.conflict_mode</code> setting in config controls behavior when other plugins use the sidebar.</p>
+            <table>
+                <tr>
+                    <th>Mode</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>ALWAYS</code></td>
+                    <td>Always show Skills scoreboard (overwrites other plugins)</td>
+                </tr>
+                <tr>
+                    <td><code>RESPECT</code></td>
+                    <td>Don't show if another plugin is using the sidebar (default)</td>
+                </tr>
             </table>
         </section>
 
