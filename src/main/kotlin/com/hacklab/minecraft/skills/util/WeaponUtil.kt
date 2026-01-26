@@ -35,6 +35,7 @@ object WeaponUtil {
             // Spears
             Material.WOODEN_SPEAR,
             Material.STONE_SPEAR,
+            Material.COPPER_SPEAR,
             Material.IRON_SPEAR,
             Material.GOLDEN_SPEAR,
             Material.DIAMOND_SPEAR,

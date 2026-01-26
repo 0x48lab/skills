@@ -106,6 +106,28 @@ armor:
     dex_required: 10
     dex_penalty: 1
 
+  # === Copper (Light-Medium Armor - between leather and chain) ===
+  COPPER_HELMET:
+    ar: 3
+    str_required: 15
+    dex_required: 5
+    dex_penalty: 1
+  COPPER_CHESTPLATE:
+    ar: 6
+    str_required: 25
+    dex_required: 10
+    dex_penalty: 3
+  COPPER_LEGGINGS:
+    ar: 5
+    str_required: 20
+    dex_required: 8
+    dex_penalty: 2
+  COPPER_BOOTS:
+    ar: 3
+    str_required: 12
+    dex_required: 5
+    dex_penalty: 1
+
   # === Gold (Decorative - low protection, no requirements) ===
   GOLDEN_HELMET:
     ar: 3

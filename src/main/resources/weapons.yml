@@ -72,6 +72,10 @@ weapons:
     base_damage: 5
     skill: SPEAR
     weapon_type: SPEAR
+  COPPER_SPEAR:
+    base_damage: 5
+    skill: SPEAR
+    weapon_type: SPEAR
   IRON_SPEAR:
     base_damage: 6
     skill: SPEAR
