@@ -113,16 +113,15 @@ class GatheringListener(private val plugin: Skills) : Listener {
 
     /**
      * Apply mining speed bonus as Haste effect
-     * Haste I = +20% speed, Haste II = +40% speed, etc.
+     * Haste amplifier: 0 = Haste I (+20%), 1 = Haste II (+40%)
      */
     private fun applyMiningSpeedBonus(player: Player, bonusPercent: Double) {
-        // Convert bonus percentage to Haste level (each level = ~20% speed)
-        // Max 50% bonus = Haste II (approximately)
+        // Convert bonus percentage to Haste amplifier
+        // Each Haste level adds ~20% speed
         val hasteLevel = when {
-            bonusPercent >= 40.0 -> 2  // Haste II
-            bonusPercent >= 20.0 -> 1  // Haste I
-            bonusPercent >= 10.0 -> 0  // Haste I (level 0 = amplifier 0 = Haste I)
-            else -> return  // Too small to apply
+            bonusPercent >= 40.0 -> 1  // Haste II (+40%)
+            bonusPercent >= 20.0 -> 0  // Haste I (+20%)
+            else -> return  // Below 20% - no effect applied
         }
 
         // Check if player already has a stronger Haste effect

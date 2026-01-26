@@ -5,6 +5,8 @@ import com.hacklab.minecraft.skills.i18n.MessageKey
 import com.hacklab.minecraft.skills.skill.SkillType
 import org.bukkit.GameMode
 import org.bukkit.Material
+import org.bukkit.Particle
+import org.bukkit.Sound
 import org.bukkit.block.Block
 import org.bukkit.entity.Item
 import org.bukkit.entity.Player
@@ -48,7 +50,28 @@ class GatheringManager(private val plugin: Skills) {
             // Add bonus drop (duplicate first non-block drop)
             drops.firstOrNull { !it.type.isBlock }?.let { itemDrop ->
                 drops.add(itemDrop.clone())
-                plugin.messageSender.send(player, MessageKey.GATHERING_BONUS_DROP)
+
+                // Visual feedback: ActionBar message
+                plugin.messageSender.sendActionBar(player, MessageKey.GATHERING_BONUS_DROP)
+
+                // Visual feedback: Particle effect at block location
+                block.world.spawnParticle(
+                    Particle.HAPPY_VILLAGER,
+                    block.location.add(0.5, 0.5, 0.5),
+                    10,    // count
+                    0.3,   // offsetX
+                    0.3,   // offsetY
+                    0.3,   // offsetZ
+                    0.0    // speed
+                )
+
+                // Audio feedback: Experience orb pickup sound
+                player.playSound(
+                    block.location,
+                    Sound.ENTITY_EXPERIENCE_ORB_PICKUP,
+                    0.5f,  // volume
+                    1.2f   // pitch
+                )
             }
         }
 
@@ -191,12 +214,13 @@ class GatheringManager(private val plugin: Skills) {
 
     /**
      * Get mining speed bonus based on STR and skill
+     * Enhanced: doubled the bonus for better feel
      */
     fun getMiningSpeedBonus(player: Player): Double {
         val data = plugin.playerDataManager.getPlayerData(player)
         val str = data.str
         val miningSkill = data.getSkillValue(SkillType.MINING)
-        return (str / 10.0) + (miningSkill / 10.0)  // Max +20%
+        return (str / 5.0) + (miningSkill / 5.0)  // Max +40%
     }
 
     /**

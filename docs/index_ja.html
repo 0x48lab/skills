@@ -96,7 +96,7 @@
                 </tr>
                 <tr>
                     <td class="str">STR</td>
-                    <td>最大HP = 100 + STR、採掘・伐採速度 +STR/10%</td>
+                    <td>最大HP = 100 + STR、採掘・伐採速度 +STR/5%</td>
                 </tr>
                 <tr>
                     <td class="dex">DEX</td>
@@ -255,7 +255,7 @@
             <div class="skill-category">
                 <div class="skill-card">
                     <h4>Mining <span class="badge badge-str">STR</span></h4>
-                    <p>採掘速度（採掘速度上昇）、ボーナス鉱石確率：スキル/2%、耐久消費軽減</p>
+                    <p>採掘速度（最大+40%の採掘速度上昇）、ボーナス鉱石確率：スキル/2%（視覚フィードバック付き）、耐久消費軽減</p>
                     <p>シャベルでの土・砂・砂利の掘削も対象</p>
                     <p class="skill-effect">上昇条件：鉱石を採掘、シャベルで掘る</p>
                 </div>
@@ -713,18 +713,27 @@ Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
             <p>Miningスキルは鉱石採掘（ツルハシ）とソフトブロックの掘削（シャベル）の両方に適用されます。</p>
 
             <h4>速度ボーナス（採掘速度上昇効果）</h4>
-            <p>鉱石を採掘したり、ソフトブロックを掘り始めると、スキルに応じた採掘速度上昇効果が適用されます。</p>
+            <p>鉱石を採掘したり、ソフトブロックを掘り始めると、STRとMiningスキルに応じた採掘速度上昇効果が適用されます。</p>
+            <div class="formula">
+                <code>速度ボーナス = STR/5 + Miningスキル/5（最大+40%）</code>
+            </div>
             <table>
                 <tr>
-                    <th>Miningスキル</th>
-                    <th>速度ボーナス</th>
+                    <th>合計ボーナス</th>
                     <th>採掘速度上昇レベル</th>
+                    <th>効果</th>
                 </tr>
-                <tr><td>0-19</td><td>0-9%</td><td>なし</td></tr>
-                <tr><td>20-39</td><td>10-19%</td><td>採掘速度上昇 I</td></tr>
-                <tr><td>40-79</td><td>20-39%</td><td>採掘速度上昇 I</td></tr>
-                <tr><td>80-100</td><td>40-50%</td><td>採掘速度上昇 II</td></tr>
+                <tr><td>0-19%</td><td>なし</td><td>採掘速度上昇なし</td></tr>
+                <tr><td>20-39%</td><td>採掘速度上昇 I</td><td>+20%採掘速度</td></tr>
+                <tr><td>40%+</td><td>採掘速度上昇 II</td><td>+40%採掘速度</td></tr>
             </table>
+            <p><em>例：Mining 100 + STR 100 = 40%ボーナス → 採掘速度上昇II → 黒曜石が約5秒で採掘可能（バニラは8.35秒）</em></p>
+
+            <h4>ボーナス鉱石ドロップ</h4>
+            <div class="formula">
+                <code>ボーナス確率 = Miningスキル / 2（最大50%）</code>
+                <p>ボーナスドロップ発生時、緑のパーティクルとサウンド、「+1 ボーナス!」メッセージが表示されます。</p>
+            </div>
 
             <h4>耐久消費軽減</h4>
             <div class="formula">

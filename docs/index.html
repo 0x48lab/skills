@@ -96,7 +96,7 @@
                 </tr>
                 <tr>
                     <td class="str">STR</td>
-                    <td>Max HP = 100 + STR, Mining/Lumber speed +STR/10%</td>
+                    <td>Max HP = 100 + STR, Mining/Lumber speed +STR/5%</td>
                 </tr>
                 <tr>
                     <td class="dex">DEX</td>
@@ -255,7 +255,7 @@
             <div class="skill-category">
                 <div class="skill-card">
                     <h4>Mining <span class="badge badge-str">STR</span></h4>
-                    <p>Mining speed (Haste), Bonus ore chance: Skill/2%, Durability reduction</p>
+                    <p>Mining speed (Haste up to +40%), Bonus ore chance: Skill/2% with visual feedback, Durability reduction</p>
                     <p>Also covers digging soft blocks with shovels (dirt, sand, gravel, etc.)</p>
                     <p class="skill-effect">Gain: Mine ores, dig with shovel</p>
                 </div>
@@ -670,18 +670,27 @@ Final = Base × STR × Tactics × Anatomy × Quality × Enchant</pre>
             <p>Mining skill covers both ore mining (pickaxe) and soft block digging (shovel).</p>
 
             <h4>Speed Bonus (Haste Effect)</h4>
-            <p>When you start mining ores or digging soft blocks, a Haste effect is applied based on your skill.</p>
+            <p>When you start mining ores or digging soft blocks, a Haste effect is applied based on your STR and Mining skill.</p>
+            <div class="formula">
+                <code>Speed Bonus = STR/5 + Mining Skill/5 (max +40%)</code>
+            </div>
             <table>
                 <tr>
-                    <th>Mining Skill</th>
-                    <th>Speed Bonus</th>
+                    <th>Combined Bonus</th>
                     <th>Haste Level</th>
+                    <th>Effect</th>
                 </tr>
-                <tr><td>0-19</td><td>0-9%</td><td>None</td></tr>
-                <tr><td>20-39</td><td>10-19%</td><td>Haste I</td></tr>
-                <tr><td>40-79</td><td>20-39%</td><td>Haste I</td></tr>
-                <tr><td>80-100</td><td>40-50%</td><td>Haste II</td></tr>
+                <tr><td>0-19%</td><td>None</td><td>No Haste applied</td></tr>
+                <tr><td>20-39%</td><td>Haste I</td><td>+20% mining speed</td></tr>
+                <tr><td>40%+</td><td>Haste II</td><td>+40% mining speed</td></tr>
             </table>
+            <p><em>Example: Mining 100 + STR 100 = 40% bonus → Haste II → Obsidian mined in ~5 seconds instead of 8.35</em></p>
+
+            <h4>Bonus Ore Drops</h4>
+            <div class="formula">
+                <code>Bonus Chance = Mining Skill / 2 (max 50%)</code>
+                <p>When a bonus drop occurs, you'll see green particles, hear a sound, and get a "+1 Bonus!" message.</p>
+            </div>
 
             <h4>Durability Reduction</h4>
             <div class="formula">
