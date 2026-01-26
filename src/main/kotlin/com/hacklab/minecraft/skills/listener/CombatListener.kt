@@ -1,7 +1,10 @@
 package com.hacklab.minecraft.skills.listener
 
 import com.hacklab.minecraft.skills.Skills
+import com.hacklab.minecraft.skills.skill.WeaponType
+import com.hacklab.minecraft.skills.skill.SkillType
 import com.hacklab.minecraft.skills.skill.StatCalculator
+import org.bukkit.Material
 import org.bukkit.Particle
 import org.bukkit.Sound
 import org.bukkit.entity.LivingEntity
@@ -81,6 +84,19 @@ class CombatListener(private val plugin: Skills) : Listener {
             // Check for poison hit (only on successful hit)
             if (plugin.poisoningManager.isPoisoned(weapon)) {
                 plugin.poisoningManager.processPoisonHit(attacker, target, weapon)
+            }
+
+            // Check for unarmed stun effect (only on melee hit)
+            if (!isRangedAttack) {
+                val weaponStats = plugin.combatConfig.getWeaponStats(weapon)
+                val isUnarmed = weaponStats.weaponType == WeaponType.FIST &&
+                                (weapon.type == Material.AIR)
+
+                if (isUnarmed) {
+                    val wrestlingSkill = plugin.playerDataManager.getPlayerData(attacker)
+                        .getSkillValue(SkillType.WRESTLING)
+                    plugin.combatManager.tryStunOnUnarmedHit(attacker, target, wrestlingSkill)
+                }
             }
 
             // Modify damage based on calculation

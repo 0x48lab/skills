@@ -537,6 +537,13 @@ class Skills : JavaPlugin() {
                 chunkLimitManager.cleanupExpired()
             }
         }.runTaskTimerAsynchronously(this, 6000L, 6000L) // Every 5 minutes
+
+        // Stun cooldown cleanup (every 5 minutes)
+        object : BukkitRunnable() {
+            override fun run() {
+                combatManager.cleanupStunCooldowns()
+            }
+        }.runTaskTimerAsynchronously(this, 6000L, 6000L) // Every 5 minutes
     }
 
     private fun registerAPI() {

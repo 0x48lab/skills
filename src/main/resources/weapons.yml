@@ -183,7 +183,8 @@ weapons:
     weapon_type: FIST
 
 # Unarmed combat (fist) base damage
+# With Wrestling 100, effective damage = 3 × 1.5 = 4.5 (comparable to wooden/iron sword)
 unarmed:
-  base_damage: 1
+  base_damage: 3
   skill: WRESTLING
   weapon_type: FIST

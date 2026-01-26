@@ -188,6 +188,7 @@ enum class MessageKey(val path: String) {
     COMBAT_CRITICAL("combat.critical"),
     COMBAT_RESIST("combat.resist"),
     COMBAT_MISS("combat.miss"),
+    COMBAT_STUN("combat.stun"),
 
     // Armor
     ARMOR_CANNOT_EQUIP_STR("armor.cannot_equip_str"),

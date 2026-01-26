@@ -198,6 +198,7 @@ combat:
   critical: "<gold>クリティカルヒット！"
   resist: "<blue>ダメージを軽減した。"
   miss: "<gray>ミス！"
+  stun: "<yellow>⚡ スタン！"
 
 # 防具メッセージ
 armor:

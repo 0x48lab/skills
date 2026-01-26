@@ -4,10 +4,17 @@ import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.i18n.MessageKey
 import com.hacklab.minecraft.skills.skill.SkillType
 import com.hacklab.minecraft.skills.skill.StatCalculator
+import com.hacklab.minecraft.skills.skill.WeaponType
+import org.bukkit.Material
+import org.bukkit.Particle
+import org.bukkit.Sound
 import org.bukkit.entity.Entity
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
+import org.bukkit.potion.PotionEffect
+import org.bukkit.potion.PotionEffectType
+import java.util.UUID
 import kotlin.random.Random
 
 /**
@@ -31,15 +38,20 @@ class CombatManager(private val plugin: Skills) {
         const val CRITICAL_MULTIPLIER = 2.0  // UO-style: crits deal double damage
         const val MOVEMENT_PENALTY = 0.7  // 30% damage reduction when moving while shooting
         const val MOVEMENT_THRESHOLD = 0.1  // Velocity threshold to consider "moving"
+        const val STUN_DURATION_TICKS = 20  // 1 second
+        const val STUN_COOLDOWN_MS = 5000L  // 5 seconds
     }
 
     // Track shooter movement state for projectiles (projectile UUID -> was moving)
-    private val projectileMovementState = java.util.concurrent.ConcurrentHashMap<java.util.UUID, Boolean>()
+    private val projectileMovementState = java.util.concurrent.ConcurrentHashMap<UUID, Boolean>()
+
+    // Stun cooldown tracking: attacker UUID -> target UUID -> last stun time
+    private val stunCooldowns = java.util.concurrent.ConcurrentHashMap<UUID, MutableMap<UUID, Long>>()
 
     /**
      * Record if player was moving when shooting a projectile
      */
-    fun recordProjectileShot(projectileId: java.util.UUID, wasMoving: Boolean) {
+    fun recordProjectileShot(projectileId: UUID, wasMoving: Boolean) {
         projectileMovementState[projectileId] = wasMoving
         // Clean up after 30 seconds to prevent memory leak
         plugin.server.scheduler.runTaskLater(plugin, Runnable {
@@ -50,7 +62,7 @@ class CombatManager(private val plugin: Skills) {
     /**
      * Check if shooter was moving when the projectile was shot
      */
-    fun wasShooterMoving(projectileId: java.util.UUID): Boolean {
+    fun wasShooterMoving(projectileId: UUID): Boolean {
         return projectileMovementState.remove(projectileId) ?: false
     }
 
@@ -139,13 +151,18 @@ class CombatManager(private val plugin: Skills) {
     /**
      * Calculate damage (UO-style formula)
      *
-     * Final Damage = Base Damage × Tactics Mod × Anatomy Mod × STR Mod × Quality Mod × DI Mod × Critical Mod
+     * Final Damage = Base Damage × Tactics Mod × Anatomy Mod × Wrestling Mod × STR Mod × Quality Mod × DI Mod × Critical Mod
      * After Defense = Final Damage × (1 - Defense Reduction)
      * Defense Reduction = Target Defense / (Target Defense + 50)
      *
      * Tactics and Anatomy are ESSENTIAL skills for combat:
      * - Tactics 10, Anatomy 10: ~30 hits to kill skeleton
      * - Tactics 100, Anatomy 100: 1 hit to kill skeleton
+     *
+     * Wrestling modifier (unarmed only):
+     * - Skill 0: 0.5 (50% damage penalty)
+     * - Skill 50: 1.0 (100% damage)
+     * - Skill 100: 1.5 (150% damage bonus)
      *
      * @param baseDamage Weapon's base damage (vanilla damage including crit bonus)
      * @param str Player's STR stat
@@ -154,6 +171,8 @@ class CombatManager(private val plugin: Skills) {
      * @param qualityModifier Weapon quality modifier (0.85 for LQ, 1.0 for NQ, 1.15 for HQ, 1.25 for EX)
      * @param diPercent Total DI percentage from enchantments
      * @param targetDefense Target's defense for reduction calculation
+     * @param wrestlingSkill Player's Wrestling skill (only applied when isUnarmed is true)
+     * @param isUnarmed true if attacking with bare hands (applies Wrestling modifier)
      * @return DamageResult with final damage and critical info
      */
     fun calculateDamage(
@@ -163,7 +182,9 @@ class CombatManager(private val plugin: Skills) {
         anatomySkill: Double,
         qualityModifier: Double,
         diPercent: Int,
-        targetDefense: Int
+        targetDefense: Int,
+        wrestlingSkill: Double = 0.0,
+        isUnarmed: Boolean = false
     ): DamageResult {
         // Tactics modifier: Tactics / 100 → main damage multiplier (0.1 to 1.0)
         // Low Tactics = very low damage, High Tactics = full damage potential
@@ -172,6 +193,14 @@ class CombatManager(private val plugin: Skills) {
         // Anatomy modifier: 0.5 + (Anatomy / 100) → 0.6 to 1.5
         // Low Anatomy reduces damage, High Anatomy boosts damage
         val anatomyMod = 0.5 + (anatomySkill / 100.0)
+
+        // Wrestling modifier: Only for unarmed combat
+        // 0.5 + (skill / 100) → 0.5 to 1.5
+        val wrestlingMod = if (isUnarmed) {
+            0.5 + (wrestlingSkill / 100.0)
+        } else {
+            1.0  // No modifier for weapons
+        }
 
         // STR modifier: 1 + (STR / 200) → STR 100 = +50%
         val strMod = 1.0 + (str / 200.0)
@@ -185,8 +214,8 @@ class CombatManager(private val plugin: Skills) {
         val critMod = if (isCritical) CRITICAL_MULTIPLIER else 1.0
 
         // Calculate raw damage before defense
-        // Order: Base × Tactics × Anatomy × STR × Quality × DI × Crit
-        val rawDamage = baseDamage * tacticsMod * anatomyMod * strMod * qualityModifier * diMod * critMod
+        // Order: Base × Tactics × Anatomy × Wrestling × STR × Quality × DI × Crit
+        val rawDamage = baseDamage * tacticsMod * anatomyMod * wrestlingMod * strMod * qualityModifier * diMod * critMod
 
         // Defense reduction: defense / (defense + 50)
         val defenseReduction = targetDefense / (targetDefense + 50.0)
@@ -285,6 +314,11 @@ class CombatManager(private val plugin: Skills) {
         // Get base damage (use vanilla damage if provided to preserve crit bonus)
         val baseDamage = baseDamageOverride ?: weaponStats.baseDamage.toDouble()
 
+        // Check if unarmed (true bare hands, not pickaxe/shovel/hoe)
+        val isUnarmed = weaponStats.weaponType == WeaponType.FIST &&
+                        (weapon == null || weapon.type == Material.AIR)
+        val wrestlingSkill = if (isUnarmed) attackerData.getSkillValue(SkillType.WRESTLING) else 0.0
+
         // Calculate damage with defense reduction (uses damageDefense which includes AR)
         val damageResult = calculateDamage(
             baseDamage = baseDamage,
@@ -293,7 +327,9 @@ class CombatManager(private val plugin: Skills) {
             anatomySkill = anatomySkill,
             qualityModifier = qualityModifier,
             diPercent = diPercent,
-            targetDefense = damageDefense
+            targetDefense = damageDefense,
+            wrestlingSkill = wrestlingSkill,
+            isUnarmed = isUnarmed
         )
 
         // Tactics skill gain: Only on hit
@@ -537,6 +573,81 @@ class CombatManager(private val plugin: Skills) {
         }
 
         plugin.skillManager.tryGainSkill(killer, SkillType.ANATOMY, difficulty)
+    }
+
+    /**
+     * Attempt to stun target on unarmed hit
+     * Stun chance = Wrestling skill / 4 (max 25% at skill 100)
+     * Stun duration = 1 second (20 ticks)
+     * Cooldown = 5 seconds per target
+     *
+     * @return true if stun was applied
+     */
+    fun tryStunOnUnarmedHit(
+        attacker: Player,
+        target: LivingEntity,
+        wrestlingSkill: Double
+    ): Boolean {
+        // Calculate stun chance: skill / 4 (max 25% at skill 100)
+        val stunChance = (wrestlingSkill / 4.0).coerceAtMost(25.0)
+
+        if (stunChance <= 0) return false
+
+        // Check cooldown
+        if (isStunOnCooldown(attacker.uniqueId, target.uniqueId)) {
+            return false
+        }
+
+        // Roll for stun
+        if (Random.nextDouble() * 100 >= stunChance) {
+            return false
+        }
+
+        // Apply stun (Slowness 255 = immobile)
+        target.addPotionEffect(
+            PotionEffect(
+                PotionEffectType.SLOWNESS,
+                STUN_DURATION_TICKS,
+                255,  // Level 256 = immobile
+                false,
+                false,
+                true
+            )
+        )
+
+        // Record cooldown
+        recordStunCooldown(attacker.uniqueId, target.uniqueId)
+
+        // Visual/audio feedback
+        val loc = target.location.add(0.0, 1.0, 0.0)
+        target.world.spawnParticle(Particle.CRIT, loc, 15, 0.3, 0.5, 0.3, 0.1)
+        target.world.playSound(loc, Sound.ENTITY_PLAYER_ATTACK_KNOCKBACK, 1.0f, 0.8f)
+
+        // Notify attacker
+        plugin.messageSender.sendActionBar(attacker, MessageKey.COMBAT_STUN)
+
+        return true
+    }
+
+    private fun isStunOnCooldown(attackerId: UUID, targetId: UUID): Boolean {
+        val targetCooldowns = stunCooldowns[attackerId] ?: return false
+        val lastStun = targetCooldowns[targetId] ?: return false
+        return System.currentTimeMillis() - lastStun < STUN_COOLDOWN_MS
+    }
+
+    private fun recordStunCooldown(attackerId: UUID, targetId: UUID) {
+        stunCooldowns.getOrPut(attackerId) { mutableMapOf() }[targetId] = System.currentTimeMillis()
+    }
+
+    /**
+     * Cleanup old cooldown entries (call periodically)
+     */
+    fun cleanupStunCooldowns() {
+        val now = System.currentTimeMillis()
+        stunCooldowns.entries.removeIf { (_, targets) ->
+            targets.entries.removeIf { (_, time) -> now - time > STUN_COOLDOWN_MS * 2 }
+            targets.isEmpty()
+        }
     }
 }
 

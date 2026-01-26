@@ -198,6 +198,7 @@ combat:
   critical: "<gold>Critical hit!"
   resist: "<blue>Resisted some damage."
   miss: "<gray>Miss!"
+  stun: "<yellow>⚡ Stunned!"
 
 # Armor messages
 armor:
