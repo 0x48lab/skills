@@ -209,7 +209,7 @@ armor:
 
 # Gathering messages
 gathering:
-  bonus_drop: "<green>Bonus drop!"
+  bonus_drop: "<green>+1 Bonus!"
   rare_find: "<gold>Rare find!"
   chain_chop: "<green>Chain chop! +{count} logs"
   auto_replant: "<green>Auto-replanted! +{stages} growth"

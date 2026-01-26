@@ -209,7 +209,7 @@ armor:
 
 # 採集メッセージ
 gathering:
-  bonus_drop: "<green>ボーナスドロップ！"
+  bonus_drop: "<green>+1 ボーナス!"
   rare_find: "<gold>レア発見！"
   chain_chop: "<green>連鎖伐採！ +{count}本"
   auto_replant: "<green>自動植え直し！ +{stages}段階成長"
