@@ -311,6 +311,10 @@ economy:
   mob_reward: "<yellow>{amount} を てにいれた！"
   chunk_limit_reached: "<yellow>このエリアでの報酬上限に達しました。（リセットまで{minutes}分）"
 
+# ベッド休息回復メッセージ
+bed_rest:
+  recovery: "{player}は ぐっすり眠った！ HPと満腹度が 全回復した！"
+
 # 睡眠メッセージ
 sleep:
   disabled: "<red>睡眠スキップ機能はこのサーバーで無効になっています。"

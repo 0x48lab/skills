@@ -101,6 +101,11 @@ sleep:
   # Enable/disable the sleep skip feature
   enabled: true
 
+# Bed Rest Recovery settings - Sleeping in bed restores HP and hunger
+bed_rest_recovery:
+  # Enable/disable the bed rest recovery feature
+  enabled: true
+
 # VengefulMobs settings - Makes passive mobs fight back when attacked
 # Inspired by VengefulMobs plugin (https://modrinth.com/plugin/vengefulmobs)
 vengeful_mobs:
