@@ -58,6 +58,9 @@ class SkillsConfig(private val plugin: Skills) {
     // Sleep settings
     val sleepEnabled: Boolean get() = config.getBoolean("sleep.enabled", true)
 
+    // Bed Rest Recovery settings
+    val bedRestRecoveryEnabled: Boolean get() = config.getBoolean("bed_rest_recovery.enabled", true)
+
     // Economy settings
     val economyEnabled: Boolean get() = config.getBoolean("economy.enabled", true)
     val economyChunkLimitEnabled: Boolean get() = config.getBoolean("economy.chunk_limit.enabled", true)

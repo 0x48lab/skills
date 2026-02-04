@@ -248,6 +248,9 @@ enum class MessageKey(val path: String) {
 
     // Sleep
     SLEEP_DISABLED("sleep.disabled"),
+
+    // Bed Rest Recovery
+    BED_REST_RECOVERY("bed_rest.recovery"),
     SLEEP_NOT_NIGHT("sleep.not_night"),
     SLEEP_WRONG_DIMENSION("sleep.wrong_dimension"),
     SLEEP_NO_SLEEPING_PLAYERS("sleep.no_sleeping_players"),

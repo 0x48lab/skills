@@ -415,6 +415,10 @@ arms:
 food:
   mana_restore: "<green>+{amount} MP restored!"
 
+# Bed Rest Recovery messages
+bed_rest:
+  recovery: "{player} slept soundly! HP and hunger fully restored!"
+
 # UI elements
 ui:
   separator: "<gray>━━━━━━━━━━━━━━━━"

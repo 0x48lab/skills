@@ -77,11 +77,26 @@ object CraftDifficulty {
         put(Material.CHAINMAIL_LEGGINGS, CraftInfo(SkillType.CRAFTING, 30, gainMultiplier = 3))
         put(Material.CHAINMAIL_BOOTS, CraftInfo(SkillType.CRAFTING, 30, gainMultiplier = 2))
 
+        // Blacksmithy - Copper armor (between stone and iron tier)
+        put(Material.COPPER_HELMET, CraftInfo(SkillType.CRAFTING, 18, gainMultiplier = 2))
+        put(Material.COPPER_CHESTPLATE, CraftInfo(SkillType.CRAFTING, 18, gainMultiplier = 4))
+        put(Material.COPPER_LEGGINGS, CraftInfo(SkillType.CRAFTING, 18, gainMultiplier = 3))
+        put(Material.COPPER_BOOTS, CraftInfo(SkillType.CRAFTING, 18, gainMultiplier = 2))
+
         // Blacksmithy - Other
         // Anvil: 3 iron blocks + 4 iron = complex (31 iron total!) -> multiplier 4
         put(Material.ANVIL, CraftInfo(SkillType.CRAFTING, 35, gainMultiplier = 4))
         // Mace: breeze rod + heavy core = 2 materials
         put(Material.MACE, CraftInfo(SkillType.CRAFTING, 50))
+
+        // Spears (1.21.5+ - long reach melee weapon)
+        put(Material.WOODEN_SPEAR, CraftInfo(SkillType.CRAFTING, 5))
+        put(Material.STONE_SPEAR, CraftInfo(SkillType.CRAFTING, 10))
+        put(Material.COPPER_SPEAR, CraftInfo(SkillType.CRAFTING, 18))
+        put(Material.IRON_SPEAR, CraftInfo(SkillType.CRAFTING, 25))
+        put(Material.GOLDEN_SPEAR, CraftInfo(SkillType.CRAFTING, 20))
+        put(Material.DIAMOND_SPEAR, CraftInfo(SkillType.CRAFTING, 40))
+        put(Material.NETHERITE_SPEAR, CraftInfo(SkillType.CRAFTING, 60))
 
         // Bows and Arrows (now part of Craftsmanship)
         // Bow: 3 sticks + 3 string = 6 materials
@@ -353,6 +368,9 @@ object CraftDifficulty {
         put(Material.LEATHER_LEGGINGS, CraftInfo(SkillType.CRAFTING, 15, gainMultiplier = 3))
         put(Material.LEATHER_BOOTS, CraftInfo(SkillType.CRAFTING, 15, gainMultiplier = 2))
 
+        // Craftsmanship - Special helmet (5 scutes)
+        put(Material.TURTLE_HELMET, CraftInfo(SkillType.CRAFTING, 25, gainMultiplier = 2))
+
         // Craftsmanship - Tools & Gadgets (formerly Tinkering)
         put(Material.SHEARS, CraftInfo(SkillType.CRAFTING, 10))
         put(Material.FLINT_AND_STEEL, CraftInfo(SkillType.CRAFTING, 10))
@@ -361,6 +379,8 @@ object CraftDifficulty {
 
         // Craftsmanship - Complex items
         put(Material.FISHING_ROD, CraftInfo(SkillType.CRAFTING, 20))
+        put(Material.CARROT_ON_A_STICK, CraftInfo(SkillType.CRAFTING, 22))
+        put(Material.WARPED_FUNGUS_ON_A_STICK, CraftInfo(SkillType.CRAFTING, 22))
         put(Material.LANTERN, CraftInfo(SkillType.CRAFTING, 20))
         put(Material.SOUL_LANTERN, CraftInfo(SkillType.CRAFTING, 20))
         put(Material.CANDLE, CraftInfo(SkillType.CRAFTING, 15))
