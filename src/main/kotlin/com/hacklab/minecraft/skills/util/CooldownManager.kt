@@ -69,7 +69,7 @@ enum class CooldownAction(val configKey: String, val defaultCooldown: Int) {
     HIDE("hide", 10),
     DETECT("detect", 5),
     SNOOP("snoop", 5),
-    STEAL("steal", 10),
+    STEAL("steal", 3),
     POISON("poison", 10),
     TAME("tame", 5),
     ANIMAL_LORE("animal_lore", 3),

@@ -37,6 +37,11 @@ thief:
   hide_movement_breaks: false  # Whether walking breaks hiding
   stealth_max_distance: 10.0   # Maximum stealth distance
   detect_range: 10.0           # Maximum detect range
+  stealth_distance_divisor: 5.0  # Stealth distance = skill / this value (5 = skill 60 walks 12 blocks)
+  hide_timeout_base: 30         # Minimum hide duration in seconds (skill 0)
+  hide_timeout_max: 300         # Maximum hide duration in seconds (skill 100)
+  hide_timeout_warning: 10      # Warning seconds before timeout
+  equipment_steal_penalty: 20   # Extra difficulty for stealing equipped items
 
 # Taming settings
 taming:
@@ -62,7 +67,7 @@ cooldowns:
   hide: 10
   detect: 5
   snoop: 5
-  steal: 10
+  steal: 3
   poison: 10
   tame: 5
   animal_lore: 3

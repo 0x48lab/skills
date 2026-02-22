@@ -69,9 +69,8 @@ class SnoopCommand(private val plugin: Skills) : CommandExecutor {
             return true
         }
 
-        // Enter targeting mode for snooping
+        // Enter targeting mode for snooping (cooldown set after snoop attempt in TargetingListener)
         plugin.targetManager.startTargeting(sender, TargetingAction.Snoop)
-        plugin.cooldownManager.setCooldown(sender.uniqueId, CooldownAction.SNOOP)
         return true
     }
 }

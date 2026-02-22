@@ -124,6 +124,8 @@ thief:
   poison_hit: "<dark_green>Poisoned!"
   poison_no_weapon: "<red>Hold a weapon in your main hand."
   poison_no_potion: "<red>You need a Poison Potion in your inventory."
+  hide_timeout_warning: "<yellow>Hiding will expire in {seconds} seconds!"
+  hide_timeout_expired: "<red>Your hiding has timed out."
 
 # Taming messages
 taming:

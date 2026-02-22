@@ -36,6 +36,11 @@ class SkillsConfig(private val plugin: Skills) {
     val hideMovementBreaks: Boolean get() = config.getBoolean("thief.hide_movement_breaks", false)
     val stealthMaxDistance: Double get() = config.getDouble("thief.stealth_max_distance", 10.0)
     val detectRange: Double get() = config.getDouble("thief.detect_range", 10.0)
+    val stealthDistanceDivisor: Double get() = config.getDouble("thief.stealth_distance_divisor", 5.0)
+    val hideTimeoutBase: Int get() = config.getInt("thief.hide_timeout_base", 30)
+    val hideTimeoutMax: Int get() = config.getInt("thief.hide_timeout_max", 300)
+    val hideTimeoutWarning: Int get() = config.getInt("thief.hide_timeout_warning", 10)
+    val equipmentStealPenalty: Int get() = config.getInt("thief.equipment_steal_penalty", 20)
 
     // Taming settings
     val tameAttemptCooldown: Long get() = config.getLong("taming.attempt_cooldown", 5000)

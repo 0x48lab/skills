@@ -293,6 +293,11 @@ class Skills : JavaPlugin() {
             autoFishingManager.cleanupAll()
         }
 
+        // Cleanup hide timeout checker
+        if (::hidingManager.isInitialized) {
+            hidingManager.stopTimeoutChecker()
+        }
+
         // Cleanup NMS
         NmsManager.cleanup()
 
@@ -528,6 +533,9 @@ class Skills : JavaPlugin() {
 
         // Stamina update task
         staminaManager.startUpdateTask()
+
+        // Hide timeout checker
+        hidingManager.startTimeoutChecker()
 
         // Note: Natural mana regeneration is handled by ScoreboardManager.startUpdateTask()
 

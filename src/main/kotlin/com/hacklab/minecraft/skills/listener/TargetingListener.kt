@@ -177,7 +177,11 @@ class TargetingListener(private val plugin: Skills) : Listener {
             }
             is TargetingAction.Snoop -> {
                 if (entityTarget is Player) {
-                    plugin.snoopingManager.trySnoop(player, entityTarget)
+                    val result = plugin.snoopingManager.trySnoop(player, entityTarget)
+                    // Set cooldown on success or failure (not on cancel/timeout)
+                    if (result != com.hacklab.minecraft.skills.thief.SnoopResult.INVALID_TARGET) {
+                        plugin.cooldownManager.setCooldown(player.uniqueId, com.hacklab.minecraft.skills.util.CooldownAction.SNOOP)
+                    }
                 }
             }
             is TargetingAction.Detect -> {

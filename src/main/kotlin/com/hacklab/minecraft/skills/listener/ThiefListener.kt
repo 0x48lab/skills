@@ -3,6 +3,7 @@ package com.hacklab.minecraft.skills.listener
 import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.i18n.MessageKey
 import com.hacklab.minecraft.skills.thief.StealResult
+import com.hacklab.minecraft.skills.util.CooldownAction
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -35,6 +36,13 @@ class ThiefListener(private val plugin: Skills) : Listener {
             return
         }
 
+        // Check steal cooldown
+        if (plugin.cooldownManager.isOnCooldown(player.uniqueId, CooldownAction.STEAL)) {
+            val remaining = plugin.cooldownManager.getRemainingCooldown(player.uniqueId, CooldownAction.STEAL)
+            plugin.messageSender.send(player, MessageKey.COOLDOWN_ACTIVE, "seconds" to remaining.toString())
+            return
+        }
+
         // Get clicked item
         val clickedItem = event.currentItem
         if (clickedItem == null || clickedItem.type.isAir) {
@@ -43,6 +51,11 @@ class ThiefListener(private val plugin: Skills) : Listener {
 
         // Attempt to steal the item
         val result = plugin.snoopingManager.handleSnoopClick(player, event.rawSlot)
+
+        // Set cooldown after steal attempt (success or failure)
+        if (result == StealResult.SUCCESS || result == StealResult.FAILED) {
+            plugin.cooldownManager.setCooldown(player.uniqueId, CooldownAction.STEAL)
+        }
 
         when (result) {
             StealResult.SUCCESS -> {

@@ -125,6 +125,8 @@ enum class MessageKey(val path: String) {
     THIEF_POISON_HIT("thief.poison_hit"),
     THIEF_POISON_NO_WEAPON("thief.poison_no_weapon"),
     THIEF_POISON_NO_POTION("thief.poison_no_potion"),
+    THIEF_HIDE_TIMEOUT_WARNING("thief.hide_timeout_warning"),
+    THIEF_HIDE_TIMEOUT_EXPIRED("thief.hide_timeout_expired"),
 
     // Taming
     TAMING_START("taming.start"),

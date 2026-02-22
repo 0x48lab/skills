@@ -124,6 +124,8 @@ thief:
   poison_hit: "<dark_green>毒が効いた！"
   poison_no_weapon: "<red>メインハンドに武器を持ってください。"
   poison_no_potion: "<red>毒のポーションをインベントリに所持してください。"
+  hide_timeout_warning: "<yellow>残り{seconds}秒で隠れ状態が解除されます！"
+  hide_timeout_expired: "<red>隠れ状態がタイムアウトしました。"
 
 # テイムメッセージ
 taming:

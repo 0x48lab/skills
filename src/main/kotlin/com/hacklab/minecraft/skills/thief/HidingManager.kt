@@ -3,9 +3,11 @@ package com.hacklab.minecraft.skills.thief
 import com.hacklab.minecraft.skills.Skills
 import com.hacklab.minecraft.skills.i18n.MessageKey
 import com.hacklab.minecraft.skills.skill.SkillType
+import com.hacklab.minecraft.skills.util.CooldownAction
 import org.bukkit.entity.Player
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
+import org.bukkit.scheduler.BukkitTask
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.random.Random
@@ -14,8 +16,13 @@ class HidingManager(private val plugin: Skills) {
     // Track hidden players and their stealth distance
     private val hiddenPlayers: MutableMap<UUID, HiddenState> = ConcurrentHashMap()
 
+    // Timeout checker task
+    private var timeoutTask: BukkitTask? = null
+
     data class HiddenState(
         val startTime: Long,
+        val expiresAt: Long,
+        var warningShown: Boolean = false,
         var distanceTraveled: Double = 0.0,
         var lastLocation: org.bukkit.Location? = null
     )
@@ -31,19 +38,28 @@ class HidingManager(private val plugin: Skills) {
         val successChance = hidingSkill
         val roll = Random.nextDouble() * 100
 
+        // Dynamic difficulty based on nearby player count (FR-2)
+        val nearbyPlayers = player.getNearbyEntities(10.0, 10.0, 10.0).count { it is Player }
+        val hidingDifficulty = (20 + nearbyPlayers * 20).coerceAtMost(80)
+
         // Try skill gain regardless of success
-        plugin.skillManager.tryGainSkill(player, SkillType.HIDING, 50)
+        plugin.skillManager.tryGainSkill(player, SkillType.HIDING, hidingDifficulty)
 
         if (roll > successChance) {
             plugin.messageSender.send(player, MessageKey.THIEF_HIDE_FAILED)
             return false
         }
 
+        // Calculate timeout (FR-3)
+        val config = plugin.skillsConfig
+        val timeoutSeconds = config.hideTimeoutBase + (hidingSkill / 100.0 * (config.hideTimeoutMax - config.hideTimeoutBase))
+        val expiresAt = System.currentTimeMillis() + (timeoutSeconds * 1000).toLong()
+
         // Apply invisibility
         player.addPotionEffect(
             PotionEffect(
                 PotionEffectType.INVISIBILITY,
-                Int.MAX_VALUE,  // Indefinite until broken
+                Int.MAX_VALUE,  // Managed by timeout checker
                 0,
                 false,  // No particles
                 false   // No icon
@@ -53,6 +69,7 @@ class HidingManager(private val plugin: Skills) {
         // Track hidden state
         hiddenPlayers[player.uniqueId] = HiddenState(
             startTime = System.currentTimeMillis(),
+            expiresAt = expiresAt,
             lastLocation = player.location
         )
 
@@ -76,7 +93,13 @@ class HidingManager(private val plugin: Skills) {
         hiddenPlayers.remove(player.uniqueId)
         player.removePotionEffect(PotionEffectType.INVISIBILITY)
 
-        plugin.messageSender.send(player, MessageKey.THIEF_HIDE_BROKEN)
+        if (reason == "timeout") {
+            plugin.messageSender.send(player, MessageKey.THIEF_HIDE_TIMEOUT_EXPIRED)
+            // Apply short cooldown (3 seconds) for timeout break
+            plugin.cooldownManager.setCooldown(player.uniqueId, CooldownAction.HIDE)
+        } else {
+            plugin.messageSender.send(player, MessageKey.THIEF_HIDE_BROKEN)
+        }
     }
 
     /**
@@ -89,14 +112,15 @@ class HidingManager(private val plugin: Skills) {
         state.distanceTraveled += distance
         state.lastLocation = player.location
 
-        // Get max stealth distance
+        // Get max stealth distance (FR-1: use configurable divisor)
         val data = plugin.playerDataManager.getPlayerData(player)
         val stealthSkill = data.getSkillValue(SkillType.STEALTH)
-        val maxDistance = stealthSkill / 10.0  // Max 10 blocks at skill 100
+        val maxDistance = stealthSkill / plugin.skillsConfig.stealthDistanceDivisor
 
-        // Try stealth skill gain
+        // Dynamic difficulty based on distance ratio (FR-2)
         if (distance > 0.1) {
-            plugin.skillManager.tryGainSkill(player, SkillType.STEALTH, 50)
+            val stealthDifficulty = ((state.distanceTraveled / maxDistance) * 80).toInt().coerceIn(1, 80)
+            plugin.skillManager.tryGainSkill(player, SkillType.STEALTH, stealthDifficulty)
         }
 
         // Check if exceeded distance
@@ -137,6 +161,45 @@ class HidingManager(private val plugin: Skills) {
      */
     fun removePlayer(playerId: UUID) {
         hiddenPlayers.remove(playerId)
+    }
+
+    /**
+     * Start the timeout checker task (FR-3)
+     * Runs every second (20 ticks) to check for expired hiding states
+     */
+    fun startTimeoutChecker() {
+        timeoutTask = plugin.server.scheduler.runTaskTimer(plugin, Runnable {
+            val now = System.currentTimeMillis()
+            val warningMs = plugin.skillsConfig.hideTimeoutWarning * 1000L
+
+            for ((uuid, state) in hiddenPlayers.toMap()) {
+                val player = plugin.server.getPlayer(uuid) ?: continue
+                val remainingMs = state.expiresAt - now
+
+                // Show warning when approaching timeout
+                if (!state.warningShown && remainingMs in 1..warningMs) {
+                    state.warningShown = true
+                    val remainingSec = (remainingMs / 1000).toInt().coerceAtLeast(1)
+                    plugin.messageSender.sendActionBar(
+                        player, MessageKey.THIEF_HIDE_TIMEOUT_WARNING,
+                        "seconds" to remainingSec.toString()
+                    )
+                }
+
+                // Expire hiding
+                if (now >= state.expiresAt) {
+                    breakHiding(player, "timeout")
+                }
+            }
+        }, 20L, 20L)
+    }
+
+    /**
+     * Stop the timeout checker task
+     */
+    fun stopTimeoutChecker() {
+        timeoutTask?.cancel()
+        timeoutTask = null
     }
 
     /**
