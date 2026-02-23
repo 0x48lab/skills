@@ -98,9 +98,9 @@ class CombatManager(private val plugin: Skills) {
     }
 
     /**
-     * Calculate parry chance based on equipment (UO-style)
-     * - Shield: Parrying * 0.5 (max 50%)
-     * - Weapon only: Parrying * 0.25 (max 25%)
+     * Calculate parry chance based on equipment
+     * - Shield: Parrying * 0.7 (max 70%)
+     * - Weapon only: Parrying * 0.4 (max 40%)
      * - Unarmed: 0%
      */
     fun calculateParryChance(player: Player, parryingSkill: Double): Double {
@@ -115,12 +115,12 @@ class CombatManager(private val plugin: Skills) {
 
         return when {
             hasShield -> {
-                // Shield parry: skill * 0.5, max 50%
-                (parryingSkill * 0.5).coerceAtMost(50.0)
+                // Shield parry: skill * 0.7, max 70%
+                (parryingSkill * 0.7).coerceAtMost(70.0)
             }
             hasWeapon -> {
-                // Weapon parry: skill * 0.25, max 25%
-                (parryingSkill * 0.25).coerceAtMost(25.0)
+                // Weapon parry: skill * 0.4, max 40%
+                (parryingSkill * 0.4).coerceAtMost(40.0)
             }
             else -> {
                 // Unarmed: cannot parry
@@ -132,7 +132,7 @@ class CombatManager(private val plugin: Skills) {
     /**
      * Calculate parry chance for projectiles (arrows/bolts)
      * Only shields can block projectiles - weapons cannot parry arrows
-     * - Shield: Parrying * 0.6 (max 60%) - slightly higher than melee
+     * - Shield: Parrying * 0.8 (max 80%) - shields excel at blocking arrows
      * - No shield: 0%
      */
     fun calculateProjectileParryChance(player: Player, parryingSkill: Double): Double {
@@ -140,12 +140,20 @@ class CombatManager(private val plugin: Skills) {
 
         // Only shields can block projectiles
         return if (offHand.type == org.bukkit.Material.SHIELD) {
-            // Shield block: skill * 0.6, max 60%
-            (parryingSkill * 0.6).coerceAtMost(60.0)
+            // Shield block: skill * 0.8, max 80%
+            (parryingSkill * 0.8).coerceAtMost(80.0)
         } else {
             // Cannot block projectiles without shield
             0.0
         }
+    }
+
+    /**
+     * Calculate parry damage reduction based on skill level
+     * Reduction scales with skill: 30% + (skill * 0.4)% = 30% to 70%
+     */
+    fun calculateParryReduction(parryingSkill: Double): Double {
+        return (30.0 + parryingSkill * 0.4).coerceAtMost(70.0) / 100.0
     }
 
     /**
@@ -474,29 +482,34 @@ class CombatManager(private val plugin: Skills) {
                 calculateParryChance(defender, parryingSkill)
             }
 
+            // Calculate difficulty for skill gain based on attacker
+            val parryDifficulty = if (attacker is Player) {
+                val attackerData = plugin.playerDataManager.getPlayerData(attacker)
+                attackerData.getSkillValue(SkillType.TACTICS).toInt()
+            } else if (attacker != null) {
+                plugin.combatConfig.getDifficulty(attacker.type)
+            } else 30
+
             if (parryChance > 0 && Random.nextDouble() * 100 < parryChance) {
-                // Successful parry - reduce damage by 50%
-                finalDamage *= 0.5
+                // Successful parry - reduce damage by skill-scaled amount (30% to 70%)
+                val parryReduction = calculateParryReduction(parryingSkill)
+                finalDamage *= (1.0 - parryReduction)
                 plugin.messageSender.sendActionBar(defender, MessageKey.COMBAT_PARRY)
+            }
 
-                // Try skill gain
-                val difficulty = if (attacker is Player) {
-                    val attackerData = plugin.playerDataManager.getPlayerData(attacker)
-                    attackerData.getSkillValue(SkillType.TACTICS).toInt()
-                } else if (attacker != null) {
-                    plugin.combatConfig.getDifficulty(attacker.type)
-                } else 30
+            // Try skill gain on every physical hit (PvE only)
+            // Parrying is a powerful defensive skill, so gain rate is halved (50% chance to attempt)
+            if (parryChance > 0 && attacker !is Player && Random.nextDouble() < 0.5) {
+                plugin.skillManager.tryGainSkill(defender, SkillType.PARRYING, parryDifficulty)
+            }
 
-                plugin.skillManager.tryGainSkill(defender, SkillType.PARRYING, difficulty)
-
+            if (finalDamage < baseDamage) {
                 return DefenseResult(
                     damage = finalDamage,
                     wasParried = true,
                     wasResisted = false
                 )
             }
-            // Note: Parrying skill gain only happens on successful parry (above)
-            // This is UO-style behavior where you only train by successfully parrying
         }
 
         // Check magic resistance

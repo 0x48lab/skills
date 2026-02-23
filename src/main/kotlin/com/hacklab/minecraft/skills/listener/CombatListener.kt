@@ -7,6 +7,7 @@ import com.hacklab.minecraft.skills.skill.StatCalculator
 import org.bukkit.Material
 import org.bukkit.Particle
 import org.bukkit.Sound
+import org.bukkit.entity.Entity
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.entity.Projectile
@@ -111,8 +112,13 @@ class CombatListener(private val plugin: Skills) : Listener {
                     event.cause == EntityDamageEvent.DamageCause.DRAGON_BREATH
 
             // Check if this is a projectile attack (arrows can be blocked with shield)
+            // Pass the actual damager entity (not just Player) so mob difficulty can be resolved
+            val actualAttacker: Entity? = when (damager) {
+                is Projectile -> damager.shooter as? Entity
+                else -> damager
+            }
             val defenseResult = plugin.combatManager.processPlayerDefense(
-                target, attacker, event.damage, isMagic, isRangedAttack
+                target, actualAttacker, event.damage, isMagic, isRangedAttack
             )
 
             // Apply damage to internal HP
