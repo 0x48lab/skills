@@ -8,6 +8,7 @@ import com.hacklab.minecraft.skills.skill.WeaponType
 import org.bukkit.Material
 import org.bukkit.Particle
 import org.bukkit.Sound
+import org.bukkit.entity.ArmorStand
 import org.bukkit.entity.Entity
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
@@ -40,6 +41,7 @@ class CombatManager(private val plugin: Skills) {
         const val MOVEMENT_THRESHOLD = 0.1  // Velocity threshold to consider "moving"
         const val STUN_DURATION_TICKS = 20  // 1 second
         const val STUN_COOLDOWN_MS = 5000L  // 5 seconds
+        const val TRAINING_DUMMY_SKILL_CAP = 70.0  // Armor stands only train up to this skill level
     }
 
     // Track shooter movement state for projectiles (projectile UUID -> was moving)
@@ -291,8 +293,14 @@ class CombatManager(private val plugin: Skills) {
             plugin.combatConfig.getDifficulty(target.type)
         }
 
+        // Armor stands can be used for training, but only up to skill 70
+        val isTrainingDummy = target is ArmorStand
+        val canGainFromTarget = !isTrainingDummy || weaponSkill < TRAINING_DUMMY_SKILL_CAP
+
         // Weapon skill gain: Always try on attack attempt (hit or miss)
-        plugin.skillManager.tryGainSkill(attacker, weaponSkillType, difficulty)
+        if (canGainFromTarget) {
+            plugin.skillManager.tryGainSkill(attacker, weaponSkillType, difficulty)
+        }
 
         if (!isHit) {
             // Miss - no damage, send miss message
@@ -341,7 +349,9 @@ class CombatManager(private val plugin: Skills) {
         )
 
         // Tactics skill gain: Only on hit
-        plugin.skillManager.tryGainSkill(attacker, SkillType.TACTICS, difficulty)
+        if (canGainFromTarget) {
+            plugin.skillManager.tryGainSkill(attacker, SkillType.TACTICS, difficulty)
+        }
 
         // Notify if critical
         if (damageResult.isCritical) {
@@ -425,8 +435,13 @@ class CombatManager(private val plugin: Skills) {
         val finalDamage = damageResult.damage * distanceFalloff * movementMod
 
         // Skill gains for ranged (hit is confirmed by vanilla)
-        plugin.skillManager.tryGainSkill(attacker, weaponSkillType, difficulty)
-        plugin.skillManager.tryGainSkill(attacker, SkillType.TACTICS, difficulty)
+        // Armor stands only train up to skill cap
+        val isTrainingDummyRanged = target is ArmorStand
+        val canGainRanged = !isTrainingDummyRanged || weaponSkill < TRAINING_DUMMY_SKILL_CAP
+        if (canGainRanged) {
+            plugin.skillManager.tryGainSkill(attacker, weaponSkillType, difficulty)
+            plugin.skillManager.tryGainSkill(attacker, SkillType.TACTICS, difficulty)
+        }
 
         if (damageResult.isCritical) {
             plugin.messageSender.sendActionBar(attacker, MessageKey.COMBAT_CRITICAL)
@@ -576,6 +591,12 @@ class CombatManager(private val plugin: Skills) {
      * Anatomy skill gain: Only on kill
      */
     fun processKill(killer: Player, victim: LivingEntity) {
+        // Armor stands only train up to skill cap
+        val killerData = plugin.playerDataManager.getPlayerData(killer)
+        if (victim is ArmorStand && killerData.getSkillValue(SkillType.ANATOMY) >= TRAINING_DUMMY_SKILL_CAP) {
+            return
+        }
+
         val difficulty = if (victim is Player) {
             val victimData = plugin.playerDataManager.getPlayerData(victim)
             val combatAvg = (victimData.getSkillValue(SkillType.SWORDSMANSHIP) +
