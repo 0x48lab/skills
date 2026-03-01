@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.hacklab.minecraft"
-version = "0.4.18"
+version = "0.4.19"
 
 repositories {
     mavenCentral()
