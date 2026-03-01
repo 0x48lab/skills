@@ -421,6 +421,26 @@ food:
 bed_rest:
   recovery: "{player} slept soundly! HP and hunger fully restored!"
 
+# Ender Dragon
+dragon:
+  defeated: "<gold>Ender Dragon <red>(Lv.{level})</red> has been defeated! <gray>It will respawn stronger in {hours} hours"
+  respawn_soon: "<dark_red>⚠ Ender Dragon will respawn in {minutes} minutes!"
+  respawned: "<dark_red>🐉 Ender Dragon (Lv.{level}) has respawned! <gray>HP: {hp}"
+  info_header: "<gold>=== Ender Dragon Info ==="
+  info_kill_count: "<gray>Kill Count: <white>{count}"
+  info_next_respawn: "<gray>Next Respawn: <white>{time}"
+  info_alive: "<green>Dragon is currently alive <gray>(Lv.{level})"
+  info_status: "<gray>Next Dragon: <white>HP {hp} / Attack x{damage}"
+  info_skills: "<gray>Dragon Skills: <white>{skills}"
+  skill:
+    explosion_immunity: "Explosion Immunity"
+    structure_destruction: "Structure Destruction"
+    heal_aura: "Heal Aura"
+    enderman_summon: "Enderman Summon"
+    crystal_regeneration: "Crystal Regeneration"
+    player_pull: "Player Pull"
+  pull_warning: "<dark_red>⚠ Pulled by the dragon's power!"
+
 # UI elements
 ui:
   separator: "<gray>━━━━━━━━━━━━━━━━"

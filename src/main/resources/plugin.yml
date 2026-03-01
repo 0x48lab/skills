@@ -72,6 +72,11 @@ commands:
     usage: /scribe [list|spell name]
     aliases: [inscribe]
 
+  dragoninfo:
+    description: View Ender Dragon status
+    usage: /dragoninfo
+    aliases: [dinfo]
+
   sleep:
     description: Count as sleeping without being in a bed
     usage: /sleep

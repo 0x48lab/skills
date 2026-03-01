@@ -42,6 +42,7 @@ import com.hacklab.minecraft.skills.scoreboard.ScoreboardManager
 import com.hacklab.minecraft.skills.stamina.StaminaManager
 import com.hacklab.minecraft.skills.util.CooldownManager
 import com.hacklab.minecraft.skills.vengeful.VengefulMobsListener
+import com.hacklab.minecraft.skills.dragon.EnderDragonManager
 import com.hacklab.minecraft.skills.vengeful.VengefulMobsManager
 import com.hacklab.minecraft.skills.integration.NotorietyIntegration
 import com.hacklab.minecraft.skills.api.SkillsAPI
@@ -198,6 +199,10 @@ class Skills : JavaPlugin() {
     lateinit var mobLimitManager: MobLimitManager
         private set
 
+    // Dragon
+    lateinit var enderDragonManager: EnderDragonManager
+        private set
+
     // Listeners
     private lateinit var meditationListener: MeditationListener
     lateinit var survivalListener: SurvivalListener
@@ -298,6 +303,11 @@ class Skills : JavaPlugin() {
             hidingManager.stopTimeoutChecker()
         }
 
+        // Cleanup dragon manager
+        if (::enderDragonManager.isInitialized) {
+            enderDragonManager.cleanup()
+        }
+
         // Cleanup NMS
         NmsManager.cleanup()
 
@@ -395,6 +405,12 @@ class Skills : JavaPlugin() {
 
         // Mob Limit
         mobLimitManager = MobLimitManager(this)
+
+        // Ender Dragon Scaling
+        enderDragonManager = EnderDragonManager(this)
+        if (skillsConfig.enderDragonScalingEnabled) {
+            enderDragonManager.initialize()
+        }
     }
 
     private fun registerListeners() {
@@ -450,6 +466,12 @@ class Skills : JavaPlugin() {
             pm.registerEvents(MobLimitListener(this), this)
             logger.info("Chunk Mob Limit enabled")
         }
+
+        // Ender Dragon Scaling (only if enabled)
+        if (skillsConfig.enderDragonScalingEnabled) {
+            pm.registerEvents(EnderDragonListener(this), this)
+            logger.info("Ender Dragon Scaling enabled")
+        }
     }
 
     private fun registerCommands() {
@@ -490,6 +512,9 @@ class Skills : JavaPlugin() {
         // Sleep command
         sleepCommand = SleepCommand(this)
         getCommand("sleep")?.setExecutor(sleepCommand)
+
+        // Dragon info command
+        getCommand("dragoninfo")?.setExecutor(com.hacklab.minecraft.skills.command.DragonInfoCommand(this))
     }
 
     private fun startScheduledTasks() {

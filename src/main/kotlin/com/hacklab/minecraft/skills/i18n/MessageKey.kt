@@ -389,6 +389,24 @@ enum class MessageKey(val path: String) {
     // Food/Mana
     FOOD_MANA_RESTORE("food.mana_restore"),
 
+    // Ender Dragon
+    DRAGON_DEFEATED("dragon.defeated"),
+    DRAGON_RESPAWN_SOON("dragon.respawn_soon"),
+    DRAGON_RESPAWNED("dragon.respawned"),
+    DRAGON_INFO_HEADER("dragon.info_header"),
+    DRAGON_INFO_KILL_COUNT("dragon.info_kill_count"),
+    DRAGON_INFO_NEXT_RESPAWN("dragon.info_next_respawn"),
+    DRAGON_INFO_ALIVE("dragon.info_alive"),
+    DRAGON_INFO_STATUS("dragon.info_status"),
+    DRAGON_INFO_SKILLS("dragon.info_skills"),
+    DRAGON_SKILL_EXPLOSION_IMMUNITY("dragon.skill.explosion_immunity"),
+    DRAGON_SKILL_STRUCTURE_DESTRUCTION("dragon.skill.structure_destruction"),
+    DRAGON_SKILL_HEAL_AURA("dragon.skill.heal_aura"),
+    DRAGON_SKILL_ENDERMAN_SUMMON("dragon.skill.enderman_summon"),
+    DRAGON_SKILL_CRYSTAL_REGENERATION("dragon.skill.crystal_regeneration"),
+    DRAGON_SKILL_PLAYER_PULL("dragon.skill.player_pull"),
+    DRAGON_PULL_WARNING("dragon.pull_warning"),
+
     // UI separators
     UI_SEPARATOR("ui.separator"),
     UI_SEPARATOR_THIN("ui.separator_thin");

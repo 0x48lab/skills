@@ -421,6 +421,26 @@ arms:
 food:
   mana_restore: "<green>+{amount} MP回復！"
 
+# エンダードラゴン
+dragon:
+  defeated: "<gold>エンダードラゴン <red>(Lv.{level})</red> が討伐されました！<gray>次回は{hours}時間後にさらに強化されてリスポーンします"
+  respawn_soon: "<dark_red>⚠ エンダードラゴンが{minutes}分後にリスポーンします！"
+  respawned: "<dark_red>🐉 エンダードラゴン (Lv.{level}) がリスポーンしました！<gray>HP: {hp}"
+  info_header: "<gold>=== エンダードラゴン情報 ==="
+  info_kill_count: "<gray>討伐回数: <white>{count}"
+  info_next_respawn: "<gray>次回リスポーン: <white>{time}"
+  info_alive: "<green>ドラゴンは現在生存中です <gray>(Lv.{level})"
+  info_status: "<gray>次のドラゴン: <white>HP {hp} / 攻撃力 x{damage}"
+  info_skills: "<gray>ドラゴンスキル: <white>{skills}"
+  skill:
+    explosion_immunity: "爆発耐性"
+    structure_destruction: "建造物破壊"
+    heal_aura: "回復オーラ"
+    enderman_summon: "エンダーマン召喚"
+    crystal_regeneration: "クリスタル再生"
+    player_pull: "プレイヤー引き寄せ"
+  pull_warning: "<dark_red>⚠ ドラゴンの力で引き寄せられた！"
+
 # UI要素
 ui:
   separator: "<gray>━━━━━━━━━━━━━━━━"

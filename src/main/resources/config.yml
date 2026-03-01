@@ -193,6 +193,25 @@ vengeful_mobs:
       attack_cooldown: 1000
       mode: RETALIATE_ONCE
 
+# Ender Dragon Scaling - Dragon respawns stronger after each kill
+ender_dragon_scaling:
+  # Enable/disable the feature
+  enabled: true
+  # Hours between dragon kills and respawn
+  respawn_interval_hours: 24
+  # HP increase per kill (base: 200)
+  hp_per_kill: 50
+  # Maximum dragon HP
+  max_hp: 1000
+  # Damage multiplier increase per kill (base: 1.0)
+  damage_scale_per_kill: 0.15
+  # Maximum damage multiplier
+  max_damage_scale: 4.0
+  # XP multiplier increase per kill (base: 12000)
+  xp_scale_per_kill: 0.25
+  # Minutes before respawn to announce (list)
+  announce_pre_respawn_minutes: [5, 1]
+
 # Scoreboard settings - Control sidebar display and plugin compatibility
 scoreboard:
   # Enable/disable scoreboard feature entirely

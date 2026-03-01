@@ -83,6 +83,16 @@ class SkillsConfig(private val plugin: Skills) {
     val chunkMobLimitCheckInterval: Long get() = config.getLong("chunk_mob_limit.check_interval_ticks", 100)
     val chunkMobLimitNotify: Boolean get() = config.getBoolean("chunk_mob_limit.notify_on_limit", true)
 
+    // Ender Dragon Scaling
+    val enderDragonScalingEnabled: Boolean get() = config.getBoolean("ender_dragon_scaling.enabled", true)
+    val enderDragonRespawnIntervalHours: Int get() = config.getInt("ender_dragon_scaling.respawn_interval_hours", 24)
+    val enderDragonHpPerKill: Int get() = config.getInt("ender_dragon_scaling.hp_per_kill", 50)
+    val enderDragonMaxHp: Int get() = config.getInt("ender_dragon_scaling.max_hp", 1000)
+    val enderDragonDamageScalePerKill: Double get() = config.getDouble("ender_dragon_scaling.damage_scale_per_kill", 0.15)
+    val enderDragonMaxDamageScale: Double get() = config.getDouble("ender_dragon_scaling.max_damage_scale", 4.0)
+    val enderDragonXpScalePerKill: Double get() = config.getDouble("ender_dragon_scaling.xp_scale_per_kill", 0.25)
+    val enderDragonPreRespawnMinutes: List<Int> get() = config.getIntegerList("ender_dragon_scaling.announce_pre_respawn_minutes").ifEmpty { listOf(5, 1) }
+
     // Scoreboard settings
     val scoreboardEnabled: Boolean get() = config.getBoolean("scoreboard.enabled", true)
     val scoreboardUpdateInterval: Long get() = config.getLong("scoreboard.update_interval_ticks", 20)
