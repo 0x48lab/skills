@@ -109,9 +109,9 @@ class ManaManager(private val plugin: Skills) {
         }
 
         // Calculate regen rate based on INT
-        // Base: 0.5 mana per 5 seconds
-        // INT bonus: +INT% (INT 100 = +100% = 1.0 mana per 5 seconds)
-        val baseRegen = 0.5
+        // Base: 1.0 mana per 5 seconds
+        // INT bonus: +INT% (INT 100 = +100% = 2.0 mana per 5 seconds)
+        val baseRegen = 1.0
         val intBonus = data.int / 100.0
         val actualRegen = baseRegen * (1 + intBonus)
 

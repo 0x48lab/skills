@@ -11,7 +11,6 @@ import org.bukkit.potion.PotionEffectType
 import org.bukkit.scheduler.BukkitRunnable
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.math.sqrt
 
 /**
  * Manages internal stamina system (Monster Hunter style).
@@ -53,6 +52,9 @@ class StaminaManager(private val plugin: Skills) {
         // Normal walking ~0.1, sprinting ~0.26
         const val SPRINT_SPEED_THRESHOLD = 0.2
 
+        // Squared threshold (avoid sqrt in hot path)
+        const val SPRINT_SPEED_THRESHOLD_SQ = SPRINT_SPEED_THRESHOLD * SPRINT_SPEED_THRESHOLD
+
         // Minimum food level required by vanilla Minecraft to sprint
         // Below this, vanilla will force-stop sprinting
         const val MIN_FOOD_LEVEL_FOR_SPRINT = 7
@@ -73,15 +75,28 @@ class StaminaManager(private val plugin: Skills) {
     // Track players who want to sprint (set by PlayerToggleSprintEvent)
     private val wantsToSprint: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
 
+    // Players that need per-tick processing (sprinting, exhausted, or regenerating stamina)
+    private val activePlayers: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
+
     private var updateTask: BukkitRunnable? = null
 
     /**
-     * Start the stamina update task
+     * Start the stamina update task.
+     * Only processes players in the activePlayers set instead of all online players.
      */
     fun startUpdateTask() {
         updateTask = object : BukkitRunnable() {
             override fun run() {
-                Bukkit.getOnlinePlayers().forEach { player ->
+                if (activePlayers.isEmpty()) return
+
+                val iterator = activePlayers.iterator()
+                while (iterator.hasNext()) {
+                    val uuid = iterator.next()
+                    val player = Bukkit.getPlayer(uuid)
+                    if (player == null || !player.isOnline) {
+                        iterator.remove()
+                        continue
+                    }
                     updateStamina(player)
                 }
             }
@@ -175,6 +190,9 @@ class StaminaManager(private val plugin: Skills) {
             // Not sprinting, not exhausted - regenerate normally
             if (data.stamina < data.maxStamina) {
                 data.restoreStamina(STAMINA_REGEN_PER_TICK)
+            } else {
+                // Full stamina, not sprinting - no longer needs per-tick processing
+                activePlayers.remove(player.uniqueId)
             }
             sprintDuration.remove(player.uniqueId)
         }
@@ -187,6 +205,7 @@ class StaminaManager(private val plugin: Skills) {
         if (exhaustedPlayers.contains(player.uniqueId)) return
 
         exhaustedPlayers.add(player.uniqueId)
+        activePlayers.add(player.uniqueId)
         pantingCounter[player.uniqueId] = 0
 
         // Store original walk speed
@@ -274,13 +293,13 @@ class StaminaManager(private val plugin: Skills) {
         }
 
         // Player wants to sprint but player.isSprinting is false (e.g., during jump)
-        // Check if moving at sprint speed
+        // Check if moving at sprint speed (use squared comparison to avoid sqrt)
         val velocity = player.velocity
-        val horizontalSpeed = sqrt(velocity.x * velocity.x + velocity.z * velocity.z)
+        val horizontalSpeedSq = velocity.x * velocity.x + velocity.z * velocity.z
 
         // If moving fast, consider sprinting (consumes stamina)
         // If not moving fast, player probably stopped sprinting
-        if (horizontalSpeed < SPRINT_SPEED_THRESHOLD) {
+        if (horizontalSpeedSq < SPRINT_SPEED_THRESHOLD_SQ) {
             // Not moving fast anymore, clear sprint intent
             wantsToSprint.remove(player.uniqueId)
             return false
@@ -294,6 +313,7 @@ class StaminaManager(private val plugin: Skills) {
      */
     fun onSprintStart(player: Player) {
         wantsToSprint.add(player.uniqueId)
+        activePlayers.add(player.uniqueId)
     }
 
     /**
@@ -344,6 +364,7 @@ class StaminaManager(private val plugin: Skills) {
         pantingCounter.remove(playerId)
         originalWalkSpeed.remove(playerId)
         wantsToSprint.remove(playerId)
+        activePlayers.remove(playerId)
     }
 
     /**

@@ -145,6 +145,7 @@ class ArmorManager(private val plugin: Skills) {
         val leftover = player.inventory.addItem(item)
         if (leftover.isNotEmpty()) {
             // Drop at player's feet if inventory is full
+            plugin.stackBonusManager.applyStackBonusWithSync(item, player)
             player.world.dropItemNaturally(player.location, item)
         }
     }

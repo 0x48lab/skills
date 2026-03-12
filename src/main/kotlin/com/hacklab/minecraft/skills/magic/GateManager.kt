@@ -74,7 +74,7 @@ class GateManager(private val plugin: Skills) {
         val locBZ = locationB.z
         val worldB = locationB.world!!
 
-        // Start gate effect and teleportation task
+        // Start gate effect and teleportation task (every 2 ticks for performance)
         object : BukkitRunnable() {
             var ticksRemaining = durationTicks
 
@@ -92,24 +92,24 @@ class GateManager(private val plugin: Skills) {
                     return
                 }
 
-                // Spawn portal particles at both gates (every tick for smooth effect)
+                // Spawn portal particles at both gates (every 2 ticks)
                 spawnGateParticles(worldA, locAX, locAY, locAZ)
                 spawnGateParticles(worldB, locBX, locBY, locBZ)
 
-                // Play ambient sound every 40 ticks
-                if (ticksRemaining % 40 == 0) {
+                // Play ambient sound every ~40 ticks
+                if (ticksRemaining % 20 == 0) {
                     worldA.playSound(Location(worldA, locAX, locAY, locAZ), Sound.BLOCK_PORTAL_AMBIENT, 0.3f, 1.0f)
                     worldB.playSound(Location(worldB, locBX, locBY, locBZ), Sound.BLOCK_PORTAL_AMBIENT, 0.3f, 1.0f)
                 }
 
-                // Check for entities every 10 ticks (0.5 seconds)
-                if (ticksRemaining % 10 == 0) {
+                // Check for entities every ~10 ticks (0.5 seconds)
+                if (ticksRemaining % 5 == 0) {
                     checkAndTeleport(pairId, worldA, locAX, locAY, locAZ, worldB, locBX, locBY, locBZ)
                 }
 
-                ticksRemaining--
+                ticksRemaining -= 2
             }
-        }.runTaskTimer(plugin, 0L, 1L)
+        }.runTaskTimer(plugin, 0L, 2L)
 
         return pairId
     }
@@ -118,7 +118,8 @@ class GateManager(private val plugin: Skills) {
         val loc = Location(world, x, y, z)
 
         // Create a vertical ring of particles (portal shape)
-        for (angle in 0 until 360 step 30) {
+        // Step 60 instead of 30 = half the particle points, visually similar
+        for (angle in 0 until 360 step 60) {
             val radians = Math.toRadians(angle.toDouble())
             val offsetX = kotlin.math.cos(radians) * 0.8
             val offsetZ = kotlin.math.sin(radians) * 0.8

@@ -61,6 +61,30 @@ class EnderDragonManager(private val plugin: Skills) {
             }.runTaskLater(plugin, 40L) // Wait for world to fully load
         }
 
+        // Bootstrap: dragon already dead with no pending respawn (e.g. first install after dragon was killed)
+        if (!dragonData.dragonAlive && dragonData.nextRespawnTime == null) {
+            object : BukkitRunnable() {
+                override fun run() {
+                    val endWorld = getEndWorld() ?: return
+                    // Verify dragon is actually dead in the world
+                    val dragon = endWorld.getEntitiesByClass(EnderDragon::class.java).firstOrNull()
+                    if (dragon != null) {
+                        // Dragon exists - track it instead
+                        dragonData.dragonAlive = true
+                        applyDragonStats(dragon)
+                        skillExecutor.startSkills(dragon, dragonData.killCount)
+                        saveData()
+                    } else {
+                        // Dragon is dead with no prior data - respawn soon (30 seconds)
+                        plugin.logger.info("Dragon is dead with no respawn timer - scheduling immediate respawn")
+                        dragonData.nextRespawnTime = System.currentTimeMillis() + 30_000L
+                        saveData()
+                        scheduleRespawnAt(dragonData.nextRespawnTime!!)
+                    }
+                }
+            }.runTaskLater(plugin, 60L) // Wait for world to fully load
+        }
+
         plugin.logger.info("EnderDragonManager initialized (killCount=${dragonData.killCount})")
     }
 
@@ -155,8 +179,15 @@ class EnderDragonManager(private val plugin: Skills) {
             return
         }
 
-        // Initiate respawn via DragonBattle API
-        battle.initiateRespawn()
+        // Reset pillar crystals and force uncancellable respawn (empty list = no portal crystals needed)
+        // The SUMMONING_PILLARS phase will regenerate crystals on obsidian pillars automatically
+        battle.resetCrystals()
+        val result = battle.initiateRespawn(emptyList())
+        if (result) {
+            plugin.logger.info("Dragon respawn initiated successfully (phase: ${battle.respawnPhase})")
+        } else {
+            plugin.logger.warning("DragonBattle.initiateRespawn() returned false - respawn failed (phase: ${battle.respawnPhase})")
+        }
 
         dragonData.nextRespawnTime = null
         saveData()

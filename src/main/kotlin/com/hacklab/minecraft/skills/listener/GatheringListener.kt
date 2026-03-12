@@ -174,6 +174,7 @@ class GatheringListener(private val plugin: Skills) : Listener {
             if (shouldHandleDrops) {
                 event.isDropItems = false
                 drops.forEach { drop ->
+                    plugin.stackBonusManager.applyStackBonusWithSync(drop, player)
                     block.world.dropItemNaturally(block.location, drop)
                 }
             }

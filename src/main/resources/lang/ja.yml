@@ -88,6 +88,19 @@ magic:
   word_of_death_immune: "<red>この生物は死の言葉が効かない。"
   mass_sleep_cast: "<dark_purple>{count}体の敵が眠りに落ちた！"
 
+# 飛行魔法メッセージ
+fly:
+  start: "<aqua>飛行を開始した！飛行中はマナを消費し続けます。"
+  end: "<gray>飛行魔法の効果が切れた..."
+  mana_warning: "<red>⚠ マナが残りわずか！まもなく飛行が終了します！"
+  cancelled: "<gray>飛行魔法をキャンセルしました。"
+  dispelled: "<yellow>飛行魔法が解除された！"
+  water: "<blue>水中に入りました。飛行が解除されました。"
+  end_world: "<red>エンドでは飛行できません！"
+  already_flying: "<yellow>既に飛行中です。"
+  actionbar: "<aqua>🕊 Fly - MP: {current} / {max}"
+  actionbar_warning: "<red>⚠ Fly - MP: {current} / {max} - マナ残少！"
+
 # 回復メッセージ
 heal:
   target: "<green>{target}を{amount}HP回復しました。"

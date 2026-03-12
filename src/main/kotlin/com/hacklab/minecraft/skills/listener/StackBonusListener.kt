@@ -1,7 +1,9 @@
 package com.hacklab.minecraft.skills.listener
 
 import com.hacklab.minecraft.skills.Skills
+import com.hacklab.minecraft.skills.crafting.StackBonusManager
 import org.bukkit.Material
+import org.bukkit.entity.Item
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -22,6 +24,54 @@ import org.bukkit.inventory.Inventory
  * - Player tries to stack items in inventory (syncs maxStackSize for stacking)
  */
 class StackBonusListener(private val plugin: Skills) : Listener {
+
+    private var taskId: Int = -1
+
+    /**
+     * Start a periodic task that syncs maxStackSize of nearby ground items
+     * with the player's stack bonus. This ensures NMS pickup logic sees matching
+     * DataComponents, allowing items to stack into existing slots even when
+     * the inventory has no empty slots.
+     */
+    fun startNearbyItemSyncTask() {
+        taskId = plugin.server.scheduler.runTaskTimer(plugin, Runnable {
+            syncNearbyGroundItems()
+        }, 20L, 4L).taskId
+    }
+
+    /**
+     * Stop the nearby item sync task.
+     */
+    fun stopNearbyItemSyncTask() {
+        if (taskId != -1) {
+            plugin.server.scheduler.cancelTask(taskId)
+            taskId = -1
+        }
+    }
+
+    /**
+     * Sync maxStackSize of ground items near each online player.
+     * Runs every 4 ticks (~200ms) to pre-apply stack bonus before NMS pickup check.
+     */
+    private fun syncNearbyGroundItems() {
+        for (player in plugin.server.onlinePlayers) {
+            val maxStackSize = plugin.stackBonusManager.calculateMaxStackSize(player)
+            if (maxStackSize <= StackBonusManager.BASE_STACK_SIZE) continue
+
+            for (entity in player.getNearbyEntities(2.0, 2.0, 2.0)) {
+                if (entity !is Item) continue
+                val itemStack = entity.itemStack
+                if (itemStack.type.maxStackSize <= 1) continue
+                if (StackBonusManager.isExcludedMaterial(itemStack.type)) continue
+
+                val currentMax = plugin.stackBonusManager.getMaxStackSize(itemStack)
+                if (currentMax == maxStackSize) continue
+
+                plugin.stackBonusManager.applyStackBonusWithSync(itemStack, player)
+                entity.itemStack = itemStack
+            }
+        }
+    }
 
     /**
      * Apply stack bonus when player picks up items from the ground.

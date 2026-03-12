@@ -48,6 +48,7 @@ class CraftingListener(private val plugin: Skills) : Listener {
 
                 // Drop any items that don't fit
                 leftover.values.forEach { item ->
+                    plugin.stackBonusManager.applyStackBonusWithSync(item, player)
                     player.world.dropItemNaturally(player.location, item)
                 }
             }

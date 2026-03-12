@@ -406,7 +406,7 @@ class SpellManager(private val plugin: Skills) {
                 // Capture references for runnable
                 val casterRef = caster
 
-                // Create fire wall effect task
+                // Create fire wall effect task (every 2 ticks for performance)
                 object : BukkitRunnable() {
                     var ticksRemaining = durationTicks
 
@@ -455,9 +455,9 @@ class SpellManager(private val plugin: Skills) {
                             }
                         }
 
-                        ticksRemaining--
+                        ticksRemaining -= 2
                     }
-                }.runTaskTimer(plugin, 0L, 1L)
+                }.runTaskTimer(plugin, 0L, 2L)
             }
 
             SpellType.MIND_BLAST -> {
@@ -622,6 +622,16 @@ class SpellManager(private val plugin: Skills) {
                 target.world.playSound(target.location, Sound.BLOCK_BEACON_POWER_SELECT, 1.0f, 1.2f)
             }
 
+            SpellType.FLY -> {
+                // Check already flying
+                if (plugin.activeSpellManager.hasEffect(caster.uniqueId, SpellType.FLY)) {
+                    plugin.messageSender.send(caster, MessageKey.FLY_ALREADY_FLYING)
+                    return
+                }
+                // Start fly effect via ActiveSpellManager
+                plugin.activeSpellManager.addEffect(FlyEffect(caster.uniqueId, plugin))
+            }
+
             SpellType.PROTECTION -> {
                 val target = (entityTarget as? Player) ?: caster
                 val duration = 1200 + (magerySkill * 12).toInt()  // 1-3 minutes
@@ -651,6 +661,7 @@ class SpellManager(private val plugin: Skills) {
                 // If inventory full, drop on ground
                 if (leftover.isNotEmpty()) {
                     leftover.values.forEach { item ->
+                        plugin.stackBonusManager.applyStackBonusWithSync(item, caster)
                         caster.world.dropItemNaturally(caster.location, item)
                     }
                 }
@@ -986,6 +997,10 @@ class SpellManager(private val plugin: Skills) {
                             plugin.summonManager.dispelSummon(living)
                         }
                     }
+                    // Cancel ongoing spell effects (Fly, etc.)
+                    if (target is Player) {
+                        plugin.activeSpellManager.cancelEffects(target.uniqueId, com.hacklab.minecraft.skills.magic.EndReason.DISPELLED)
+                    }
                     plugin.messageSender.send(caster, MessageKey.MAGIC_DISPEL_CAST, "target" to target.name)
                     // Visual: Dispel effect
                     target.world.spawnParticle(Particle.ELECTRIC_SPARK, target.location.add(0.0, 1.0, 0.0), 30, 0.4, 0.6, 0.4, 0.1)
@@ -1034,6 +1049,10 @@ class SpellManager(private val plugin: Skills) {
                         buffsToRemove.forEach { effect -> target.removePotionEffect(effect) }
                         if (plugin.summonManager.isSummoned(target)) {
                             plugin.summonManager.dispelSummon(target)
+                        }
+                        // Cancel ongoing spell effects (Fly, etc.)
+                        if (target is Player) {
+                            plugin.activeSpellManager.cancelEffects(target.uniqueId, com.hacklab.minecraft.skills.magic.EndReason.DISPELLED)
                         }
                         dispelledCount++
                         target.world.spawnParticle(Particle.ELECTRIC_SPARK, target.location.add(0.0, 1.0, 0.0), 15, 0.3, 0.5, 0.3, 0.05)
@@ -1233,9 +1252,9 @@ class SpellManager(private val plugin: Skills) {
                                     }
                             }
                         }
-                        ticksRemaining--
+                        ticksRemaining -= 2
                     }
-                }.runTaskTimer(plugin, 0L, 1L)
+                }.runTaskTimer(plugin, 0L, 2L)
             }
 
             // === 7th Circle - Field Spells ===
@@ -1279,13 +1298,13 @@ class SpellManager(private val plugin: Skills) {
                         // Spawn energy particles
                         wallPositions.forEach { (x, y, z) ->
                             world.spawnParticle(Particle.END_ROD, Location(world, x, y + 0.5, z), 1, 0.1, 0.1, 0.1, 0.0)
-                            if (Random.nextDouble() < 0.1) {
+                            if (Random.nextDouble() < 0.2) {
                                 world.spawnParticle(Particle.ELECTRIC_SPARK, Location(world, x, y + 0.5, z), 3, 0.2, 0.2, 0.2, 0.02)
                             }
                         }
 
-                        // Block passage every 5 ticks
-                        if (ticksRemaining % 5 == 0) {
+                        // Block passage every 6 ticks (3 runs)
+                        if (ticksRemaining % 6 == 0) {
                             wallPositions.forEach { (x, y, z) ->
                                 val pos = Location(world, x, y + 0.5, z)
                                 world.getNearbyEntities(pos, 0.5, 0.5, 0.5)
@@ -1298,9 +1317,9 @@ class SpellManager(private val plugin: Skills) {
                                     }
                             }
                         }
-                        ticksRemaining--
+                        ticksRemaining -= 2
                     }
-                }.runTaskTimer(plugin, 0L, 1L)
+                }.runTaskTimer(plugin, 0L, 2L)
             }
 
             // === 5th Circle - Summon Spells ===

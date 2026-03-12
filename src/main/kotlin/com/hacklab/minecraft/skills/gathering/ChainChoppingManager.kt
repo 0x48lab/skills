@@ -187,6 +187,7 @@ class ChainChoppingManager(private val plugin: Skills) {
 
                         // Drop items at the block's location (they will fall naturally)
                         drops.forEach { drop ->
+                            plugin.stackBonusManager.applyStackBonusWithSync(drop, player)
                             block.world.dropItemNaturally(blockLocation.add(0.5, 0.5, 0.5), drop)
                         }
                     }

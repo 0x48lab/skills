@@ -68,6 +68,7 @@ spells:
   MIND_BLAST: "Drains target's mana (hunger)"
   # 5th Circle - Buff
   PROTECTION: "Increases defense"
+  FLY: "Enables flight while draining mana"
   # 5th Circle - Utility
   MARK: "Marks a rune with current location"
   RECALL: "Teleports to a marked rune"

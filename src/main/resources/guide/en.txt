@@ -279,6 +279,9 @@ Protection (5th) - Defense UP
 Invisibility (6th)
   Reagent: Nether Wart, Blaze Powder
 
+Fly (5th) - Flight (drains mana)
+  Reagent: Nether Wart, Feather
+
 ---PAGE---
 
 === Movement Spells ===

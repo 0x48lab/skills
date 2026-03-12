@@ -88,6 +88,19 @@ magic:
   word_of_death_immune: "<red>This creature is immune to the Word of Death."
   mass_sleep_cast: "<dark_purple>A wave of drowsiness washes over {count} enemies!"
 
+# Fly spell messages
+fly:
+  start: "<aqua>You begin to fly! Mana will drain while airborne."
+  end: "<gray>The flight spell fades..."
+  mana_warning: "<red>⚠ Mana is running low! Flight will end soon!"
+  cancelled: "<gray>You cancel the flight spell."
+  dispelled: "<yellow>Your flight has been dispelled!"
+  water: "<blue>You entered water. Flight has ended."
+  end_world: "<red>Flight is not allowed in The End!"
+  already_flying: "<yellow>You are already flying."
+  actionbar: "<aqua>🕊 Fly - MP: {current} / {max}"
+  actionbar_warning: "<red>⚠ Fly - MP: {current} / {max} - Low mana!"
+
 # Heal messages
 heal:
   target: "<green>Healed {target} for {amount} HP."

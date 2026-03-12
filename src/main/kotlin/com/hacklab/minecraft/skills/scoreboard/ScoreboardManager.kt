@@ -22,6 +22,9 @@ class ScoreboardManager(private val plugin: Skills) {
     private var updateTask: BukkitRunnable? = null
     private var tickCounter = 0
 
+    // Team sync interval: every 30 updates (~30 seconds at 1sec interval)
+    private val TEAM_SYNC_INTERVAL = 30
+
     companion object {
         /** Unique objective name to identify Skills plugin's scoreboard */
         const val OBJECTIVE_NAME = "skills_stats"
@@ -35,6 +38,12 @@ class ScoreboardManager(private val plugin: Skills) {
             override fun run() {
                 tickCounter++
                 val shouldRegenMana = tickCounter % 5 == 0  // Every 5 seconds
+                val shouldSyncTeams = tickCounter % TEAM_SYNC_INTERVAL == 0  // Every ~30 seconds
+
+                // Sync teams periodically instead of every update
+                if (shouldSyncTeams) {
+                    syncTeamsToAllPlayers()
+                }
 
                 Bukkit.getOnlinePlayers().forEach { player ->
                     if (shouldUpdateScoreboard(player)) {
@@ -93,8 +102,7 @@ class ScoreboardManager(private val plugin: Skills) {
         val data = plugin.playerDataManager.getPlayerData(player)
         val scoreboard = getOrCreateScoreboard(player)
 
-        // mainScoreboardのチーム情報を同期（他プラグインの更新を反映）
-        copyTeamsFromMainScoreboard(scoreboard)
+        // Team sync is now handled periodically by startUpdateTask (every ~30 seconds)
 
         // Get or create objective
         var objective = scoreboard.getObjective(OBJECTIVE_NAME)

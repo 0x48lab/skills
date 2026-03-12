@@ -120,6 +120,9 @@ enum class SpellType(
         listOf(Material.ENDER_PEARL), "Kal Ort Por"),
     PARALYZE("Paralyze", SpellCircle.FIFTH, SpellTargetType.TARGET_ENTITY,
         listOf(Material.SPIDER_EYE, Material.STRING), "An Ex Por"),
+    // Buff (Ongoing)
+    FLY("Fly", SpellCircle.FIFTH, SpellTargetType.SELF,
+        listOf(Material.NETHER_WART, Material.FEATHER), "Vas Uus Por"),
     // Summon (NEW)
     SUMMON_CREATURE("Summon Creature", SpellCircle.FIFTH, SpellTargetType.TARGET_LOCATION,
         listOf(Material.NETHER_WART, Material.BLAZE_POWDER), "Kal Xen"),

@@ -104,6 +104,18 @@ enum class MessageKey(val path: String) {
     MAGIC_WORD_OF_DEATH_IMMUNE("magic.word_of_death_immune"),
     MAGIC_MASS_SLEEP_CAST("magic.mass_sleep_cast"),
 
+    // Fly spell
+    FLY_START("fly.start"),
+    FLY_END("fly.end"),
+    FLY_MANA_WARNING("fly.mana_warning"),
+    FLY_CANCELLED("fly.cancelled"),
+    FLY_DISPELLED("fly.dispelled"),
+    FLY_WATER("fly.water"),
+    FLY_END_WORLD("fly.end_world"),
+    FLY_ALREADY_FLYING("fly.already_flying"),
+    FLY_ACTIONBAR("fly.actionbar"),
+    FLY_ACTIONBAR_WARNING("fly.actionbar_warning"),
+
     // Thief skills
     THIEF_HIDE_SUCCESS("thief.hide_success"),
     THIEF_HIDE_FAILED("thief.hide_failed"),

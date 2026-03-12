@@ -118,6 +118,8 @@ class Skills : JavaPlugin() {
         private set
     lateinit var floatingTextManager: FloatingTextManager
         private set
+    lateinit var activeSpellManager: ActiveSpellManager
+        private set
 
     // Crafting
     lateinit var craftingManager: CraftingManager
@@ -205,6 +207,7 @@ class Skills : JavaPlugin() {
 
     // Listeners
     private lateinit var meditationListener: MeditationListener
+    private lateinit var stackBonusListener: StackBonusListener
     lateinit var survivalListener: SurvivalListener
         private set
     lateinit var runebookListener: RunebookListener
@@ -269,6 +272,9 @@ class Skills : JavaPlugin() {
         playerDataManager.saveAllPlayers()
 
         // Cleanup listeners
+        if (::stackBonusListener.isInitialized) {
+            stackBonusListener.stopNearbyItemSyncTask()
+        }
         if (::meditationListener.isInitialized) {
             meditationListener.cleanup()
         }
@@ -281,6 +287,11 @@ class Skills : JavaPlugin() {
         // Cleanup stamina
         if (::staminaManager.isInitialized) {
             staminaManager.stopUpdateTask()
+        }
+
+        // Cleanup active spell effects (Fly, etc.)
+        if (::activeSpellManager.isInitialized) {
+            activeSpellManager.shutdown()
         }
 
         // Cleanup floating texts
@@ -343,6 +354,7 @@ class Skills : JavaPlugin() {
         runebookManager = RunebookManager(this)
         summonManager = SummonManager(this)
         floatingTextManager = FloatingTextManager(this)
+        activeSpellManager = ActiveSpellManager(this)
         castingManager = CastingManager(this)
         spellManager = SpellManager(this)
 
@@ -433,6 +445,9 @@ class Skills : JavaPlugin() {
         // VengefulMobs
         pm.registerEvents(VengefulMobsListener(this), this)
 
+        // Fly spell events (water, world change, death, quit)
+        pm.registerEvents(FlyListener(this), this)
+
         // Scroll loot (mob drops and End chest)
         pm.registerEvents(ScrollLootListener(this), this)
 
@@ -449,7 +464,9 @@ class Skills : JavaPlugin() {
         pm.registerEvents(FoodListener(this), this)
 
         // Stack size bonus based on production skills
-        pm.registerEvents(StackBonusListener(this), this)
+        stackBonusListener = StackBonusListener(this)
+        pm.registerEvents(stackBonusListener, this)
+        stackBonusListener.startNearbyItemSyncTask()
 
         // Pick block fix (after StackBonusListener to handle maxStackSize mismatch)
         pm.registerEvents(PickBlockListener(this), this)

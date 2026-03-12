@@ -21,8 +21,11 @@ class VengefulMobsManager(private val plugin: Skills) {
     // RETALIATE_ONCEモード用: 1回反撃したMobを追跡
     private val retaliatedOnce = ConcurrentHashMap.newKeySet<UUID>()
 
-    // タスク実行中かどうか
-    private var taskRunning = false
+    // 攻撃クールダウン管理（PDCの代わりにメモリで管理して高速化）
+    private val lastAttackTimes = ConcurrentHashMap<UUID, Long>()
+
+    // タスク
+    private var aggressionTask: BukkitRunnable? = null
 
     data class AngryState(
         val targetId: UUID,
@@ -39,21 +42,37 @@ class VengefulMobsManager(private val plugin: Skills) {
         config.reload()
         angryMobs.clear()
         retaliatedOnce.clear()
+        lastAttackTimes.clear()
+        aggressionTask?.cancel()
+        aggressionTask = null
     }
 
     /**
-     * 攻撃追跡タスクを開始
+     * 攻撃追跡タスクを開始（怒りMobが存在する時のみ稼働）
      */
     fun startAggressionTask() {
-        if (taskRunning) return
-        taskRunning = true
+        // on-demand: angryMobsに追加された時にensureTaskRunning()で起動
+    }
 
-        object : BukkitRunnable() {
+    /**
+     * 怒りMobが存在する場合のみタスクを起動
+     */
+    private fun ensureTaskRunning() {
+        if (aggressionTask != null) return
+        if (angryMobs.isEmpty()) return
+
+        val task = object : BukkitRunnable() {
             override fun run() {
-                if (!config.enabled) return
+                if (angryMobs.isEmpty()) {
+                    cancel()
+                    aggressionTask = null
+                    return
+                }
                 processAngryMobs()
             }
-        }.runTaskTimer(plugin, 1L, 1L) // 毎tick実行
+        }
+        task.runTaskTimer(plugin, 1L, 4L) // 4tickごと（5回/秒）
+        aggressionTask = task
     }
 
     /**
@@ -61,6 +80,7 @@ class VengefulMobsManager(private val plugin: Skills) {
      */
     private fun processAngryMobs() {
         val now = System.currentTimeMillis()
+        val giveUpDistanceSq = config.giveUpDistance * config.giveUpDistance
 
         val iterator = angryMobs.entries.iterator()
         while (iterator.hasNext()) {
@@ -69,30 +89,39 @@ class VengefulMobsManager(private val plugin: Skills) {
             // 期限切れチェック
             if (now > state.expireTime) {
                 iterator.remove()
+                lastAttackTimes.remove(mobId)
                 continue
             }
 
             val mob = plugin.server.getEntity(mobId) as? Mob
             if (mob == null || mob.isDead) {
                 iterator.remove()
+                lastAttackTimes.remove(mobId)
                 continue
             }
 
             val target = plugin.server.getEntity(state.targetId) as? LivingEntity
             if (target == null || target.isDead) {
                 iterator.remove()
+                lastAttackTimes.remove(mobId)
                 continue
             }
 
-            // 距離チェック（give_up_distance以内）
-            val distance = mob.location.distance(target.location)
-            if (!mob.world.equals(target.world) || distance > config.giveUpDistance) {
+            // 距離チェック（distanceSquaredで高速化）
+            if (mob.world != target.world) {
                 iterator.remove()
+                lastAttackTimes.remove(mobId)
+                continue
+            }
+            val distanceSq = mob.location.distanceSquared(target.location)
+            if (distanceSq > giveUpDistanceSq) {
+                iterator.remove()
+                lastAttackTimes.remove(mobId)
                 continue
             }
 
             // 追跡中なら怒り状態を延長（逃げるまで追い続ける）
-            if (config.extendAngerWhileChasing && distance <= config.giveUpDistance) {
+            if (config.extendAngerWhileChasing) {
                 val newExpireTime = now + config.angerDuration
                 if (newExpireTime > state.expireTime) {
                     angryMobs[mobId] = state.copy(expireTime = newExpireTime)
@@ -104,7 +133,7 @@ class VengefulMobsManager(private val plugin: Skills) {
 
             // 近ければ攻撃（攻撃範囲内）
             val attackRange = config.getConfig(mob.type).attackRange
-            if (mob.location.distance(target.location) <= attackRange) {
+            if (distanceSq <= attackRange * attackRange) {
                 attackTarget(mob, target, state)
             }
         }
@@ -150,22 +179,12 @@ class VengefulMobsManager(private val plugin: Skills) {
             retaliatedOnce.add(mob.uniqueId)
         }
 
-        // 攻撃クールダウン（設定値に基づく）
-        val lastAttackKey = "vengeful_last_attack"
-        val lastAttack = mob.getPersistentDataContainer().getOrDefault(
-            org.bukkit.NamespacedKey(plugin, lastAttackKey),
-            org.bukkit.persistence.PersistentDataType.LONG,
-            0L
-        )
-
+        // 攻撃クールダウン（メモリ管理で高速化）
         val now = System.currentTimeMillis()
+        val lastAttack = lastAttackTimes[mob.uniqueId] ?: 0L
         if (now - lastAttack < state.attackCooldown) return
 
-        mob.getPersistentDataContainer().set(
-            org.bukkit.NamespacedKey(plugin, lastAttackKey),
-            org.bukkit.persistence.PersistentDataType.LONG,
-            now
-        )
+        lastAttackTimes[mob.uniqueId] = now
 
         // ダメージを与える
         target.damage(state.damage, mob)
@@ -210,6 +229,9 @@ class VengefulMobsManager(private val plugin: Skills) {
         if (mobConfig.mode == AggressionMode.RETALIATE_WITH_SUPPORT) {
             alertNearbyMobs(mob, attacker)
         }
+
+        // 怒りMobが追加されたのでタスクを起動
+        ensureTaskRunning()
 
         if (plugin.skillsConfig.debugMode) {
             plugin.logger.info("VengefulMobs: ${mob.type} is now angry at ${attacker.name}")
@@ -261,6 +283,7 @@ class VengefulMobsManager(private val plugin: Skills) {
                 damage = mobConfig.damage,
                 attackCooldown = mobConfig.attackCooldown
             )
+            ensureTaskRunning()
         }
     }
 
@@ -288,8 +311,11 @@ class VengefulMobsManager(private val plugin: Skills) {
             )
         }
 
-        if (nearbyMobs.isNotEmpty() && plugin.skillsConfig.debugMode) {
-            plugin.logger.info("VengefulMobs: Alerted ${nearbyMobs.size} nearby ${attacked.type}s")
+        if (nearbyMobs.isNotEmpty()) {
+            ensureTaskRunning()
+            if (plugin.skillsConfig.debugMode) {
+                plugin.logger.info("VengefulMobs: Alerted ${nearbyMobs.size} nearby ${attacked.type}s")
+            }
         }
     }
 
@@ -299,6 +325,7 @@ class VengefulMobsManager(private val plugin: Skills) {
     fun onMobRemoved(mobId: UUID) {
         angryMobs.remove(mobId)
         retaliatedOnce.remove(mobId)
+        lastAttackTimes.remove(mobId)
     }
 
     /**
