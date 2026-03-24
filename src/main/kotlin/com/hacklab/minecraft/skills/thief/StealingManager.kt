@@ -15,6 +15,12 @@ class StealingManager(private val plugin: Skills) {
      * @param isEquipment true if stealing from equipment slots (adds penalty)
      */
     fun trySteal(thief: Player, target: Player, slot: Int, item: ItemStack, isEquipment: Boolean = false): StealResult {
+        // Block stealing from party members
+        if (plugin.partyManager.isInSameParty(thief.uniqueId, target.uniqueId)) {
+            plugin.messageSender.send(thief, MessageKey.PARTY_STEAL_BLOCKED)
+            return StealResult.FAILED
+        }
+
         val thiefData = plugin.playerDataManager.getPlayerData(thief)
         val targetData = plugin.playerDataManager.getPlayerData(target)
 

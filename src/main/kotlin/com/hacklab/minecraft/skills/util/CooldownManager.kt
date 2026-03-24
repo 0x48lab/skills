@@ -77,5 +77,6 @@ enum class CooldownAction(val configKey: String, val defaultCooldown: Int) {
     EVALUATE("evaluate", 5),
     CAST_SPELL("cast_spell", 2),  // Base cooldown between spell casts
     USE_SCROLL("use_scroll", 1),  // Prevent double-firing
-    MEDITATION("meditation", 30)
+    MEDITATION("meditation", 30),
+    PARTY_TP("party_tp", 120)
 }

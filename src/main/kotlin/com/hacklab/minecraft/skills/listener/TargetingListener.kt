@@ -20,7 +20,17 @@ class TargetingListener(private val plugin: Skills) : Listener {
         val player = event.player
         val target = event.rightClicked
 
-        // Check if player is in targeting mode
+        // Check if player is in spell casting targeting phase (CastingManager)
+        val castingState = plugin.castingManager.getCastingState(player.uniqueId)
+        if (castingState != null && castingState.phase == com.hacklab.minecraft.skills.magic.CastingManager.CastPhase.TARGETING) {
+            event.isCancelled = true
+            // Entity right-click during spell targeting = cancel (same as right-click air)
+            plugin.castingManager.cancelCasting(player.uniqueId, silent = false)
+            plugin.messageSender.send(player, com.hacklab.minecraft.skills.i18n.MessageKey.MAGIC_CANCELLED)
+            return
+        }
+
+        // Check if player is in targeting mode (old TargetManager system)
         if (!plugin.targetManager.isTargeting(player.uniqueId)) {
             // Handle normal pet healing (Veterinary)
             if (target is LivingEntity && plugin.tamingManager.isOwner(player, target)) {

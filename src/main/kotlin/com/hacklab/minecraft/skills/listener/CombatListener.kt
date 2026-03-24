@@ -1,6 +1,7 @@
 package com.hacklab.minecraft.skills.listener
 
 import com.hacklab.minecraft.skills.Skills
+import com.hacklab.minecraft.skills.combat.CombatManager
 import com.hacklab.minecraft.skills.skill.WeaponType
 import com.hacklab.minecraft.skills.skill.SkillType
 import com.hacklab.minecraft.skills.skill.StatCalculator
@@ -51,8 +52,25 @@ class CombatListener(private val plugin: Skills) : Listener {
 
         // Player attacking
         if (attacker != null && target is LivingEntity) {
+            // Cancel attack if player is in spell targeting mode, and process the target click instead
+            val castingState = plugin.castingManager.getCastingState(attacker.uniqueId)
+            if (castingState != null && castingState.phase == com.hacklab.minecraft.skills.magic.CastingManager.CastPhase.TARGETING) {
+                event.isCancelled = true
+                plugin.castingManager.processTargetClick(attacker)
+                return
+            }
+
+            // Party friendly fire check - cancel damage between party members
+            if (target is Player && plugin.partyManager.isInSameParty(attacker.uniqueId, target.uniqueId)) {
+                event.isCancelled = true
+                return
+            }
+
+            // Check backstab BEFORE breaking hiding
+            val wasHidden = plugin.hidingManager.isHidden(attacker.uniqueId)
+
             // Break hiding/invisibility on attack
-            if (plugin.hidingManager.isHidden(attacker.uniqueId)) {
+            if (wasHidden) {
                 plugin.hidingManager.breakHiding(attacker, "attack")
             } else if (attacker.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
                 // Magic invisibility - remove it on attack
@@ -100,9 +118,31 @@ class CombatListener(private val plugin: Skills) : Listener {
                 }
             }
 
+            // Apply backstab bonus (Hiding state -> first attack)
+            // Multiplier: 2.0 + (Hiding / 100) * 3.0 = 2.0 ~ 5.0
+            // Does NOT stack with critical (backstab replaces it)
+            var finalDamage = result.damage
+            if (wasHidden && !isRangedAttack) {
+                val hidingSkill = plugin.playerDataManager.getPlayerData(attacker)
+                    .getSkillValue(SkillType.HIDING)
+                val backstabMod = 2.0 + (hidingSkill / 100.0) * 3.0
+                if (result.isCritical) {
+                    // Backstab always >= critical(2.0), replace critical with backstab
+                    finalDamage = finalDamage / CombatManager.CRITICAL_MULTIPLIER * backstabMod
+                } else {
+                    finalDamage *= backstabMod
+                }
+                plugin.messageSender.sendActionBar(attacker, com.hacklab.minecraft.skills.i18n.MessageKey.COMBAT_BACKSTAB,
+                    "multiplier" to String.format("%.1f", backstabMod))
+                // Visual feedback
+                val loc = target.location.add(0.0, 1.0, 0.0)
+                target.world.spawnParticle(Particle.CRIT, loc, 20, 0.3, 0.5, 0.3, 0.1)
+                target.world.playSound(loc, Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.0f, 0.6f)
+            }
+
             // Modify damage based on calculation
             // Apply calculated damage directly to mob (already in vanilla scale)
-            event.damage = result.damage
+            event.damage = finalDamage
         }
 
         // Player being attacked - apply to internal HP

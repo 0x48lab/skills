@@ -214,6 +214,7 @@ combat:
   resist: "<blue>Resisted some damage."
   miss: "<gray>Miss!"
   stun: "<yellow>⚡ Stunned!"
+  backstab: "<dark_red>🗡 Backstab! (x{multiplier})"
 
 # Armor messages
 armor:
@@ -453,6 +454,48 @@ dragon:
     crystal_regeneration: "Crystal Regeneration"
     player_pull: "Player Pull"
   pull_warning: "<dark_red>⚠ Pulled by the dragon's power!"
+
+# Party
+party:
+  created: "<green>Party created!"
+  invite_sent: "<green>Sent party invite to {player}"
+  invite_received: "<yellow>{player} invited you to their party! "
+  invite_accept: "[Accept]"
+  invite_decline: "[Decline]"
+  invite_decline_confirm: "<gray>You declined the party invite."
+  invite_declined: "<gray>{player} declined your party invite."
+  invite_expired: "<gray>Party invite from {player} has expired."
+  joined: "<green>You joined the party!"
+  member_joined: "<green>{player} joined the party."
+  left: "<yellow>You left the party."
+  member_left: "<yellow>{player} left the party."
+  kicked: "<red>You were kicked from the party."
+  member_kicked: "<red>{player} was kicked from the party."
+  disbanded: "<red>The party has been disbanded."
+  leader_changed: "<yellow>{player} is now the party leader."
+  full: "<red>The party is full ({max} members)."
+  already_in: "<red>You are already in a party."
+  not_in: "<red>You are not in a party."
+  not_leader: "<red>Only the party leader can do that."
+  target_already_in: "<red>{player} is already in a party."
+  target_not_member: "<red>{player} is not a party member."
+  target_offline: "<red>{player} is not online."
+  self_invite: "<red>You cannot invite yourself."
+  self_kick: "<red>You cannot kick yourself."
+  no_invite: "<red>You have no pending party invites."
+  list_header: "<gold>=== Party Members ==="
+  list_entry: "  {player} - <red>❤ {hp}/{maxhp}"
+  list_entry_offline: "  {player} <gray>(Offline)"
+  list_leader: "<yellow>★ {player} (Leader) - <red>❤ {hp}/{maxhp}"
+  chat: "<aqua>[Party] <white>{player}: {message}"
+  tp_start: "<light_purple>Teleporting to {player}... ({seconds}s)"
+  tp_success: "<green>Teleported to {player}!"
+  tp_cancelled: "<red>Teleport cancelled."
+  tp_cooldown: "<red>Party teleport on cooldown ({seconds}s remaining)."
+  tp_different_world: "<red>{player} is in a different world."
+  tp_in_combat: "<red>Cannot teleport during combat."
+  snoop_blocked: "<red>You cannot snoop on party members."
+  steal_blocked: "<red>You cannot steal from party members."
 
 # UI elements
 ui:

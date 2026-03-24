@@ -214,6 +214,7 @@ combat:
   resist: "<blue>ダメージを軽減した。"
   miss: "<gray>ミス！"
   stun: "<yellow>⚡ スタン！"
+  backstab: "<dark_red>🗡 バックスタブ！ (x{multiplier})"
 
 # 防具メッセージ
 armor:
@@ -453,6 +454,48 @@ dragon:
     crystal_regeneration: "クリスタル再生"
     player_pull: "プレイヤー引き寄せ"
   pull_warning: "<dark_red>⚠ ドラゴンの力で引き寄せられた！"
+
+# パーティ
+party:
+  created: "<green>パーティを作成しました！"
+  invite_sent: "<green>{player}にパーティ招待を送信しました"
+  invite_received: "<yellow>{player}からパーティ招待が届きました！ "
+  invite_accept: "[承諾]"
+  invite_decline: "[拒否]"
+  invite_decline_confirm: "<gray>パーティ招待を拒否しました。"
+  invite_declined: "<gray>{player}がパーティ招待を拒否しました。"
+  invite_expired: "<gray>{player}からのパーティ招待が期限切れになりました。"
+  joined: "<green>パーティに参加しました！"
+  member_joined: "<green>{player}がパーティに参加しました。"
+  left: "<yellow>パーティを離脱しました。"
+  member_left: "<yellow>{player}がパーティを離脱しました。"
+  kicked: "<red>パーティからキックされました。"
+  member_kicked: "<red>{player}をパーティからキックしました。"
+  disbanded: "<red>パーティが解散されました。"
+  leader_changed: "<yellow>{player}が新しいリーダーになりました。"
+  full: "<red>パーティが満員です（{max}人）"
+  already_in: "<red>既にパーティに所属しています。"
+  not_in: "<red>パーティに所属していません。"
+  not_leader: "<red>リーダーのみ実行できます。"
+  target_already_in: "<red>{player}は既にパーティに所属しています。"
+  target_not_member: "<red>{player}はパーティメンバーではありません。"
+  target_offline: "<red>{player}はオンラインではありません。"
+  self_invite: "<red>自分自身を招待できません。"
+  self_kick: "<red>自分自身をキックできません。"
+  no_invite: "<red>保留中のパーティ招待はありません。"
+  list_header: "<gold>=== パーティメンバー ==="
+  list_entry: "  {player} - <red>❤ {hp}/{maxhp}"
+  list_entry_offline: "  {player} <gray>(オフライン)"
+  list_leader: "<yellow>★ {player} (リーダー) - <red>❤ {hp}/{maxhp}"
+  chat: "<aqua>[Party] <white>{player}: {message}"
+  tp_start: "<light_purple>{player}のところへ移動中... ({seconds}秒)"
+  tp_success: "<green>{player}のところにテレポートしました！"
+  tp_cancelled: "<red>テレポートがキャンセルされました。"
+  tp_cooldown: "<red>パーティTPはクールダウン中です（残り{seconds}秒）"
+  tp_different_world: "<red>{player}は別のワールドにいます。"
+  tp_in_combat: "<red>戦闘中はテレポートできません。"
+  snoop_blocked: "<red>パーティメンバーを覗くことはできません。"
+  steal_blocked: "<red>パーティメンバーから盗むことはできません。"
 
 # UI要素
 ui:

@@ -10,6 +10,7 @@ import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.PlayerChangedWorldEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.event.player.PlayerToggleFlightEvent
 
 class FlyListener(private val plugin: Skills) : Listener {
 
@@ -23,6 +24,18 @@ class FlyListener(private val plugin: Skills) : Listener {
         // Water submersion check (head in water)
         if (player.eyeLocation.block.type == Material.WATER) {
             plugin.activeSpellManager.cancelEffect(player.uniqueId, SpellType.FLY, EndReason.ENVIRONMENTAL)
+        }
+    }
+
+    @EventHandler
+    fun onPlayerToggleFlight(event: PlayerToggleFlightEvent) {
+        val player = event.player
+
+        // Only handle when fly spell is active and player is turning flight OFF
+        if (!event.isFlying && plugin.activeSpellManager.hasEffect(player.uniqueId, SpellType.FLY)) {
+            // Player voluntarily stopped flying (double-tap space on ground, or landed)
+            // Cancel the fly spell effect with safe landing
+            plugin.activeSpellManager.cancelEffect(player.uniqueId, SpellType.FLY, EndReason.CANCELLED)
         }
     }
 

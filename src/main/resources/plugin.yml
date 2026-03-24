@@ -81,6 +81,16 @@ commands:
     description: Count as sleeping without being in a bed
     usage: /sleep
 
+  party:
+    description: Manage your party
+    usage: /party <subcommand>
+    aliases: [p]
+
+  pc:
+    description: Send a party chat message
+    usage: /pc <message>
+    aliases: [partychat]
+
 permissions:
   skills.admin:
     description: Access to admin commands
@@ -92,4 +102,8 @@ permissions:
 
   skills.magic:
     description: Use magic commands (spellbook, cast)
+    default: true
+
+  skills.party:
+    description: Use party commands
     default: true

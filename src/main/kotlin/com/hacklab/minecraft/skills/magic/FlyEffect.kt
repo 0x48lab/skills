@@ -23,7 +23,7 @@ class FlyEffect(
     override val spellType = SpellType.FLY
 
     private companion object {
-        const val MANA_DRAIN_PER_SECOND = 0.1
+        const val MANA_DRAIN_PER_SECOND = 0.2
         const val MANA_WARNING_THRESHOLD = 3.0
         const val SLOW_FALLING_DURATION_TICKS = 100 // 5 seconds
     }

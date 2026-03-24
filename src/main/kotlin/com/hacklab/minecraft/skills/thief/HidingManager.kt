@@ -5,6 +5,7 @@ import com.hacklab.minecraft.skills.i18n.MessageKey
 import com.hacklab.minecraft.skills.skill.SkillType
 import com.hacklab.minecraft.skills.util.CooldownAction
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import org.bukkit.scheduler.BukkitTask
@@ -73,6 +74,9 @@ class HidingManager(private val plugin: Skills) {
             lastLocation = player.location
         )
 
+        // Hide armor from other players
+        hideEquipment(player)
+
         plugin.messageSender.send(player, MessageKey.THIEF_HIDE_SUCCESS)
         return true
     }
@@ -92,6 +96,9 @@ class HidingManager(private val plugin: Skills) {
 
         hiddenPlayers.remove(player.uniqueId)
         player.removePotionEffect(PotionEffectType.INVISIBILITY)
+
+        // Restore armor visibility to other players
+        showEquipment(player)
 
         if (reason == "timeout") {
             plugin.messageSender.send(player, MessageKey.THIEF_HIDE_TIMEOUT_EXPIRED)
@@ -176,6 +183,17 @@ class HidingManager(private val plugin: Skills) {
                 val player = plugin.server.getPlayer(uuid) ?: continue
                 val remainingMs = state.expiresAt - now
 
+                // Send particles to party members showing hidden player's location
+                val party = plugin.partyManager.getParty(uuid)
+                if (party != null) {
+                    val particleLoc = player.location.add(0.0, 1.0, 0.0)
+                    for (memberId in party.members) {
+                        if (memberId == uuid) continue
+                        val member = org.bukkit.Bukkit.getPlayer(memberId) ?: continue
+                        member.spawnParticle(org.bukkit.Particle.SOUL_FIRE_FLAME, particleLoc, 3, 0.2, 0.5, 0.2, 0.01)
+                    }
+                }
+
                 // Show warning when approaching timeout
                 if (!state.warningShown && remainingMs in 1..warningMs) {
                     state.warningShown = true
@@ -200,6 +218,44 @@ class HidingManager(private val plugin: Skills) {
     fun stopTimeoutChecker() {
         timeoutTask?.cancel()
         timeoutTask = null
+    }
+
+    /**
+     * Hide armor from other players by sending empty equipment packets.
+     * The actual armor stays equipped (defense is maintained).
+     */
+    private fun hideEquipment(player: Player) {
+        val emptyEquipment = mapOf(
+            org.bukkit.inventory.EquipmentSlot.HEAD to ItemStack.empty(),
+            org.bukkit.inventory.EquipmentSlot.CHEST to ItemStack.empty(),
+            org.bukkit.inventory.EquipmentSlot.LEGS to ItemStack.empty(),
+            org.bukkit.inventory.EquipmentSlot.FEET to ItemStack.empty(),
+            org.bukkit.inventory.EquipmentSlot.HAND to ItemStack.empty(),
+            org.bukkit.inventory.EquipmentSlot.OFF_HAND to ItemStack.empty()
+        )
+        for (other in plugin.server.onlinePlayers) {
+            if (other.uniqueId == player.uniqueId) continue
+            other.sendEquipmentChange(player, emptyEquipment)
+        }
+    }
+
+    /**
+     * Restore armor visibility to other players by sending real equipment.
+     */
+    private fun showEquipment(player: Player) {
+        val equipment = player.equipment ?: return
+        val realEquipment = mapOf(
+            org.bukkit.inventory.EquipmentSlot.HEAD to equipment.helmet,
+            org.bukkit.inventory.EquipmentSlot.CHEST to equipment.chestplate,
+            org.bukkit.inventory.EquipmentSlot.LEGS to equipment.leggings,
+            org.bukkit.inventory.EquipmentSlot.FEET to equipment.boots,
+            org.bukkit.inventory.EquipmentSlot.HAND to equipment.itemInMainHand,
+            org.bukkit.inventory.EquipmentSlot.OFF_HAND to equipment.itemInOffHand
+        )
+        for (other in plugin.server.onlinePlayers) {
+            if (other.uniqueId == player.uniqueId) continue
+            other.sendEquipmentChange(player, realEquipment)
+        }
     }
 
     /**

@@ -209,6 +209,12 @@ ender_dragon_scaling:
   max_damage_scale: 4.0
   # XP multiplier increase per kill (base: 12000)
   xp_scale_per_kill: 0.25
+  # Crystal regeneration delay in seconds (killCount >= 5)
+  crystal_regen_seconds: 120
+  # Crystal regeneration count limit (total across all crystals per dragon fight)
+  # Formula: base_count + (killCount - 5) * count_per_kill
+  crystal_regen_base_count: 2
+  crystal_regen_count_per_kill: 1
   # Minutes before respawn to announce (list)
   announce_pre_respawn_minutes: [5, 1]
 
@@ -232,6 +238,14 @@ scoreboard:
   # Allow players to toggle scoreboard with /togglescoreboard command
   allow_player_toggle: true
 
+  # Scoreboard sections - toggle which sections are displayed
+  sections:
+    title: true    # Player title (e.g., "Grandmaster Swordsman")
+    hms: true      # HP, Mana, Stamina
+    gold: true     # Gold balance (requires Vault)
+    stats: true    # STR, DEX, INT with lock icons
+    party: true    # Party members list
+
 # Chunk Mob Limit settings - Prevents server lag from mob farms
 chunk_mob_limit:
   # Enable/disable the feature
@@ -250,3 +264,12 @@ chunk_mob_limit:
 
   # Notify player when breeding is blocked due to limit
   notify_on_limit: true
+
+# Party system settings
+party:
+  enabled: true
+  max_size: 8
+  invite_timeout: 60
+  tp_cooldown: 120
+  tp_cast_time: 5
+  tp_combat_cooldown: 5

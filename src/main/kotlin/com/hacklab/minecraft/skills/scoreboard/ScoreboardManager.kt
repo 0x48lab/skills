@@ -101,8 +101,7 @@ class ScoreboardManager(private val plugin: Skills) {
     fun updateScoreboard(player: Player) {
         val data = plugin.playerDataManager.getPlayerData(player)
         val scoreboard = getOrCreateScoreboard(player)
-
-        // Team sync is now handled periodically by startUpdateTask (every ~30 seconds)
+        val cfg = plugin.skillsConfig
 
         // Get or create objective
         var objective = scoreboard.getObjective(OBJECTIVE_NAME)
@@ -121,59 +120,94 @@ class ScoreboardManager(private val plugin: Skills) {
         }
 
         // Add stats (scores are displayed in descending order, higher = top)
-        var score = 14
+        var score = 15
 
-        // Player title (UO-style, always English, split into 2 lines)
-        val titleParts = plugin.skillTitleManager.getPlayerTitleParts(player, useJapanese = false)
-        if (titleParts != null) {
-            setScore(objective, titleParts.first, score--)   // e.g., "Grandmaster"
-            setScore(objective, titleParts.second, score--)  // e.g., "Swordsman"
-        } else {
-            setScore(objective, "Adventurer", score--)
-            score-- // Skip a line
+        // Helper: section visible = server config ON && player setting ON
+        fun showSection(section: ScoreboardSection, configEnabled: Boolean): Boolean =
+            configEnabled && data.isSectionVisible(section)
+
+        // === Title Section ===
+        if (showSection(ScoreboardSection.TITLE, cfg.scoreboardShowTitle)) {
+            val titleParts = plugin.skillTitleManager.getPlayerTitleParts(player, useJapanese = false)
+            if (titleParts != null) {
+                setScore(objective, titleParts.first, score--)
+                setScore(objective, titleParts.second, score--)
+            } else {
+                setScore(objective, "Adventurer", score--)
+                score--
+            }
+            setScore(objective, "", score--)
         }
-        setScore(objective, "", score--) // Empty line separator
 
-        // HP/Mana/Stamina/Gold (using ASCII/Unicode symbols)
-        val hp = data.internalHp.toInt()
-        val maxHp = data.maxInternalHp.toInt()
-        setScore(objective, "H $hp/$maxHp", score--)
+        // === HMS Section (HP, Mana, Stamina) ===
+        if (showSection(ScoreboardSection.HMS, cfg.scoreboardShowHms)) {
+            val hp = data.internalHp.toInt()
+            val maxHp = data.maxInternalHp.toInt()
+            setScore(objective, "H $hp/$maxHp", score--)
 
-        val mana = data.mana.toInt()
-        val maxMana = data.maxMana.toInt()
-        setScore(objective, "M $mana/$maxMana", score--)
+            val mana = data.mana.toInt()
+            val maxMana = data.maxMana.toInt()
+            setScore(objective, "M $mana/$maxMana", score--)
 
-        val stamina = data.stamina.toInt()
-        val maxStamina = data.maxStamina.toInt()
-        setScore(objective, "S $stamina/$maxStamina", score--)
+            val stamina = data.stamina.toInt()
+            val maxStamina = data.maxStamina.toInt()
+            setScore(objective, "S $stamina/$maxStamina", score--)
+        }
 
-        // Show balance if economy is enabled
-        if (plugin.skillsConfig.economyShowOnScoreboard && plugin.vaultHook.isEnabled()) {
+        // === Gold Section ===
+        if (showSection(ScoreboardSection.GOLD, cfg.scoreboardShowGold) && cfg.economyShowOnScoreboard && plugin.vaultHook.isEnabled()) {
             val balance = plugin.vaultHook.getBalance(player)
             val formatted = plugin.vaultHook.format(balance)
             setScore(objective, "$ $formatted", score--)
         }
 
-        setScore(objective, " ", score--) // Empty line separator (with space to be unique)
+        // === Stats Section (STR, DEX, INT) ===
+        if (showSection(ScoreboardSection.STATS, cfg.scoreboardShowStats)) {
+            // Separator if previous section exists
+            if (showSection(ScoreboardSection.HMS, cfg.scoreboardShowHms) || showSection(ScoreboardSection.GOLD, cfg.scoreboardShowGold)) {
+                setScore(objective, " ", score--)
+            }
 
-        // Stat total
-        val totalStats = data.getTotalStats()
-        setScore(objective, "Stats: $totalStats/${StatType.TOTAL_STAT_CAP}", score--)
+            val totalStats = data.getTotalStats()
+            setScore(objective, "Stats: $totalStats/${StatType.TOTAL_STAT_CAP}", score--)
 
-        // STR with lock icon
-        val str = data.str
-        val strLock = getLockIcon(data.strLock)
-        setScore(objective, "STR: $str $strLock", score--)
+            val str = data.str
+            val strLock = getLockIcon(data.strLock)
+            setScore(objective, "STR: $str $strLock", score--)
 
-        // DEX with lock icon
-        val dex = data.dex
-        val dexLock = getLockIcon(data.dexLock)
-        setScore(objective, "DEX: $dex $dexLock", score--)
+            val dex = data.dex
+            val dexLock = getLockIcon(data.dexLock)
+            setScore(objective, "DEX: $dex $dexLock", score--)
 
-        // INT with lock icon
-        val intVal = data.int
-        val intLock = getLockIcon(data.intLock)
-        setScore(objective, "INT: $intVal $intLock", score--)
+            val intVal = data.int
+            val intLock = getLockIcon(data.intLock)
+            setScore(objective, "INT: $intVal $intLock", score--)
+        }
+
+        // === Party Section ===
+        if (showSection(ScoreboardSection.PARTY, cfg.scoreboardShowParty)) {
+            val party = plugin.partyManager.getParty(player.uniqueId)
+            if (party != null && party.memberCount() > 1) {
+                // Separator
+                setScore(objective, "  ", score--) // Double space for unique separator
+
+                setScore(objective, "§bParty", score--)
+                for (memberId in party.members) {
+                    if (memberId == player.uniqueId) continue
+                    val memberPlayer = Bukkit.getPlayer(memberId)
+                    if (memberPlayer != null) {
+                        val memberData = plugin.playerDataManager.getPlayerData(memberPlayer)
+                        val memberHp = memberData.internalHp.toInt()
+                        val memberMaxHp = memberData.maxInternalHp.toInt()
+                        val leader = if (party.isLeader(memberId)) "★" else " "
+                        setScore(objective, "$leader${memberPlayer.name} $memberHp/$memberMaxHp", score--)
+                    } else {
+                        val offlineName = Bukkit.getOfflinePlayer(memberId).name ?: "?"
+                        setScore(objective, " §7$offlineName (off)", score--)
+                    }
+                }
+            }
+        }
 
         // Apply scoreboard to player
         player.scoreboard = scoreboard
@@ -263,6 +297,14 @@ class ScoreboardManager(private val plugin: Skills) {
         playerScoreboards.values.forEach { board ->
             copyTeamsFromMainScoreboard(board)
         }
+    }
+
+    /**
+     * Sync teams from main scoreboard to a specific player's scoreboard
+     */
+    fun syncTeamsForPlayer(player: Player) {
+        val board = playerScoreboards[player.uniqueId] ?: return
+        copyTeamsFromMainScoreboard(board)
     }
 
     /**

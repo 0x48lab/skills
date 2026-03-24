@@ -268,6 +268,7 @@ class SpellManager(private val plugin: Skills) {
                         val nearbyEntities = world.getNearbyEntities(currentLoc, 0.8, 0.8, 0.8)
                             .filterIsInstance<LivingEntity>()
                             .filter { it.uniqueId != casterRef.uniqueId }
+                            .filter { it !is Player || !plugin.partyManager.isInSameParty(casterRef.uniqueId, it.uniqueId) }
 
                         if (nearbyEntities.isNotEmpty()) {
                             val hitTarget = nearbyEntities.first()
@@ -366,6 +367,7 @@ class SpellManager(private val plugin: Skills) {
                 // Damage nearby entities
                 world.getNearbyEntities(targetLoc, 2.0, 2.0, 2.0).forEach { entity ->
                     if (entity is LivingEntity && entity != caster) {
+                        if (entity is Player && plugin.partyManager.isInSameParty(caster.uniqueId, entity.uniqueId)) return@forEach
                         applyMagicDamage(caster, entity, damage)
                         entity.fireTicks = 20  // Brief fire
                     }
@@ -444,6 +446,7 @@ class SpellManager(private val plugin: Skills) {
                                 val pos = Location(world, x, y + 1.0, z)
                                 world.getNearbyEntities(pos, 1.0, 2.0, 1.0).forEach { entity ->
                                     if (entity is LivingEntity) {
+                                        if (entity is Player && plugin.partyManager.isInSameParty(casterRef.uniqueId, entity.uniqueId)) return@forEach
                                         if (entity is Player) {
                                             applyMagicDamage(casterRef, entity, perTickDamage)
                                         } else {
@@ -482,6 +485,7 @@ class SpellManager(private val plugin: Skills) {
                 // Apply magic damage to nearby entities (before explosion visual)
                 world.getNearbyEntities(targetLoc, radius, radius, radius).forEach { entity ->
                     if (entity is LivingEntity && entity != caster) {
+                        if (entity is Player && plugin.partyManager.isInSameParty(caster.uniqueId, entity.uniqueId)) return@forEach
                         val distance = entity.location.distance(targetLoc)
                         val falloff = 1.0 - (distance / radius)
                         val damage = StatCalculator.calculateMagicDamage(spell.baseDamage * falloff, magerySkill, evalIntSkill)
@@ -552,6 +556,7 @@ class SpellManager(private val plugin: Skills) {
                     override fun run() {
                         world.getNearbyEntities(targetLoc, radius, radius, radius).forEach { entity ->
                             if (entity is LivingEntity && entity != casterRef) {
+                                if (entity is Player && plugin.partyManager.isInSameParty(casterRef.uniqueId, entity.uniqueId)) return@forEach
                                 val distance = entity.location.distance(targetLoc)
                                 val falloff = 1.0 - (distance / radius)
                                 val damage = StatCalculator.calculateMagicDamage(baseDamage * falloff, magerySkill, evalIntSkill)
@@ -966,6 +971,7 @@ class SpellManager(private val plugin: Skills) {
                 caster.world.getNearbyEntities(center, range, range, range)
                     .filterIsInstance<LivingEntity>()
                     .filter { it != caster }
+                    .filter { it !is Player || !plugin.partyManager.isInSameParty(caster.uniqueId, it.uniqueId) }
                     .forEach { target ->
                         target.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, duration, 0))
                         target.addPotionEffect(PotionEffect(PotionEffectType.WEAKNESS, duration, 0))
@@ -1045,6 +1051,7 @@ class SpellManager(private val plugin: Skills) {
                 caster.world.getNearbyEntities(center, range, range, range)
                     .filterIsInstance<LivingEntity>()
                     .filter { it != caster }
+                    .filter { it !is Player || !plugin.partyManager.isInSameParty(caster.uniqueId, it.uniqueId) }
                     .forEach { target ->
                         buffsToRemove.forEach { effect -> target.removePotionEffect(effect) }
                         if (plugin.summonManager.isSummoned(target)) {
@@ -1107,6 +1114,7 @@ class SpellManager(private val plugin: Skills) {
                         val nextTarget = currentTarget.getNearbyEntities(chainRange, chainRange, chainRange)
                             .filterIsInstance<LivingEntity>()
                             .filter { it !in hitTargets && it != caster }
+                            .filter { it !is Player || !plugin.partyManager.isInSameParty(caster.uniqueId, it.uniqueId) }
                             .minByOrNull { it.location.distance(currentTarget.location) }
                             ?: break
 
@@ -1129,6 +1137,7 @@ class SpellManager(private val plugin: Skills) {
                 caster.world.getNearbyEntities(center, range, range, range)
                     .filterIsInstance<LivingEntity>()
                     .filter { it != caster }
+                    .filter { it !is Player || !plugin.partyManager.isInSameParty(caster.uniqueId, it.uniqueId) }
                     .forEach { target ->
                         val distance = target.location.distance(center)
                         val distanceMultiplier = 1.0 - (distance / range) * 0.5  // Closer = more damage
@@ -1246,6 +1255,7 @@ class SpellManager(private val plugin: Skills) {
                                 val pos = Location(world, x, y + 0.5, z)
                                 world.getNearbyEntities(pos, 0.6, 1.0, 0.6)
                                     .filterIsInstance<LivingEntity>()
+                                    .filter { it !is Player || !plugin.partyManager.isInSameParty(caster.uniqueId, it.uniqueId) }
                                     .forEach { entity ->
                                         entity.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, paralyzeDuration, 100))
                                         entity.addPotionEffect(PotionEffect(PotionEffectType.JUMP_BOOST, paralyzeDuration, 128))
@@ -1310,6 +1320,7 @@ class SpellManager(private val plugin: Skills) {
                                 world.getNearbyEntities(pos, 0.5, 0.5, 0.5)
                                     .filterIsInstance<LivingEntity>()
                                     .filter { it != casterRef }
+                                    .filter { it !is Player || !plugin.partyManager.isInSameParty(casterRef.uniqueId, it.uniqueId) }
                                     .forEach { entity ->
                                         val pushDir = entity.location.subtract(pos).toVector().normalize()
                                         entity.velocity = pushDir.multiply(0.6).setY(0.1)
@@ -1385,6 +1396,7 @@ class SpellManager(private val plugin: Skills) {
                 caster.world.getNearbyEntities(center, range, range, range)
                     .filterIsInstance<LivingEntity>()
                     .filter { it != caster }
+                    .filter { it !is Player || !plugin.partyManager.isInSameParty(caster.uniqueId, it.uniqueId) }
                     .forEach { target ->
                         // Apply sleep effect (slowness + blindness + weakness)
                         target.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, sleepDuration, 100))

@@ -83,6 +83,14 @@ class SkillsConfig(private val plugin: Skills) {
     val chunkMobLimitCheckInterval: Long get() = config.getLong("chunk_mob_limit.check_interval_ticks", 100)
     val chunkMobLimitNotify: Boolean get() = config.getBoolean("chunk_mob_limit.notify_on_limit", true)
 
+    // Party settings
+    val partyEnabled: Boolean get() = config.getBoolean("party.enabled", true)
+    val partyMaxSize: Int get() = config.getInt("party.max_size", 8)
+    val partyInviteTimeout: Int get() = config.getInt("party.invite_timeout", 60)
+    val partyTpCooldown: Int get() = config.getInt("party.tp_cooldown", 120)
+    val partyTpCastTime: Int get() = config.getInt("party.tp_cast_time", 5)
+    val partyTpCombatCooldown: Int get() = config.getInt("party.tp_combat_cooldown", 5)
+
     // Ender Dragon Scaling
     val enderDragonScalingEnabled: Boolean get() = config.getBoolean("ender_dragon_scaling.enabled", true)
     val enderDragonRespawnIntervalHours: Int get() = config.getInt("ender_dragon_scaling.respawn_interval_hours", 24)
@@ -91,6 +99,9 @@ class SkillsConfig(private val plugin: Skills) {
     val enderDragonDamageScalePerKill: Double get() = config.getDouble("ender_dragon_scaling.damage_scale_per_kill", 0.15)
     val enderDragonMaxDamageScale: Double get() = config.getDouble("ender_dragon_scaling.max_damage_scale", 4.0)
     val enderDragonXpScalePerKill: Double get() = config.getDouble("ender_dragon_scaling.xp_scale_per_kill", 0.25)
+    val enderDragonCrystalRegenSeconds: Int get() = config.getInt("ender_dragon_scaling.crystal_regen_seconds", 120)
+    val enderDragonCrystalRegenBaseCount: Int get() = config.getInt("ender_dragon_scaling.crystal_regen_base_count", 2)
+    val enderDragonCrystalRegenCountPerKill: Int get() = config.getInt("ender_dragon_scaling.crystal_regen_count_per_kill", 1)
     val enderDragonPreRespawnMinutes: List<Int> get() = config.getIntegerList("ender_dragon_scaling.announce_pre_respawn_minutes").ifEmpty { listOf(5, 1) }
 
     // Scoreboard settings
@@ -100,6 +111,13 @@ class SkillsConfig(private val plugin: Skills) {
         ConflictMode.fromString(config.getString("scoreboard.conflict_mode", "RESPECT") ?: "RESPECT")
     val scoreboardShowByDefault: Boolean get() = config.getBoolean("scoreboard.show_by_default", true)
     val scoreboardAllowToggle: Boolean get() = config.getBoolean("scoreboard.allow_player_toggle", true)
+
+    // Scoreboard section visibility
+    val scoreboardShowTitle: Boolean get() = config.getBoolean("scoreboard.sections.title", true)
+    val scoreboardShowHms: Boolean get() = config.getBoolean("scoreboard.sections.hms", true)
+    val scoreboardShowGold: Boolean get() = config.getBoolean("scoreboard.sections.gold", true)
+    val scoreboardShowStats: Boolean get() = config.getBoolean("scoreboard.sections.stats", true)
+    val scoreboardShowParty: Boolean get() = config.getBoolean("scoreboard.sections.party", true)
 
     /**
      * Get reward limit for a specific world

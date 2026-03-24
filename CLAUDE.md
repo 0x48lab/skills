@@ -110,20 +110,37 @@ INT = INT対象スキル合計 / 対象スキル数（7スキル）× 100 / 100
 - **実装**: SurvivalMethodプラグイン方式（属性修飾子ではなくsetWalkSpeed使用）
 
 #### スコアボード表示
-サイドバーにHP/Mana/Staminaを表示：
+サイドバーにHP/Mana/Staminaを表示（各セクションはconfig + プレイヤー設定でON/OFF可能）：
 ```
 Grandmaster
 Swordsman
 
-❤ 156/180
-🍖 15/20
-⚡ 145/200
+H 156/180
+M 15/20
+S 145/200
+$ 1,234
 
 Stats: 225/225
-STR: 80 🔒
+STR: 80 ■
 DEX: 45 ▲
 INT: 60 ▼
+
+Party
+★Alex 180/180
+ Steve 120/150
 ```
+
+#### スコアボードセクション設定
+| セクション | config key | コマンド | 内容 |
+|-----------|-----------|---------|------|
+| title | `scoreboard.sections.title` | `/skills sb title` | 称号（Grandmaster Swordsman等） |
+| hms | `scoreboard.sections.hms` | `/skills sb hms` | HP, Mana, Stamina |
+| gold | `scoreboard.sections.gold` | `/skills sb gold` | 所持金（Vault連携） |
+| stats | `scoreboard.sections.stats` | `/skills sb stats` | STR, DEX, INT + ロックアイコン |
+| party | `scoreboard.sections.party` | `/skills sb party` | パーティメンバー一覧 |
+
+- サーバー設定（config.yml）とプレイヤー設定の両方がONの場合のみ表示
+- プレイヤー設定はDBに永続化（ビットフラグ）
 
 #### ダメージ計算フロー
 ```
@@ -2243,6 +2260,79 @@ chunk_mob_limit:
 | 英語 | "Breeding blocked: {category} mob limit ({limit}) reached in this chunk." |
 | 日本語 | "繁殖がブロックされました: このチャンクの{category}モブ数が上限({limit})に達しています。" |
 
+## パーティシステム
+
+プレイヤー同士がパーティを組み、チームプレイを円滑に行うための機能。
+
+### 基本仕様
+- **最大人数**: 8人（リーダー含む）
+- **永続化**: なし（メモリ管理、サーバー再起動で消える）
+- **リーダー**: 招待を最初に行ったプレイヤー。離脱時は参加順の次のメンバーが自動継承
+- **複数所属**: 不可（1人1パーティのみ）
+
+### パーティコマンド
+| コマンド | 説明 | 権限 |
+|---------|------|------|
+| `/party invite <プレイヤー>` | プレイヤーを招待（パーティ未作成なら自動作成） | skills.party |
+| `/party accept` | 招待を承諾 | skills.party |
+| `/party decline` | 招待を拒否 | skills.party |
+| `/party leave` | パーティを離脱 | skills.party |
+| `/party kick <プレイヤー>` | メンバーをキック（リーダーのみ） | skills.party |
+| `/party disband` | パーティを解散（リーダーのみ） | skills.party |
+| `/party list` | パーティメンバー一覧を表示 | skills.party |
+| `/party leader <プレイヤー>` | リーダーを移譲（リーダーのみ） | skills.party |
+| `/party tp <プレイヤー>` | パーティメンバーのところにテレポート | skills.party |
+| `/pc <メッセージ>` | パーティチャットにメッセージを送信 | skills.party |
+
+### フレンドリファイヤー無効
+パーティメンバー間のダメージを無効化する。
+
+| ダメージ種別 | 無効化 | 備考 |
+|-------------|--------|------|
+| 近接攻撃 | 無効 | 剣、斧、素手等 |
+| 遠距離攻撃 | 無効 | 弓、クロスボウ |
+| 攻撃魔法（直接・範囲） | 無効 | 全12箇所の範囲魔法ループでフィルタ |
+| 毒武器 | 無効 | Poisoningスキルの毒 |
+| スプラッシュポーション（有害） | 無効 | 毒、負傷等 |
+| スプラッシュポーション（有益） | 有効 | 治癒、再生等 |
+| TNT / 溶岩 / 火 | 有効 | 環境ダメージは無効化しない |
+
+### パーティテレポート
+| 項目 | 仕様 |
+|-----|------|
+| クールダウン | 120秒（config設定可能） |
+| 同一ワールド制限 | 同じワールドにいるメンバーのみ |
+| 詠唱時間 | 5秒（移動すると中断） |
+| 戦闘中制限 | 直近5秒以内にダメージを受けた場合は使用不可 |
+| コスト | なし（マナ・触媒不要） |
+| Hiding相互作用 | TP使用者のHidingは解除、TP先メンバーは維持 |
+
+### シーフスキル制限
+- パーティメンバーに対してSnooping/Stealingは使用不可
+
+### Hiding可視性
+- パーティメンバーがHiding中の場合、同一パーティメンバーにはSOUL_FIRE_FLAMEパーティクルで位置が表示される（1秒間隔、`player.spawnParticle()` で個別送信）
+
+### ネームタグ色
+- パーティメンバーのネームタグが水色（AQUA）で表示される
+- mainScoreboardのTeamで管理、ScoreboardManagerが定期同期
+
+### Notoriety連携
+- パーティメンバー間の行動はNotorietyの評判に影響しない
+- フレンドリファイヤーでダメージイベント自体がキャンセルされるため犯罪記録なし
+- シーフスキルはパーティメンバーに使用不可のため窃盗記録なし
+
+### 設定項目（config.yml）
+```yaml
+party:
+  enabled: true
+  max_size: 8
+  invite_timeout: 60
+  tp_cooldown: 120
+  tp_cast_time: 5
+  tp_combat_cooldown: 5
+```
+
 ## 技術仕様
 
 ### データ保存
@@ -2311,7 +2401,8 @@ integrations:
 | `/skills list` | 自分のスキル一覧表示（同上） | skills.use |
 | `/skills lock <スキル名>` | スキルのロックモード切替（UP/DOWN/LOCKED） | skills.use |
 | `/skills guide` | ガイドブック取得 | skills.use |
-| `/skills sb` | スコアボード表示切替 | skills.use |
+| `/skills sb` | スコアボード全体の表示切替 | skills.use |
+| `/skills sb <section>` | スコアボードセクション別ON/OFF（title/hms/gold/stats/party） | skills.use |
 | `/skills language [言語]` | 表示言語を変更（en/ja/reset） | skills.use |
 | `/stats` | 自分のSTR/DEX/INT表示 | skills.use |
 | `/arms` | 手持ち武器・防具の詳細表示 | skills.use |
@@ -2335,6 +2426,20 @@ integrations:
 | `/snoop` | インベントリ覗き | skills.thief |
 | `/poison` | 武器に毒付与 | skills.thief |
 
+#### パーティコマンド
+| コマンド | 説明 | 権限 |
+|---------|------|------|
+| `/party invite <プレイヤー>` | プレイヤーを招待 | skills.party |
+| `/party accept` | 招待を承諾 | skills.party |
+| `/party decline` | 招待を拒否 | skills.party |
+| `/party leave` | パーティを離脱 | skills.party |
+| `/party kick <プレイヤー>` | メンバーをキック（リーダーのみ） | skills.party |
+| `/party disband` | パーティを解散（リーダーのみ） | skills.party |
+| `/party list` | メンバー一覧表示 | skills.party |
+| `/party leader <プレイヤー>` | リーダー移譲（リーダーのみ） | skills.party |
+| `/party tp <プレイヤー>` | メンバーのところにTP | skills.party |
+| `/pc <メッセージ>` | パーティチャット | skills.party |
+
 #### テイミングコマンド
 | コマンド | 説明 | 権限 |
 |---------|------|------|
@@ -2355,6 +2460,7 @@ integrations:
 | `skills.magic` | 魔法関連コマンド |
 | `skills.thief` | シーフ関連コマンド |
 | `skills.taming` | テイミング関連コマンド |
+| `skills.party` | パーティ関連コマンド |
 | `skills.admin` | 管理コマンド |
 | `skills.*` | 全権限 |
 
@@ -2512,6 +2618,11 @@ com.hacklab.minecraft.skills/
 │   ├── TamingManager.kt          # テイム管理
 │   ├── AnimalLoreManager.kt      # 動物知識管理
 │   └── VeterinaryManager.kt      # 獣医管理
+├── party/
+│   ├── Party.kt                  # パーティデータクラス
+│   ├── PartyInvite.kt            # 招待データクラス
+│   ├── PartyManager.kt           # パーティ管理（CRUD・Scoreboard Team）
+│   └── PartyTeleportManager.kt   # パーティTP待機・実行
 ├── command/
 │   ├── SkillsCommand.kt          # /skills
 │   ├── StatsCommand.kt           # /stats
@@ -2526,6 +2637,8 @@ com.hacklab.minecraft.skills/
 │   ├── PoisonCommand.kt          # /poison
 │   ├── TameCommand.kt            # /tame
 │   ├── LoreCommand.kt            # /lore
+│   ├── PartyCommand.kt           # /party
+│   ├── PartyChatCommand.kt       # /pc
 │   └── admin/
 │       ├── SkillCheckCommand.kt  # /skillcheck
 │       ├── SkillSetCommand.kt    # /skillset
@@ -2539,6 +2652,7 @@ com.hacklab.minecraft.skills/
 │   ├── PlayerMoveListener.kt     # 移動イベント
 │   ├── InventoryListener.kt      # インベントリイベント
 │   ├── RunebookListener.kt       # ルーンの書GUI・詠唱連携
+│   ├── PartyListener.kt          # パーティイベント（参加/離脱/TP中断）
 │   └── PlayerJoinQuitListener.kt # 入退出イベント
 └── util/
     ├── MessageUtil.kt            # メッセージ送信
@@ -3674,6 +3788,11 @@ Skills (メインプラグイン)
 - SQLite (既存の player_skills, player_data テーブル) (001-spellbook-scroll-acquisition)
 
 ## Recent Changes
+- 023-party-system: パーティシステム追加（招待/FF無効/パーティTP/パーティチャット/シーフブロック/Hiding可視性/ネームタグ色/Notoriety連携）
+- 023-party-system: スコアボードセクション別表示制御（title/hms/gold/stats/party）、プレイヤーごとのON/OFF設定（/skills sb <section>）
+- 023-party-system: Fly魔法のマナ消費を0.1→0.2/秒に修正（INT 100で無限飛行の仕様に合致）
+- 023-party-system: Fly魔法の着地解除対応（PlayerToggleFlightEvent監視）
+- 023-party-system: 魔法ターゲティングフェーズ中の攻撃キャンセル修正（CombatListener + TargetingListener）
 - 0.4.13: Added SkillsAPI for external plugin integration via ServicesManager
 - 0.4.12: Added blank spellbook option to admin give command
 - 001-spellbook-scroll-acquisition: Added Kotlin 2.3.0, JVM 21 + Paper API 1.21.11-R0.1-SNAPSHOT

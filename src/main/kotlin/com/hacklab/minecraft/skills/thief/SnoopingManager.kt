@@ -28,6 +28,12 @@ class SnoopingManager(private val plugin: Skills) {
             return SnoopResult.INVALID_TARGET
         }
 
+        // Block snooping on party members
+        if (plugin.partyManager.isInSameParty(snooper.uniqueId, target.uniqueId)) {
+            plugin.messageSender.send(snooper, MessageKey.PARTY_SNOOP_BLOCKED)
+            return SnoopResult.INVALID_TARGET
+        }
+
         val snooperData = plugin.playerDataManager.getPlayerData(snooper)
         val targetData = plugin.playerDataManager.getPlayerData(target)
 

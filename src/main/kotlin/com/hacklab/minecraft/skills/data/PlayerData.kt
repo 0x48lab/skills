@@ -5,6 +5,7 @@ import com.hacklab.minecraft.skills.skill.SkillLockMode
 import com.hacklab.minecraft.skills.skill.SkillType
 import com.hacklab.minecraft.skills.skill.StatLockMode
 import com.hacklab.minecraft.skills.skill.StatType
+import com.hacklab.minecraft.skills.scoreboard.ScoreboardSection
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -29,8 +30,16 @@ data class PlayerData(
     var dexLock: StatLockMode = StatLockMode.UP,
     var intLock: StatLockMode = StatLockMode.UP,
     // Scoreboard visibility
-    var scoreboardVisible: Boolean = true
+    var scoreboardVisible: Boolean = true,
+    // Scoreboard section visibility (bitmask: title=1, hms=2, gold=4, stats=8, party=16)
+    var scoreboardSections: Int = 0x1F  // All sections ON by default (11111)
 ) {
+    // Scoreboard section helpers
+    fun isSectionVisible(section: ScoreboardSection): Boolean = (scoreboardSections and section.bit) != 0
+    fun toggleSection(section: ScoreboardSection) {
+        scoreboardSections = scoreboardSections xor section.bit
+        dirty = true
+    }
     init {
         // Initialize all skills with default values if not present
         SkillType.entries.forEach { skillType ->

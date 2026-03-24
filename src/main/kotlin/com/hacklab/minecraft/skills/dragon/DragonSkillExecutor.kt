@@ -21,6 +21,7 @@ class DragonSkillExecutor(private val plugin: Skills, private val manager: Ender
 
     private val summonedEndermen = ConcurrentHashMap.newKeySet<UUID>()
     private val crystalRegenTasks = ConcurrentHashMap<Location, BukkitRunnable>()
+    private var crystalRegenUsed = 0
     private val skillTasks = ConcurrentHashMap<DragonSkillType, BukkitRunnable>()
     @Volatile
     var lastDragonDamageTime: Long = 0L
@@ -55,6 +56,7 @@ class DragonSkillExecutor(private val plugin: Skills, private val manager: Ender
     fun startSkills(dragon: EnderDragon, killCount: Int) {
         val activeSkills = DragonSkillType.getActiveSkills(killCount)
         lastDragonDamageTime = System.currentTimeMillis()
+        crystalRegenUsed = 0
 
         for (skill in activeSkills) {
             when (skill) {
@@ -216,7 +218,18 @@ class DragonSkillExecutor(private val plugin: Skills, private val manager: Ender
 
     // === Crystal Regeneration (killCount >= 5) ===
 
+    private fun getCrystalRegenMaxCount(): Int {
+        val killCount = manager.killCount
+        val config = plugin.skillsConfig
+        return config.enderDragonCrystalRegenBaseCount +
+            (killCount - DragonSkillType.CRYSTAL_REGENERATION.requiredKills) * config.enderDragonCrystalRegenCountPerKill
+    }
+
     fun onCrystalDestroyed(location: Location) {
+        // Check if regen limit reached
+        val maxCount = getCrystalRegenMaxCount()
+        if (crystalRegenUsed >= maxCount) return
+
         // Cancel existing regen task for this location if any
         crystalRegenTasks.remove(location)?.let {
             if (!it.isCancelled) it.cancel()
@@ -228,7 +241,10 @@ class DragonSkillExecutor(private val plugin: Skills, private val manager: Ender
                 val world = location.world ?: return
                 // Check if dragon is still alive
                 if (!manager.isDragonAlive) return
+                // Double-check limit (could have changed while waiting)
+                if (crystalRegenUsed >= getCrystalRegenMaxCount()) return
 
+                crystalRegenUsed++
                 world.spawn(location, EnderCrystal::class.java) { crystal ->
                     crystal.isShowingBottom = true
                 }
@@ -236,7 +252,8 @@ class DragonSkillExecutor(private val plugin: Skills, private val manager: Ender
                 world.spawnParticle(Particle.END_ROD, location, 30, 1.0, 1.0, 1.0, 0.05)
             }
         }
-        task.runTaskLater(plugin, 2400L) // 120 seconds
+        val regenTicks = plugin.skillsConfig.enderDragonCrystalRegenSeconds * 20L
+        task.runTaskLater(plugin, regenTicks)
         crystalRegenTasks[location] = task
     }
 

@@ -38,7 +38,11 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
                 toggleSkillLock(sender, args.drop(1).joinToString(" "))
             }
             "sb" -> {
-                toggleScoreboard(sender)
+                if (args.size >= 2) {
+                    toggleScoreboardSection(sender, args[1])
+                } else {
+                    toggleScoreboard(sender)
+                }
             }
             "language" -> {
                 handleLanguage(sender, args.drop(1))
@@ -173,6 +177,33 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
         }
     }
 
+    private fun toggleScoreboardSection(player: Player, sectionName: String) {
+        if (!plugin.skillsConfig.scoreboardEnabled) {
+            plugin.messageSender.send(player, MessageKey.SCOREBOARD_DISABLED)
+            return
+        }
+
+        val section = com.hacklab.minecraft.skills.scoreboard.ScoreboardSection.fromLabel(sectionName)
+        if (section == null) {
+            val validSections = com.hacklab.minecraft.skills.scoreboard.ScoreboardSection.entries.joinToString(", ") { it.label }
+            player.sendMessage("§cUnknown section: $sectionName")
+            player.sendMessage("§7Available: $validSections")
+            player.sendMessage("§7Usage: /skills sb [section] or /skills sb (toggle all)")
+            return
+        }
+
+        val data = plugin.playerDataManager.getPlayerData(player)
+        data.toggleSection(section)
+        val nowVisible = data.isSectionVisible(section)
+        val status = if (nowVisible) "§aON" else "§cOFF"
+        player.sendMessage("§eScoreboard §f${section.label}§e: $status")
+
+        // Force scoreboard update
+        if (data.scoreboardVisible) {
+            plugin.scoreboardManager.updateScoreboard(player)
+        }
+    }
+
     private fun handleLanguage(player: Player, args: List<String>) {
         if (!plugin.localeManager.canPlayerChangeLanguage()) {
             plugin.messageSender.send(player, MessageKey.LANGUAGE_DISABLED)
@@ -220,6 +251,11 @@ class SkillsCommand(private val plugin: Skills) : CommandExecutor, TabCompleter 
         }
         if (args.size == 2 && args[0].equals("lock", ignoreCase = true)) {
             return SkillType.entries.map { it.displayName }
+                .filter { it.lowercase().startsWith(args[1].lowercase()) }
+        }
+        if (args.size == 2 && args[0].equals("sb", ignoreCase = true)) {
+            return com.hacklab.minecraft.skills.scoreboard.ScoreboardSection.entries
+                .map { it.label }
                 .filter { it.lowercase().startsWith(args[1].lowercase()) }
         }
         if (args.size == 2 && args[0].equals("language", ignoreCase = true)) {

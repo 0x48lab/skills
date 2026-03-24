@@ -43,6 +43,8 @@ import com.hacklab.minecraft.skills.stamina.StaminaManager
 import com.hacklab.minecraft.skills.util.CooldownManager
 import com.hacklab.minecraft.skills.vengeful.VengefulMobsListener
 import com.hacklab.minecraft.skills.dragon.EnderDragonManager
+import com.hacklab.minecraft.skills.party.PartyManager
+import com.hacklab.minecraft.skills.party.PartyTeleportManager
 import com.hacklab.minecraft.skills.vengeful.VengefulMobsManager
 import com.hacklab.minecraft.skills.integration.NotorietyIntegration
 import com.hacklab.minecraft.skills.api.SkillsAPI
@@ -205,6 +207,12 @@ class Skills : JavaPlugin() {
     lateinit var enderDragonManager: EnderDragonManager
         private set
 
+    // Party
+    lateinit var partyManager: PartyManager
+        private set
+    lateinit var partyTeleportManager: PartyTeleportManager
+        private set
+
     // Listeners
     private lateinit var meditationListener: MeditationListener
     private lateinit var stackBonusListener: StackBonusListener
@@ -319,6 +327,14 @@ class Skills : JavaPlugin() {
             enderDragonManager.cleanup()
         }
 
+        // Cleanup party system
+        if (::partyManager.isInitialized) {
+            partyManager.cleanup()
+        }
+        if (::partyTeleportManager.isInitialized) {
+            partyTeleportManager.cleanup()
+        }
+
         // Cleanup NMS
         NmsManager.cleanup()
 
@@ -423,6 +439,11 @@ class Skills : JavaPlugin() {
         if (skillsConfig.enderDragonScalingEnabled) {
             enderDragonManager.initialize()
         }
+
+        // Party
+        partyManager = PartyManager(this)
+        partyManager.initialize()
+        partyTeleportManager = PartyTeleportManager(this)
     }
 
     private fun registerListeners() {
@@ -489,6 +510,9 @@ class Skills : JavaPlugin() {
             pm.registerEvents(EnderDragonListener(this), this)
             logger.info("Ender Dragon Scaling enabled")
         }
+
+        // Party
+        pm.registerEvents(PartyListener(this), this)
     }
 
     private fun registerCommands() {
@@ -532,6 +556,12 @@ class Skills : JavaPlugin() {
 
         // Dragon info command
         getCommand("dragoninfo")?.setExecutor(com.hacklab.minecraft.skills.command.DragonInfoCommand(this))
+
+        // Party commands
+        val partyCmd = PartyCommand(this)
+        getCommand("party")?.setExecutor(partyCmd)
+        getCommand("party")?.tabCompleter = partyCmd
+        getCommand("pc")?.setExecutor(PartyChatCommand(this))
     }
 
     private fun startScheduledTasks() {
