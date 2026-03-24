@@ -9,7 +9,7 @@
 <body>
     <header>
         <h1>Skills Plugin</h1>
-        <p>Classic MMORPG-inspired skill system for Minecraft</p>
+        <p>Classic MMORPG-inspired skill system for Minecraft &mdash; inspired by Ultima Online</p>
         <div class="lang-switch">
             <a href="index.html" class="active">English</a>
             <a href="index_ja.html">日本語</a>
@@ -20,1189 +20,1231 @@
         <ul>
             <li><a href="#overview">Overview</a></li>
             <li><a href="#stats">Stats</a></li>
+            <li><a href="#internal-hp">HP / Mana / Stamina</a></li>
             <li><a href="#skills">Skills</a></li>
             <li><a href="#combat">Combat</a></li>
+            <li><a href="#armor">Armor</a></li>
             <li><a href="#magic">Magic</a></li>
             <li><a href="#crafting">Crafting</a></li>
             <li><a href="#gathering">Gathering</a></li>
-            <li><a href="#repair">Repair System</a></li>
+            <li><a href="#thief">Thief</a></li>
+            <li><a href="#taming">Taming</a></li>
+            <li><a href="#party">Party</a></li>
             <li><a href="#scoreboard">Scoreboard</a></li>
+            <li><a href="#vengeful">VengefulMobs</a></li>
+            <li><a href="#chunklimit">Chunk Mob Limit</a></li>
+            <li><a href="#dragon">Ender Dragon</a></li>
             <li><a href="#commands">Commands</a></li>
+            <li><a href="#permissions">Permissions</a></li>
             <li><a href="#changelog">Changelog</a></li>
         </ul>
     </nav>
 
     <main>
+        <!-- ============================================================ -->
         <!-- Overview -->
+        <!-- ============================================================ -->
         <section id="overview">
             <h2>Overview</h2>
-            <p>The Skills plugin brings a classic MMORPG-inspired skill system to Minecraft. Players improve skills through use, with a total skill cap that forces specialization choices.</p>
+            <p>The Skills plugin brings a classic MMORPG-inspired skill system to Minecraft, heavily based on <strong>Ultima Online</strong>. Players improve skills through use, with a total skill cap that forces meaningful specialization choices.</p>
 
             <h3>Key Features</h3>
             <ul>
-                <li><strong>38 Skills</strong> across combat, magic, crafting, gathering, thief, taming, and survival categories</li>
-                <li><strong>Skill Cap System</strong> - Total cap of 700 points, individual cap of 100 per skill</li>
-                <li><strong>Use-Based Progression</strong> - Skills improve when used, with difficulty affecting gain rate</li>
-                <li><strong>Stat System</strong> - STR, DEX, INT calculated from related skills</li>
-                <li><strong>Quality Crafting</strong> - Item quality depends on crafting skill</li>
-                <li><strong>Reagent Magic</strong> - Reagent-based spellcasting with 8 circles of magic</li>
+                <li><strong>37 Skills</strong> across combat, magic, crafting, gathering, thief, taming, survival, and other categories</li>
+                <li><strong>Skill Cap System</strong> &mdash; Total cap of 700 points, individual cap of 100 per skill (7 skills at GM)</li>
+                <li><strong>Use-Based Progression</strong> &mdash; Skills improve when used; difficulty affects gain rate</li>
+                <li><strong>Stat System</strong> &mdash; STR, DEX, INT calculated from related skills</li>
+                <li><strong>Internal HP / Mana / Stamina</strong> &mdash; Decimal-precision HP, UO-style mana (independent of hunger), Monster-Hunter-style stamina</li>
+                <li><strong>Quality Crafting</strong> &mdash; Item quality (LQ / NQ / HQ / EX) depends on crafting skill</li>
+                <li><strong>Reagent Magic</strong> &mdash; 8 circles of magic with Power Words, reagent costs, casting &amp; targeting phases</li>
+                <li><strong>Party System</strong> &mdash; Friendly fire, party TP, party chat</li>
+                <li><strong>Ender Dragon Scaling</strong> &mdash; Dragon respawns stronger with anti-cheese skills</li>
+                <li><strong>i18n</strong> &mdash; Full English &amp; Japanese support, per-player language setting</li>
             </ul>
         </section>
 
-        <!-- Stats -->
+        <!-- ============================================================ -->
+        <!-- Stats System -->
+        <!-- ============================================================ -->
         <section id="stats">
             <h2>Stats System</h2>
-            <p>Three internal stats are calculated from related skills:</p>
-
-            <table>
-                <tr>
-                    <th>Stat</th>
-                    <th>Effect</th>
-                    <th>Related Skills</th>
-                </tr>
-                <tr>
-                    <td class="str"><strong>STR</strong></td>
-                    <td>+HP, +Mining/Lumber speed</td>
-                    <td>Swordsmanship, Axe, Mace Fighting, Wrestling, Tactics, Anatomy, Mining, Lumberjacking, Blacksmithy, Craftsmanship, Cooking, Heat/Cold Resistance, Endurance</td>
-                </tr>
-                <tr>
-                    <td class="dex"><strong>DEX</strong></td>
-                    <td>+Attack speed, +Movement speed</td>
-                    <td>Archery, Throwing, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Athletics, Swimming</td>
-                </tr>
-                <tr>
-                    <td class="int"><strong>INT</strong></td>
-                    <td>-Mana cost, +Cast success</td>
-                    <td>Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Alchemy, Animal Lore</td>
-                </tr>
-                <tr>
-                    <td><strong>Mixed</strong></td>
-                    <td>See individual skills</td>
-                    <td>Craftsmanship (STR 50% + DEX 50%), Animal Taming, Veterinary, Detecting Hidden, Arms Lore</td>
-                </tr>
-            </table>
+            <p>Three internal stats are calculated as the <strong>average</strong> of their related skills. Each stat ranges from 0 to 100.</p>
 
             <h3>Stat Calculation</h3>
             <div class="formula">
-                <code>Stat = (Sum of related skills) / (Number of related skills)</code>
-                <p>Each stat ranges from 0 to 100 based on the average of its related skills.</p>
+                <code>Stat = Sum of related skill values / Number of related skills</code>
             </div>
 
-            <h3>Stat Effects</h3>
+            <h3>Related Skills</h3>
             <table>
                 <tr>
                     <th>Stat</th>
-                    <th>Effect Formula</th>
+                    <th>Related Skills</th>
                 </tr>
                 <tr>
+                    <td class="str"><strong>STR</strong> (11 skills)</td>
+                    <td>Swordsmanship, Axe, Mace Fighting, Wrestling, Tactics, Anatomy, Mining, Lumberjacking, Heat Resistance, Cold Resistance, Endurance</td>
+                </tr>
+                <tr>
+                    <td class="dex"><strong>DEX</strong> (14 skills)</td>
+                    <td>Archery, Throwing, Spear, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Farming, Athletics, Swimming</td>
+                </tr>
+                <tr>
+                    <td class="int"><strong>INT</strong> (6 skills)</td>
+                    <td>Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Animal Lore</td>
+                </tr>
+            </table>
+
+            <h4>Skills Contributing to Multiple Stats</h4>
+            <table>
+                <tr><th>Skill</th><th>Stat Contribution</th></tr>
+                <tr><td>Crafting</td><td><span class="badge badge-str">STR 60%</span> <span class="badge badge-dex">DEX 40%</span></td></tr>
+                <tr><td>Cooking</td><td><span class="badge badge-str">STR 50%</span> <span class="badge badge-int">INT 50%</span></td></tr>
+                <tr><td>Animal Taming</td><td><span class="badge badge-str">STR 50%</span> <span class="badge badge-dex">DEX 50%</span></td></tr>
+                <tr><td>Veterinary</td><td><span class="badge badge-str">STR 50%</span> <span class="badge badge-int">INT 50%</span></td></tr>
+                <tr><td>Detecting Hidden</td><td><span class="badge badge-dex">DEX 50%</span> <span class="badge badge-int">INT 50%</span></td></tr>
+                <tr><td>Arms Lore</td><td><span class="badge badge-str">STR 33%</span> <span class="badge badge-dex">DEX 33%</span> <span class="badge badge-int">INT 34%</span></td></tr>
+            </table>
+
+            <h3>Stat Effects</h3>
+            <table>
+                <tr><th>Stat</th><th>Effects</th></tr>
+                <tr>
                     <td class="str">STR</td>
-                    <td>Max HP = 100 + STR, Mining/Lumber speed +STR/5%</td>
+                    <td>Max HP +(STR), Mining/Lumber speed +(STR/10)%</td>
                 </tr>
                 <tr>
                     <td class="dex">DEX</td>
-                    <td>Attack speed +DEX/2%, Movement speed +DEX/10%</td>
+                    <td>Attack speed +(DEX/2)%, Movement speed +(DEX/10)%</td>
                 </tr>
                 <tr>
                     <td class="int">INT</td>
-                    <td>Mana cost -INT/2%, Cast success +INT/5%</td>
+                    <td>Mana cost -(INT/2)%, Cast success +(INT/5)%</td>
                 </tr>
             </table>
         </section>
 
+        <!-- ============================================================ -->
+        <!-- Internal HP / Mana / Stamina -->
+        <!-- ============================================================ -->
+        <section id="internal-hp">
+            <h2>Internal HP / Mana / Stamina</h2>
+            <p>The plugin manages HP, Mana, and Stamina internally with decimal precision, separate from vanilla mechanics.</p>
+
+            <h3>Internal HP</h3>
+            <div class="formula">
+                <code>Max HP = 100 + STR</code> &nbsp; (range: 100 &ndash; 200)
+            </div>
+            <ul>
+                <li>Supports decimal damage</li>
+                <li>Synced to vanilla hearts: <code>Vanilla HP = (Internal HP / Max Internal HP) &times; 20</code></li>
+                <li>Vanilla damage is converted: <code>Internal Damage = Vanilla Damage &times; 10</code></li>
+            </ul>
+
+            <h3>Internal Mana (UO-style)</h3>
+            <div class="formula">
+                <code>Max Mana = 20</code><br>
+                <code>Actual Cost = Base Cost &times; (1 - INT / 200)</code> &mdash; INT 100 = 50% mana reduction
+            </div>
+            <ul>
+                <li><strong>Independent of hunger bar</strong> &mdash; vanilla hunger works normally</li>
+                <li>Displayed on the scoreboard</li>
+            </ul>
+            <h4>Mana Recovery</h4>
+            <table>
+                <tr><th>Source</th><th>Recovery</th></tr>
+                <tr><td>Natural regen</td><td>Every 5s: 0.5 &times; (1 + INT/100) MP</td></tr>
+                <tr><td>Meditation (sneak + still)</td><td>Every 0.5s: 0.1 &times; (1 + Meditation/100) MP</td></tr>
+                <tr><td>Golden Apple</td><td>+5 MP</td></tr>
+                <tr><td>Enchanted Golden Apple</td><td>+10 MP</td></tr>
+            </table>
+
+            <h3>Internal Stamina (Monster Hunter-style)</h3>
+            <div class="formula">
+                <code>Max Stamina = 100 + DEX + (Focus / 2)</code><br>
+                <code>Consumption = Base &times; (1 - Focus / 200)</code><br>
+                <code>Recovery = Base &times; (1 + Focus / 100)</code>
+            </div>
+            <ul>
+                <li>Sprint consumption: 1/tick (20/sec)</li>
+                <li>Standing recovery: 2/tick (40/sec)</li>
+            </ul>
+            <h4>Exhaustion (Stamina = 0)</h4>
+            <ul>
+                <li>Walk speed halved</li>
+                <li>Cannot jump</li>
+                <li>Panting particles &amp; sound every 0.5s</li>
+                <li>Must recover to 50 stamina before returning to normal</li>
+            </ul>
+
+            <h3>Scoreboard Display</h3>
+<pre><code>Grandmaster
+Swordsman
+
+&#10084; 156/180
+&#127830; 15/20
+&#9889; 145/200
+
+Stats: 225/225
+STR: 80 &#128274;
+DEX: 45 &#9650;
+INT: 60 &#9660;</code></pre>
+        </section>
+
+        <!-- ============================================================ -->
         <!-- Skills -->
+        <!-- ============================================================ -->
         <section id="skills">
-            <h2>Skills</h2>
+            <h2>Skills (37 Total)</h2>
 
             <h3>Skill Gain System</h3>
             <div class="formula">
-                <code>Gain Chance = (100 - Skill) / 10 * Difficulty Modifier</code>
-                <p>Gain Amount: 0.1 per successful check</p>
+                <code>Gain Chance = (100 - Skill) / 10 &times; Difficulty Modifier</code><br>
+                <strong>Gain Amount:</strong> 0.1 per successful check
             </div>
 
             <h4>Difficulty Modifiers</h4>
             <table>
-                <tr>
-                    <th>Condition</th>
-                    <th>Modifier</th>
-                </tr>
-                <tr>
-                    <td>Difficulty > Skill + 20</td>
-                    <td>x0.5 (too hard)</td>
-                </tr>
-                <tr>
-                    <td>Difficulty within ±20 of Skill</td>
-                    <td>x1.0 (optimal)</td>
-                </tr>
-                <tr>
-                    <td>Difficulty < Skill - 20</td>
-                    <td>x0.2 (too easy)</td>
-                </tr>
+                <tr><th>Condition</th><th>Modifier</th><th>Description</th></tr>
+                <tr><td>Difficulty &gt; Skill + 20</td><td>&times;0.5</td><td>Too hard</td></tr>
+                <tr><td>Difficulty &asymp; Skill (&plusmn;20)</td><td>&times;1.0</td><td>Optimal</td></tr>
+                <tr><td>Difficulty &lt; Skill - 20</td><td>&times;0.2</td><td>Too easy</td></tr>
             </table>
 
-            <h3>Combat Skills</h3>
+            <h4>Skill Decay</h4>
+            <p>When total skill points reach 600+, gaining a skill causes the <strong>least recently used</strong> skill to decrease by 0.1. Skills can be locked (UP / DOWN / LOCKED) via <code>/skills lock</code>.</p>
+
+            <!-- Combat Skills -->
+            <h3>Combat Skills (Weapons)</h3>
             <div class="skill-category">
                 <div class="skill-card">
                     <h4>Swordsmanship <span class="badge badge-str">STR</span></h4>
                     <p>Sword proficiency. Affects damage with swords.</p>
-                    <p class="skill-effect">Gain: Deal damage with swords</p>
+                    <p class="skill-effect">Gain: Deal damage with swords (PvE only)</p>
                 </div>
                 <div class="skill-card">
                     <h4>Axe <span class="badge badge-str">STR</span></h4>
                     <p>Axe proficiency. Affects damage with axes.</p>
-                    <p class="skill-effect">Gain: Deal damage with axes</p>
+                    <p class="skill-effect">Gain: Deal damage with axes (PvE only)</p>
                 </div>
                 <div class="skill-card">
                     <h4>Mace Fighting <span class="badge badge-str">STR</span></h4>
-                    <p>Mace proficiency. Affects damage with maces (1.21+).</p>
-                    <p class="skill-effect">Gain: Deal damage with maces</p>
+                    <p>Mace proficiency (1.21+).</p>
+                    <p class="skill-effect">Gain: Deal damage with maces (PvE only)</p>
                 </div>
                 <div class="skill-card">
                     <h4>Spear <span class="badge badge-dex">DEX</span></h4>
-                    <p>Spear proficiency. Affects damage with spears (1.21.5+).</p>
-                    <p class="skill-effect">Gain: Deal damage with spears</p>
+                    <p>Spear proficiency (1.21.5+).</p>
+                    <p class="skill-effect">Gain: Deal damage with spears (PvE only)</p>
                 </div>
                 <div class="skill-card">
                     <h4>Archery <span class="badge badge-dex">DEX</span></h4>
-                    <p>Bow and crossbow proficiency.</p>
-                    <p class="skill-effect">Gain: Deal damage with bows/crossbows</p>
+                    <p>Bow &amp; crossbow proficiency with distance decay and movement penalty.</p>
+                    <p class="skill-effect">Gain: Deal damage with bows/crossbows (PvE only)</p>
                 </div>
                 <div class="skill-card">
                     <h4>Throwing <span class="badge badge-dex">DEX</span></h4>
                     <p>Trident proficiency.</p>
-                    <p class="skill-effect">Gain: Deal damage with tridents</p>
+                    <p class="skill-effect">Gain: Deal damage with tridents (PvE only)</p>
                 </div>
                 <div class="skill-card">
                     <h4>Wrestling <span class="badge badge-str">STR</span></h4>
-                    <p>Unarmed combat.</p>
-                    <p class="skill-effect">Gain: Deal damage with fists</p>
+                    <p>Unarmed combat. Damage: 0.5 + Skill/100. Stun chance: Skill/4% (max 25%).</p>
+                    <p class="skill-effect">Gain: Deal damage with fists (PvE only)</p>
                 </div>
+            </div>
+
+            <h3>Combat Support Skills</h3>
+            <div class="skill-category">
                 <div class="skill-card">
                     <h4>Tactics <span class="badge badge-str">STR</span></h4>
-                    <p>Damage bonus: +Skill/5%</p>
-                    <p class="skill-effect">Gain: Hit an enemy</p>
+                    <p>Main damage multiplier: Skill/100 (0.1&ndash;1.0). Essential for all melee/ranged builds.</p>
+                    <p class="skill-effect">Gain: Hit an enemy (PvE only)</p>
                 </div>
                 <div class="skill-card">
                     <h4>Anatomy <span class="badge badge-str">STR</span></h4>
-                    <p>Critical rate: +Skill/2%</p>
-                    <p class="skill-effect">Gain: Kill an enemy</p>
+                    <p>Damage boost: 0.5 + Skill/100. Critical rate: Skill/2 % (max 50%, 2x damage).</p>
+                    <p class="skill-effect">Gain: Kill an enemy (PvE only)</p>
                 </div>
                 <div class="skill-card">
                     <h4>Parrying <span class="badge badge-dex">DEX</span></h4>
-                    <p>Block chance with shield/weapon.</p>
-                    <p class="skill-effect">Gain: Successfully parry</p>
+                    <p>Chance to block for 50% damage reduction. Shield: Skill&times;0.5% (max 50%). Weapon: Skill&times;0.25% (max 25%).</p>
+                    <p class="skill-effect">Gain: Successfully parry (PvE only)</p>
                 </div>
                 <div class="skill-card">
                     <h4>Focus <span class="badge badge-dex">DEX</span></h4>
-                    <p>Stamina regen: +Skill%</p>
+                    <p>+Max Stamina (Skill/2), -Stamina cost (Skill/2)%, +Stamina regen (Skill)%.</p>
                     <p class="skill-effect">Gain: Sprint for 5 seconds</p>
                 </div>
             </div>
 
+            <!-- Magic Skills -->
             <h3>Magic Skills</h3>
             <div class="skill-category">
                 <div class="skill-card">
                     <h4>Magery <span class="badge badge-int">INT</span></h4>
-                    <p>Spellcasting ability. Affects cast success and damage.</p>
-                    <p class="skill-effect">Gain: Cast spells</p>
+                    <p>Spellcasting. Determines cast success rate and damage multiplier (Skill/100).</p>
+                    <p class="skill-effect">Gain: Cast any spell (success or failure)</p>
                 </div>
                 <div class="skill-card">
                     <h4>Evaluating Intelligence <span class="badge badge-int">INT</span></h4>
-                    <p>Magic damage: +Skill/2%</p>
+                    <p>Magic damage +(Skill/2)%. <code>/evaluate</code> shows target's mana.</p>
                     <p class="skill-effect">Gain: Deal magic damage</p>
                 </div>
                 <div class="skill-card">
                     <h4>Meditation <span class="badge badge-int">INT</span></h4>
-                    <p>Mana regen when sneaking: +Skill%</p>
-                    <p class="skill-effect">Gain: Recover mana while meditating</p>
+                    <p>Additional mana recovery while sneaking still.</p>
+                    <p class="skill-effect">Gain: Recover mana via meditation</p>
                 </div>
                 <div class="skill-card">
                     <h4>Resisting Spells <span class="badge badge-int">INT</span></h4>
-                    <p>Magic damage reduction: -Skill/2%</p>
+                    <p>Magic damage -(Skill&times;0.7)%. Status resist +(Skill&times;0.8)%.</p>
                     <p class="skill-effect">Gain: Take magic damage</p>
-                </div>
-                <div class="skill-card">
-                    <h4>Inscription <span class="badge badge-int">INT</span></h4>
-                    <p>Create magic scrolls.</p>
-                    <p class="skill-effect">Gain: Create scrolls</p>
                 </div>
             </div>
 
+            <!-- Crafting Skills -->
             <h3>Crafting Skills</h3>
             <div class="skill-category">
                 <div class="skill-card">
-                    <h4>Blacksmithy <span class="badge badge-str">STR</span></h4>
-                    <p>Metal weapons, armor, tools. Anvil repairs.</p>
-                    <p class="skill-effect">Gain: Craft metal items, repair on anvil</p>
+                    <h4>Crafting <span class="badge badge-str">STR 60%</span> <span class="badge badge-dex">DEX 40%</span></h4>
+                    <p>All equipment &amp; tools: metal, wood, leather, stone items, weapons, armor, bows, arrows, tinker items, anvil repair.</p>
+                    <p class="skill-effect">Gain: Craft any equipment/tool item</p>
                 </div>
                 <div class="skill-card">
-                    <h4>Craftsmanship <span class="badge badge-mixed">STR/DEX</span></h4>
-                    <p>Wood/leather items, shields, bows, crossbows, arrows, and small tools (scissors, fishing rods, etc.).</p>
-                    <p class="skill-effect">Gain: Craft wood/leather/bow/tool items</p>
+                    <h4>Cooking <span class="badge badge-str">STR 50%</span> <span class="badge badge-int">INT 50%</span></h4>
+                    <p>All food &amp; potions: furnace cooking, crafted food, brewing stand potions.</p>
+                    <p class="skill-effect">Gain: Extract food from furnace, brew potions</p>
                 </div>
                 <div class="skill-card">
-                    <h4>Alchemy <span class="badge badge-int">INT</span></h4>
-                    <p>Potions and brewing.</p>
-                    <p class="skill-effect">Gain: Brew potions</p>
-                </div>
-                <div class="skill-card">
-                    <h4>Cooking <span class="badge badge-str">STR</span></h4>
-                    <p>Food preparation.</p>
-                    <p class="skill-effect">Gain: Cook food</p>
+                    <h4>Inscription <span class="badge badge-int">INT</span></h4>
+                    <p>Create magic scrolls. Works with Magery for spell inscription.</p>
+                    <p class="skill-effect">Gain: Create scrolls via <code>/scribe</code></p>
                 </div>
             </div>
 
+            <!-- Gathering Skills -->
             <h3>Gathering Skills</h3>
             <div class="skill-category">
                 <div class="skill-card">
                     <h4>Mining <span class="badge badge-str">STR</span></h4>
-                    <p>Mining speed (Haste up to +40%), Bonus ore chance: Skill/2% with visual feedback, Durability reduction</p>
-                    <p>Also covers digging soft blocks with shovels (dirt, sand, gravel, etc.)</p>
-                    <p class="skill-effect">Gain: Mine ores, dig with shovel</p>
+                    <p>Mining speed +(STR/5 + Skill/5)% (max 40%). Bonus ore drop: Skill/2% chance.</p>
+                    <p class="skill-effect">Gain: Mine ore blocks</p>
                 </div>
                 <div class="skill-card">
                     <h4>Lumberjacking <span class="badge badge-str">STR</span></h4>
-                    <p>Chopping speed (Haste), Chain chopping (auto-chop connected logs)</p>
+                    <p>Chain chop: 1 + floor(Skill/10) logs (GM = unlimited). Only upward propagation.</p>
                     <p class="skill-effect">Gain: Chop logs</p>
                 </div>
                 <div class="skill-card">
                     <h4>Fishing <span class="badge badge-dex">DEX</span></h4>
-                    <p>Auto-fishing with skill-based probability.</p>
-                    <p class="skill-effect">Gain: Catch fish</p>
+                    <p>Auto-fish chance: Skill% (Skill &ge; 20). GM (100) = fully automatic AFK fishing.</p>
+                    <p class="skill-effect">Gain: Catch fish or treasure</p>
                 </div>
                 <div class="skill-card">
                     <h4>Farming <span class="badge badge-dex">DEX</span></h4>
-                    <p>Auto-replant + Auto-growth (skill-based bone meal effect)</p>
-                    <p class="skill-effect">Gain: Harvest crops, till soil</p>
+                    <p>Auto-replant with seeds. Auto-growth stages based on skill. GM = instant maturity.</p>
+                    <p class="skill-effect">Gain: Harvest mature crops</p>
                 </div>
             </div>
 
-            <h3>Survival Skills</h3>
-            <p class="note">※ Environmental damage maintains vanilla lethality. STR HP bonus benefit limited to 20% (80% scales with damage). Skill 100 = complete immunity.</p>
-            <div class="formula">
-                <pre>Damage Multiplier = 0.5 × STR Scale × (1 - Skill/100)
-STR Scale = 1.0 + ((maxHP/100 - 1) × 0.8)
-
-Example: STR 25 (maxHP 125), Skill 0
-  STR Scale = 1.0 + (0.25 × 0.8) = 1.2
-  Damage Multiplier = 0.5 × 1.2 × 1.0 = 0.6
-  → Vanilla lethal damage is still nearly lethal (STR benefit ~5%)</pre>
+            <!-- Thief Skills -->
+            <h3>Thief Skills</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Hiding <span class="badge badge-dex">DEX</span></h4>
+                    <p><code>/hide</code> &mdash; Invisibility. Success rate: Skill%. Broken by attack, block break, item use, damage, running.</p>
+                    <p class="skill-effect">Gain: Successfully hide</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Stealth <span class="badge badge-dex">DEX</span></h4>
+                    <p>Move while hidden. Distance: Skill/10 blocks (max 10).</p>
+                    <p class="skill-effect">Gain: Move while in stealth</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Detecting Hidden <span class="badge badge-dex">DEX 50%</span> <span class="badge badge-int">INT 50%</span></h4>
+                    <p><code>/detect</code> &mdash; Find hidden players in range Skill/10 blocks.</p>
+                    <p class="skill-effect">Gain: Attempt detection</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Snooping <span class="badge badge-dex">DEX</span></h4>
+                    <p><code>/snoop</code> &mdash; View another player's inventory. Failure notifies the target.</p>
+                    <p class="skill-effect">Gain: Attempt snooping</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Stealing <span class="badge badge-dex">DEX</span></h4>
+                    <p>Steal items from snooped inventory. Failure notifies and closes GUI.</p>
+                    <p class="skill-effect">Gain: Attempt stealing</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Poisoning <span class="badge badge-dex">DEX</span></h4>
+                    <p><code>/poison</code> &mdash; Coat weapon with poison (Skill/20 charges, max 5). Requires poison potion.</p>
+                    <p class="skill-effect">Gain: Apply poison, hit with poisoned weapon</p>
+                </div>
             </div>
+
+            <!-- Taming Skills -->
+            <h3>Taming Skills</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Animal Taming <span class="badge badge-str">STR 50%</span> <span class="badge badge-dex">DEX 50%</span></h4>
+                    <p><code>/tame</code> &mdash; Tame animals. Max pets: Skill/20 (max 5).</p>
+                    <p class="skill-effect">Gain: Attempt taming</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Animal Lore <span class="badge badge-int">INT</span></h4>
+                    <p><code>/lore</code> &mdash; View mob HP/status details.</p>
+                    <p class="skill-effect">Gain: Use command</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Veterinary <span class="badge badge-str">STR 50%</span> <span class="badge badge-int">INT 50%</span></h4>
+                    <p>Right-click tamed mob with food to heal. Recovery &times; (1 + Skill/100).</p>
+                    <p class="skill-effect">Gain: Heal a tamed mob</p>
+                </div>
+            </div>
+
+            <!-- Survival Skills -->
+            <h3>Survival Skills</h3>
             <div class="skill-category">
                 <div class="skill-card">
                     <h4>Athletics <span class="badge badge-dex">DEX</span></h4>
-                    <p>Fall damage reduction: Skill% reduction (includes elytra crash)</p>
-                    <p class="skill-effect">Skill 100 = immune. Gain: Take fall damage</p>
+                    <p>Fall damage reduction. Skill 100 = complete immunity.</p>
+                    <p class="skill-effect">Gain: Take fall damage</p>
                 </div>
                 <div class="skill-card">
                     <h4>Swimming <span class="badge badge-dex">DEX</span></h4>
-                    <p>Drowning damage reduction: Skill% reduction. Air save: Skill/2% chance</p>
-                    <p class="skill-effect">Skill 80+ grants water breathing. Skill 100 = immune. Gain: Take drowning damage</p>
+                    <p>Drowning damage reduction + air conservation. Skill 100 = immunity.</p>
+                    <p class="skill-effect">Gain: Take drowning damage</p>
                 </div>
                 <div class="skill-card">
                     <h4>Heat Resistance <span class="badge badge-str">STR</span></h4>
-                    <p>Fire/lava/lightning damage reduction: Skill% reduction. Burn time reduced by Skill/200%</p>
-                    <p class="skill-effect">Skill 95+ chance to extinguish. Skill 100 = immune + instant extinguish. Gain: Take fire damage</p>
+                    <p>Fire/lava damage reduction. Skill 100 = immunity + auto-extinguish.</p>
+                    <p class="skill-effect">Gain: Take fire/lava damage</p>
                 </div>
                 <div class="skill-card">
                     <h4>Cold Resistance <span class="badge badge-str">STR</span></h4>
-                    <p>Freeze damage reduction: Skill% reduction. Freeze buildup reduced by Skill/200%</p>
-                    <p class="skill-effect">Skill 95+ chance to thaw. Skill 100 = immune + instant thaw. Gain: Take freeze damage</p>
+                    <p>Freezing damage reduction. Skill 100 = immunity + auto-thaw.</p>
+                    <p class="skill-effect">Gain: Take freezing damage</p>
                 </div>
                 <div class="skill-card">
                     <h4>Endurance <span class="badge badge-str">STR</span></h4>
-                    <p>Suffocation/Explosion/Contact damage reduction: Skill% reduction</p>
-                    <p class="skill-effect">Skill 100 = immune. Gain: Take suffocation/explosion/contact damage</p>
+                    <p>Suffocation/contact damage reduction. Skill 100 = immunity.</p>
+                    <p class="skill-effect">Gain: Take suffocation/contact damage</p>
+                </div>
+            </div>
+
+            <!-- Other Skills -->
+            <h3>Other Skills</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Arms Lore <span class="badge badge-str">STR 33%</span> <span class="badge badge-dex">DEX 33%</span> <span class="badge badge-int">INT 34%</span></h4>
+                    <p><code>/arms</code> &mdash; Show weapon/armor details: damage, defense, quality, durability, crafter.</p>
+                    <p class="skill-effect">Gain: Use command</p>
                 </div>
             </div>
         </section>
 
-        <!-- Combat -->
+        <!-- ============================================================ -->
+        <!-- Combat System -->
+        <!-- ============================================================ -->
         <section id="combat">
-            <h2>Combat System</h2>
+            <h2>Combat System (UO-style)</h2>
 
-            <h3>Damage Formula</h3>
+            <h3>Attack Flow</h3>
+            <ol>
+                <li>Attack occurs</li>
+                <li><strong>Hit check</strong> &mdash; Weapon Skill vs. target defense</li>
+                <li>Damage calculation</li>
+                <li>Defense applied (physical / magic)</li>
+                <li>Final damage applied</li>
+                <li>Skill gain checks</li>
+            </ol>
+
+            <h3>Hit Chance (UO-style)</h3>
             <div class="formula">
-                <pre>Base Damage = Weapon base damage (from config)
-STR Bonus = 1 + (STR / 200)     // Max +50%
-Tactics Bonus = Tactics / 100    // 0.1 to 1.0
-Anatomy Bonus = 0.5 + (Anatomy / 100)  // 0.6 to 1.5
-Critical = Anatomy / 2 % chance for 2x damage
-
-Final = Base × STR × Tactics × Anatomy × Quality × Enchant</pre>
+                <code>Hit Rate = Weapon Skill - (Target Defense / 2) + 50</code><br>
+                Min: 5% &mdash; Max: 95%<br>
+                <em>vs. Mobs: Target Defense = mob's physical_defense</em><br>
+                <em>vs. Players: Target Defense = opponent's Parrying skill</em>
             </div>
 
-            <h3>Hit Chance</h3>
+            <h3>Damage Calculation</h3>
             <div class="formula">
-                <code>Hit Rate = Weapon Skill - (Target Defense / 2) + 50</code>
-                <p>Min: 5%, Max: 95%</p>
+<pre><code>Final Damage = Base Damage
+  &times; Tactics (Skill/100, 0.1&ndash;1.0)
+  &times; Anatomy (0.5 + Skill/100)
+  &times; [Wrestling (0.5 + Skill/100)]  &larr; unarmed only
+  &times; STR (1 + STR/200)
+  &times; Quality (-15% to +25%)
+  &times; DI Enchant (1 + total DI/100)
+  &times; Critical (2.0 if triggered)
+
+Post-defense = Final Damage &times; (1 - AR / (AR + 50))</code></pre>
             </div>
 
-            <h3>Parrying</h3>
+            <h4>Weapon Base Damage</h4>
             <table>
-                <tr>
-                    <th>Equipment</th>
-                    <th>Block Chance</th>
-                    <th>Damage Reduction</th>
-                </tr>
-                <tr>
-                    <td>Shield</td>
-                    <td>Parrying × 0.5% (max 50%)</td>
-                    <td>50%</td>
-                </tr>
-                <tr>
-                    <td>Weapon Only</td>
-                    <td>Parrying × 0.25% (max 25%)</td>
-                    <td>50%</td>
-                </tr>
+                <tr><th>Weapon</th><th>Base Damage</th><th>Skill</th></tr>
+                <tr><td>Wooden Sword</td><td>4</td><td>Swordsmanship</td></tr>
+                <tr><td>Stone Sword</td><td>5</td><td>Swordsmanship</td></tr>
+                <tr><td>Iron Sword</td><td>6</td><td>Swordsmanship</td></tr>
+                <tr><td>Diamond Sword</td><td>7</td><td>Swordsmanship</td></tr>
+                <tr><td>Netherite Sword</td><td>8</td><td>Swordsmanship</td></tr>
+                <tr><td>Bow</td><td>6</td><td>Archery</td></tr>
+                <tr><td>Crossbow</td><td>10</td><td>Archery</td></tr>
+                <tr><td>Mace</td><td>7</td><td>Mace Fighting</td></tr>
+                <tr><td>Trident</td><td>9</td><td>Throwing</td></tr>
+                <tr><td>Fist</td><td>3</td><td>Wrestling</td></tr>
             </table>
+
+            <h4>Ranged Penalties (Bow / Crossbow)</h4>
+            <table>
+                <tr><th>Distance</th><th>Damage</th></tr>
+                <tr><td>0&ndash;15 blocks</td><td>100%</td></tr>
+                <tr><td>15&ndash;30 blocks</td><td>100%&rarr;50% (linear)</td></tr>
+                <tr><td>30+ blocks</td><td>50%</td></tr>
+            </table>
+            <p>Moving while shooting: &minus;30% damage. Arrows can only be blocked by shields (not weapons).</p>
+
+            <h3>PvP Note</h3>
+            <p><strong>Skills do NOT gain from PvP.</strong> All combat skills are trained through PvE only. The skills you train against mobs then apply in PvP.</p>
         </section>
 
-        <!-- Magic -->
+        <!-- ============================================================ -->
+        <!-- Armor System -->
+        <!-- ============================================================ -->
+        <section id="armor">
+            <h2>Armor System (UO-style)</h2>
+            <p>Each armor piece has AR (Armor Rating), STR requirement, DEX requirement, and DEX penalty.</p>
+
+            <h3>Defense Calculation</h3>
+            <div class="formula">
+                <code>Damage Reduction = AR / (AR + 50)</code>
+            </div>
+            <p>Example: AR 40 &rarr; 40/90 = 44.4% reduction. With parry success, total reduction = 50% + 44.4% of remainder = 72.2%.</p>
+
+            <h3>Armor Table</h3>
+            <table>
+                <tr><th>Armor</th><th>AR</th><th>STR Req</th><th>DEX Req</th><th>DEX Penalty</th></tr>
+                <tr><td>Netherite Helmet</td><td>8</td><td>80</td><td>35</td><td>5</td></tr>
+                <tr><td>Netherite Chestplate</td><td>18</td><td>95</td><td>50</td><td>12</td></tr>
+                <tr><td>Netherite Leggings</td><td>14</td><td>85</td><td>45</td><td>8</td></tr>
+                <tr><td>Netherite Boots</td><td>8</td><td>70</td><td>35</td><td>4</td></tr>
+                <tr><td>Diamond Helmet</td><td>7</td><td>65</td><td>30</td><td>4</td></tr>
+                <tr><td>Diamond Chestplate</td><td>16</td><td>80</td><td>45</td><td>10</td></tr>
+                <tr><td>Diamond Leggings</td><td>12</td><td>70</td><td>40</td><td>6</td></tr>
+                <tr><td>Diamond Boots</td><td>7</td><td>55</td><td>30</td><td>3</td></tr>
+                <tr><td>Iron Helmet</td><td>5</td><td>40</td><td>20</td><td>3</td></tr>
+                <tr><td>Iron Chestplate</td><td>12</td><td>55</td><td>35</td><td>7</td></tr>
+                <tr><td>Iron Leggings</td><td>10</td><td>50</td><td>30</td><td>5</td></tr>
+                <tr><td>Iron Boots</td><td>5</td><td>35</td><td>20</td><td>2</td></tr>
+                <tr><td>Chain Helmet</td><td>4</td><td>30</td><td>10</td><td>2</td></tr>
+                <tr><td>Chain Chestplate</td><td>10</td><td>45</td><td>25</td><td>5</td></tr>
+                <tr><td>Chain Leggings</td><td>8</td><td>40</td><td>20</td><td>4</td></tr>
+                <tr><td>Chain Boots</td><td>4</td><td>25</td><td>10</td><td>1</td></tr>
+                <tr><td>Gold (all)</td><td>3/7/5/3</td><td>0</td><td>0</td><td>2/4/3/1</td></tr>
+                <tr><td>Leather (all)</td><td>2/5/4/2</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td>Shield</td><td>5</td><td>25</td><td>15</td><td>2</td></tr>
+            </table>
+
+            <h4>Quality AR Modifier</h4>
+            <table>
+                <tr><th>Quality</th><th>AR Modifier</th></tr>
+                <tr><td>Low Quality (LQ)</td><td>&times;0.85</td></tr>
+                <tr><td>Normal Quality (NQ)</td><td>&times;1.00</td></tr>
+                <tr><td>High Quality (HQ)</td><td>&times;1.15</td></tr>
+                <tr><td>Exceptional (EX)</td><td>&times;1.30</td></tr>
+            </table>
+
+            <h4>Enchantment AR Bonus</h4>
+            <p>Protection: +2 AR/level, Fire/Blast/Projectile Protection: +1 AR/level.</p>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- Magic System -->
+        <!-- ============================================================ -->
         <section id="magic">
             <h2>Magic System</h2>
+            <p>UO-style reagent-based magic with 8 circles, Power Words, and a two-phase casting system (CASTING &rarr; TARGETING).</p>
 
-            <h3>Spellcasting</h3>
-            <ul>
-                <li><strong>Spellbook Required</strong> - Must hold a spellbook with the spell</li>
-                <li><strong>Reagents</strong> - Spells consume Minecraft items as reagents</li>
-                <li><strong>Mana</strong> - Uses the hunger bar</li>
-                <li><strong>Targeting</strong> - Most spells enter target mode after casting</li>
-            </ul>
+            <h3>Casting Flow</h3>
+            <ol>
+                <li><code>/cast &lt;spell&gt;</code> &mdash; Check spellbook, reagents, mana</li>
+                <li><strong>CASTING phase</strong> &mdash; Boss bar (blue). Moving &gt;0.5 blocks interrupts.</li>
+                <li><strong>TARGETING phase</strong> &mdash; Boss bar (red). Left-click to target, right-click to cancel. 5-second timeout.</li>
+                <li>Spell effect &amp; particles</li>
+            </ol>
 
-            <h3>Cast Success Rate</h3>
+            <h4>Cast Time</h4>
             <div class="formula">
-                <code>Success = (Magery - Circle × 10) + 50 + (INT / 5)</code>
-                <p>Min: 5%, Max: 100%</p>
+                <code>Cast Time = (2000ms + Circle &times; 500ms) &times; (1 - min(Magery/100 &times; 0.3, 0.3))</code>
             </div>
 
-            <h3>Spell Circles</h3>
-            <table>
-                <tr>
-                    <th>Circle</th>
-                    <th>Mana Cost</th>
-                    <th>Spells</th>
-                </tr>
-                <tr><td>1st</td><td>1</td><td>Magic Arrow, Heal, Create Food, Night Sight, Clumsy, Weaken</td></tr>
-                <tr><td>2nd</td><td>2</td><td>Harm, Cure, Feather Fall, Agility, Strength, Cunning</td></tr>
-                <tr><td>3rd</td><td>3</td><td>Fireball, Bless, Water Breathing, Teleport, Poison, Wall of Stone</td></tr>
-                <tr><td>4th</td><td>4</td><td>Lightning, Fire Wall, Greater Heal, Arch Cure, Curse, Mana Drain</td></tr>
-                <tr><td>5th</td><td>5</td><td>Energy Bolt, Mind Blast, Protection, Mark, Recall, Paralyze, Summon Creature</td></tr>
-                <tr><td>6th</td><td>6</td><td>Explosion, Invisibility, Dispel, Reveal, Mass Curse, Paralyze Field</td></tr>
-                <tr><td>7th</td><td>7</td><td>Gate Travel, Chain Lightning, Flamestrike, Energy Field, Mana Vampire, Mass Dispel</td></tr>
-                <tr><td>8th</td><td>8</td><td>Meteor Swarm, Earthquake, Word of Death, Mass Sleep</td></tr>
-            </table>
+            <h4>Cast Success Rate</h4>
+            <div class="formula">
+                <code>Success = (Magery - Circle &times; 10) + 50 + INT/5</code> &nbsp; (min 5%, max 100%)
+            </div>
+            <p>Scroll bonus: LQ +10%, NQ +20%, HQ +30%, EX +40%.</p>
+
+            <h3>Spell Damage</h3>
+            <div class="formula">
+<pre><code>Final = Base Damage
+  &times; Magery/100
+  &times; (0.5 + EvalInt/100)
+  &times; (1 - target Resisting Spells &times; 0.7 / 100)</code></pre>
+            </div>
 
             <h3>Spell List</h3>
-            <h4>1st Circle</h4>
+
+            <h4>Attack Spells</h4>
             <table>
-                <tr><th>Spell</th><th>Power Words</th><th>Reagents</th><th>Effect</th></tr>
-                <tr><td>Magic Arrow</td><td>In Por Ylem</td><td>String</td><td>20 damage projectile</td></tr>
-                <tr><td>Heal</td><td>In Mani</td><td>Golden Carrot</td><td>Restore HP</td></tr>
-                <tr><td>Create Food</td><td>In Mani Ylem</td><td>Wheat</td><td>Create bread</td></tr>
-                <tr><td>Night Sight</td><td>In Lor</td><td>Glowstone Dust</td><td>Night vision buff</td></tr>
-                <tr><td>Clumsy</td><td>Uus Jux</td><td>Spider Eye</td><td>Slowness debuff</td></tr>
-                <tr><td>Weaken</td><td>Des Mani</td><td>Spider Eye</td><td>Weakness debuff</td></tr>
+                <tr><th>Spell</th><th>Circle</th><th>Power Words</th><th>Base Dmg</th><th>Mana</th><th>Effect</th></tr>
+                <tr><td>Magic Arrow</td><td>1st</td><td>In Por Ylem</td><td>20</td><td>1</td><td>Projectile</td></tr>
+                <tr><td>Harm</td><td>2nd</td><td>An Mani</td><td>35</td><td>2</td><td>Instant single</td></tr>
+                <tr><td>Fireball</td><td>3rd</td><td>Vas Flam</td><td>50</td><td>3</td><td>Projectile + 3s fire</td></tr>
+                <tr><td>Lightning</td><td>4th</td><td>Por Ort Grav</td><td>65</td><td>4</td><td>Instant + thunder effect</td></tr>
+                <tr><td>Fire Wall</td><td>4th</td><td>Kal Vas Flam</td><td>40</td><td>4</td><td>Area fire wall</td></tr>
+                <tr><td>Energy Bolt</td><td>5th</td><td>Corp Por</td><td>80</td><td>5</td><td>Instant single</td></tr>
+                <tr><td>Mind Blast</td><td>5th</td><td>Por Corp Wis</td><td>&mdash;</td><td>5</td><td>Drain target mana &minus;3</td></tr>
+                <tr><td>Explosion</td><td>6th</td><td>Vas Ort Flam</td><td>90</td><td>6</td><td>AoE 3-block radius</td></tr>
+                <tr><td>Meteor Swarm</td><td>8th</td><td>Kal Des Flam Ylem</td><td>130</td><td>8</td><td>AoE 5-block radius</td></tr>
             </table>
 
-            <h4>2nd Circle</h4>
+            <h4>Healing / Buff Spells</h4>
             <table>
-                <tr><th>Spell</th><th>Power Words</th><th>Reagents</th><th>Effect</th></tr>
-                <tr><td>Harm</td><td>An Mani</td><td>Spider Eye</td><td>35 damage instant</td></tr>
-                <tr><td>Cure</td><td>An Nox</td><td>Golden Carrot + Poisonous Potato</td><td>Remove poison/debuffs</td></tr>
-                <tr><td>Feather Fall</td><td>Rel Des Por</td><td>Feather</td><td>Slow falling buff</td></tr>
-                <tr><td>Agility</td><td>Ex Uus</td><td>Nether Wart</td><td>Speed buff</td></tr>
-                <tr><td>Strength</td><td>Uus Mani</td><td>Spider Eye</td><td>Strength buff</td></tr>
-                <tr><td>Cunning</td><td>Uus Wis</td><td>Spider Eye</td><td>Luck buff</td></tr>
+                <tr><th>Spell</th><th>Circle</th><th>Power Words</th><th>Mana</th><th>Effect</th></tr>
+                <tr><td>Heal</td><td>1st</td><td>In Mani</td><td>1</td><td>Heal 3 + Magery/25</td></tr>
+                <tr><td>Cure</td><td>2nd</td><td>An Nox</td><td>2</td><td>Remove status effects (self)</td></tr>
+                <tr><td>Bless</td><td>3rd</td><td>Rel Sanct</td><td>3</td><td>+10% attack (30s + Magery/5 s)</td></tr>
+                <tr><td>Greater Heal</td><td>4th</td><td>In Vas Mani</td><td>4</td><td>Heal 8 + Magery/15</td></tr>
+                <tr><td>Protection</td><td>5th</td><td>Uus Sanct</td><td>5</td><td>+10% defense (30s + Magery/5 s)</td></tr>
+                <tr><td>Invisibility</td><td>6th</td><td>An Lor Xen</td><td>6</td><td>Invisible (20s + Magery/5 s)</td></tr>
             </table>
 
-            <h4>3rd Circle</h4>
+            <h4>Movement / Utility Spells</h4>
             <table>
-                <tr><th>Spell</th><th>Power Words</th><th>Reagents</th><th>Effect</th></tr>
-                <tr><td>Fireball</td><td>Vas Flam</td><td>Gunpowder + Spider Eye</td><td>50 damage + fire (real fireball)</td></tr>
-                <tr><td>Bless</td><td>Rel Sanct</td><td>Nether Wart</td><td>Strength buff</td></tr>
-                <tr><td>Water Breathing</td><td>Vas An Ort</td><td>Pufferfish</td><td>Underwater breathing</td></tr>
-                <tr><td>Teleport</td><td>Rel Por</td><td>Ender Pearl</td><td>Short-range teleport</td></tr>
-                <tr><td>Poison</td><td>In Nox</td><td>Spider Eye</td><td>Poison debuff</td></tr>
-                <tr><td>Wall of Stone</td><td>In Sanct Ylem</td><td>Nether Wart + Poisonous Potato</td><td>Create stone wall</td></tr>
+                <tr><th>Spell</th><th>Circle</th><th>Power Words</th><th>Mana</th><th>Effect</th></tr>
+                <tr><td>Create Food</td><td>1st</td><td>In Mani Ylem</td><td>1</td><td>Generate food</td></tr>
+                <tr><td>Night Sight</td><td>1st</td><td>In Lor</td><td>1</td><td>Night vision (60s + Magery/5 s)</td></tr>
+                <tr><td>Feather Fall</td><td>2nd</td><td>Rel Des Por</td><td>2</td><td>Slow fall duration</td></tr>
+                <tr><td>Teleport</td><td>3rd</td><td>Rel Por</td><td>3</td><td>Short-range TP (15 blocks)</td></tr>
+                <tr><td>Water Breathing</td><td>3rd</td><td>Vas An Ort</td><td>3</td><td>Water breathing duration</td></tr>
+                <tr><td><strong>Fly</strong></td><td><strong>5th</strong></td><td><strong>Vas Uus Por</strong></td><td><strong>5 + 0.2/sec</strong></td><td><strong>Creative-style flight (mana drain)</strong></td></tr>
+                <tr><td>Mark</td><td>5th</td><td>Kal Por Ylem</td><td>5</td><td>Record location on rune</td></tr>
+                <tr><td>Recall</td><td>5th</td><td>Kal Ort Por</td><td>5</td><td>Teleport to rune location</td></tr>
+                <tr><td>Paralyze</td><td>5th</td><td>An Ex Por</td><td>5</td><td>Freeze target (3s + Magery/5 s)</td></tr>
+                <tr><td>Gate Travel</td><td>7th</td><td>Vas Rel Por</td><td>7</td><td>Two-way portal to rune (30s)</td></tr>
             </table>
 
-            <h4>4th Circle</h4>
+            <h3>Fly Spell (5th Circle)</h3>
+            <p>A unique mana-drain spell that grants creative-style flight. Costs 5 MP to cast, then drains <strong>0.2 MP/sec</strong> during flight.</p>
             <table>
-                <tr><th>Spell</th><th>Power Words</th><th>Reagents</th><th>Effect</th></tr>
-                <tr><td>Lightning</td><td>Por Ort Grav</td><td>Gunpowder + Blaze Powder</td><td>65 damage lightning</td></tr>
-                <tr><td>Fire Wall</td><td>Kal Vas Flam</td><td>Blaze Powder x2 + Spider Eye</td><td>40 damage/tick fire wall</td></tr>
-                <tr><td>Greater Heal</td><td>In Vas Mani</td><td>Golden Carrot x2</td><td>Large HP restore</td></tr>
-                <tr><td>Arch Cure</td><td>Vas An Nox</td><td>Golden Carrot + Poisonous Potato</td><td>AoE cure (5 blocks)</td></tr>
-                <tr><td>Curse</td><td>Des Sanct</td><td>Spider Eye + Poisonous Potato</td><td>Slowness + Weakness + Mining Fatigue</td></tr>
-                <tr><td>Mana Drain</td><td>Ort Rel</td><td>Blaze Powder + Ender Pearl</td><td>Drain target's mana</td></tr>
+                <tr><th>INT</th><th>Natural Regen/sec</th><th>Net/sec</th><th>Flight Duration (20 MP)</th></tr>
+                <tr><td>0</td><td>0.1</td><td>&minus;0.1</td><td>200s (3m20s)</td></tr>
+                <tr><td>50</td><td>0.15</td><td>&minus;0.05</td><td>400s (6m40s)</td></tr>
+                <tr><td>75</td><td>0.175</td><td>&minus;0.025</td><td>800s (13m20s)</td></tr>
+                <tr><td>100</td><td>0.2</td><td>&plusmn;0</td><td><strong>Infinite</strong></td></tr>
             </table>
-
-            <h4>5th Circle</h4>
-            <table>
-                <tr><th>Spell</th><th>Power Words</th><th>Reagents</th><th>Effect</th></tr>
-                <tr><td>Energy Bolt</td><td>Corp Por</td><td>Spider Eye + Blaze Powder</td><td>80 damage instant</td></tr>
-                <tr><td>Mind Blast</td><td>Por Corp Wis</td><td>Spider Eye + Nether Wart</td><td>Drain hunger (mana)</td></tr>
-                <tr><td>Protection</td><td>Uus Sanct</td><td>Nether Wart + String</td><td>Resistance buff</td></tr>
-                <tr><td>Mark</td><td>Kal Por Ylem</td><td>Ender Pearl + Blaze Powder</td><td>Mark location on rune</td></tr>
-                <tr><td>Recall</td><td>Kal Ort Por</td><td>Ender Pearl</td><td>Teleport to rune location</td></tr>
-                <tr><td>Paralyze</td><td>An Ex Por</td><td>Spider Eye + String</td><td>Immobilize target</td></tr>
-                <tr><td>Summon Creature</td><td>Kal Xen</td><td>Nether Wart + Blaze Powder</td><td>Summon animal ally</td></tr>
-            </table>
-
-            <h4>6th Circle</h4>
-            <table>
-                <tr><th>Spell</th><th>Power Words</th><th>Reagents</th><th>Effect</th></tr>
-                <tr><td>Explosion</td><td>Vas Ort Flam</td><td>Gunpowder + Blaze Powder</td><td>90 damage AoE (TNT effect)</td></tr>
-                <tr><td>Invisibility</td><td>An Lor Xen</td><td>Nether Wart + Blaze Powder</td><td>Become invisible</td></tr>
-                <tr><td>Dispel</td><td>An Ort</td><td>Poisonous Potato + Gunpowder</td><td>Remove buffs/summons</td></tr>
-                <tr><td>Reveal</td><td>Wis Quas</td><td>Nether Wart + Gunpowder</td><td>Reveal hidden players (6 blocks)</td></tr>
-                <tr><td>Mass Curse</td><td>Vas Des Sanct</td><td>Spider Eye + Blaze Powder</td><td>AoE curse</td></tr>
-                <tr><td>Paralyze Field</td><td>In Ex Grav</td><td>Ender Pearl + Golden Carrot</td><td>Create paralyze zone</td></tr>
-            </table>
-
-            <h4>7th Circle</h4>
-            <table>
-                <tr><th>Spell</th><th>Power Words</th><th>Reagents</th><th>Effect</th></tr>
-                <tr><td>Gate Travel</td><td>Vas Rel Por</td><td>Ender Pearl x2 + Blaze Powder</td><td>Open portal to rune location</td></tr>
-                <tr><td>Chain Lightning</td><td>Vas Ort Grav</td><td>Ender Pearl + Gunpowder + Blaze Powder</td><td>90 damage, chains to 5 targets</td></tr>
-                <tr><td>Flamestrike</td><td>Kal Vas Flam</td><td>Gunpowder + String</td><td>85 damage + fire pillar</td></tr>
-                <tr><td>Energy Field</td><td>In Sanct Grav</td><td>Ender Pearl + Blaze Powder + String</td><td>Create blocking energy wall</td></tr>
-                <tr><td>Mana Vampire</td><td>Ort Sanct</td><td>Ender Pearl + Nether Wart + Blaze Powder</td><td>Drain mana, restore to self</td></tr>
-                <tr><td>Mass Dispel</td><td>Vas An Ort</td><td>Ender Pearl + Poisonous Potato + Blaze Powder</td><td>AoE dispel (6 blocks)</td></tr>
-            </table>
-
-            <h4>8th Circle</h4>
-            <table>
-                <tr><th>Spell</th><th>Power Words</th><th>Reagents</th><th>Effect</th></tr>
-                <tr><td>Meteor Swarm</td><td>Kal Des Flam Ylem</td><td>Gunpowder + Blaze Powder x3</td><td>130 damage, falling meteors</td></tr>
-                <tr><td>Earthquake</td><td>In Vas Por</td><td>Nether Wart + Golden Carrot + Blaze Powder + Gunpowder</td><td>100 damage AoE (8 blocks)</td></tr>
-                <tr><td>Word of Death</td><td>Kal Vas An Mani</td><td>Spider Eye + Gunpowder + Blaze Powder + Nether Wart</td><td>Instant kill if target HP &lt; 50%</td></tr>
-                <tr><td>Mass Sleep</td><td>Vas Zu</td><td>Nether Wart + Spider Eye + String + Blaze Powder</td><td>AoE sleep (8 blocks)</td></tr>
-            </table>
-
-            <h3>Reagent Reference</h3>
-            <table>
-                <tr><th>Minecraft Item</th><th>UO Equivalent</th><th>Used For</th></tr>
-                <tr><td>Ender Pearl</td><td>Black Pearl</td><td>Movement spells</td></tr>
-                <tr><td>Nether Wart</td><td>Blood Moss</td><td>Buffs, movement</td></tr>
-                <tr><td>Poisonous Potato</td><td>Garlic</td><td>Cures, protection</td></tr>
-                <tr><td>Golden Carrot</td><td>Ginseng</td><td>Healing</td></tr>
-                <tr><td>Blaze Powder</td><td>Mandrake Root</td><td>Powerful spells</td></tr>
-                <tr><td>Spider Eye</td><td>Nightshade</td><td>Damage, debuffs</td></tr>
-                <tr><td>String</td><td>Spider's Silk</td><td>Binding, shields</td></tr>
-                <tr><td>Gunpowder</td><td>Sulphurous Ash</td><td>Fire, explosions</td></tr>
-            </table>
-
-            <h3>Runes</h3>
-            <p>Runes are magical items required for Mark, Recall, and Gate Travel spells. A blank rune must be marked with a location before use.</p>
-
-            <h4>How to Obtain Runes</h4>
-            <p>Combine Teleport Scroll + Amethyst Shard in your inventory:</p>
-            <ol>
-                <li>Pick up a Teleport Scroll with your cursor</li>
-                <li>Click on an Amethyst Shard in your inventory</li>
-                <li>A Blank Rune is created (works in either direction)</li>
-            </ol>
-            <p><em>No skill required, 100% success rate.</em></p>
-            <p><strong>Teleport Scroll sources:</strong> Mob drops (Witch, etc.), End City chests, Trial Chamber vaults, or craft with <code>/scribe teleport</code></p>
-
-            <h4>How to Use Runes</h4>
-            <table>
-                <tr>
-                    <th>Step</th>
-                    <th>Action</th>
-                </tr>
-                <tr><td>1</td><td>Hold a blank rune in your main hand</td></tr>
-                <tr><td>2</td><td>Cast <code>/cast mark</code> to record a location</td></tr>
-                <tr><td>3</td><td>Use the marked rune for Recall or Gate Travel</td></tr>
-            </table>
-
-            <h3>Runebook</h3>
-            <p>A magical book that can store multiple runes for convenient travel. Works like a chest - freely move runes in and out.</p>
-
-            <h4>How to Obtain</h4>
             <ul>
-                <li>Purchase from Librarian villager (Level 3)</li>
-                <li>Price: 40-60 emeralds</li>
+                <li>Can attack, build, and cast other spells while flying</li>
+                <li>Mana depletion: grants Slow Falling 5s for safe landing</li>
+                <li>Disabled in The End (dragon balance)</li>
+                <li>Water contact ends flight immediately</li>
+                <li>Dispel/Mass Dispel can end flight (with safe landing)</li>
+                <li>Reagents: Nether Wart + Feather</li>
             </ul>
 
-            <h4>How to Use</h4>
+            <h3>Reagent Table</h3>
             <table>
-                <tr>
-                    <th>Step</th>
-                    <th>Action</th>
-                </tr>
-                <tr><td>1</td><td>Right-click the runebook to open GUI</td></tr>
-                <tr><td>2</td><td>Place marked runes into the runebook (only marked runes allowed)</td></tr>
-                <tr><td>3</td><td>Store up to 16 runes</td></tr>
+                <tr><th>UO Name</th><th>Minecraft Item</th><th>Used For</th></tr>
+                <tr><td>Black Pearl</td><td>Ender Pearl</td><td>Movement spells</td></tr>
+                <tr><td>Blood Moss</td><td>Nether Wart</td><td>Movement support</td></tr>
+                <tr><td>Garlic</td><td>Poisonous Potato</td><td>Cure / defense</td></tr>
+                <tr><td>Ginseng</td><td>Golden Carrot</td><td>Healing</td></tr>
+                <tr><td>Mandrake Root</td><td>Blaze Powder</td><td>Powerful magic</td></tr>
+                <tr><td>Nightshade</td><td>Spider Eye</td><td>Offense / poison</td></tr>
+                <tr><td>Spider's Silk</td><td>String</td><td>Binding / defense</td></tr>
+                <tr><td>Sulphurous Ash</td><td>Gunpowder</td><td>Fire / explosion</td></tr>
+                <tr><td>&mdash;</td><td>Wheat</td><td>Food creation</td></tr>
+                <tr><td>&mdash;</td><td>Feather</td><td>Floating / flight</td></tr>
+                <tr><td>&mdash;</td><td>Pufferfish</td><td>Water spells</td></tr>
+                <tr><td>&mdash;</td><td>Glowstone Dust</td><td>Night Sight</td></tr>
             </table>
 
-            <h4>Controls</h4>
-            <table>
-                <tr>
-                    <th>Action</th>
-                    <th>Effect</th>
-                </tr>
-                <tr><td>Left-click on rune</td><td>Pick up rune (normal chest behavior)</td></tr>
-                <tr><td>Right-click on rune</td><td>Cast Recall to that location</td></tr>
-                <tr><td>Shift + Right-click on rune</td><td>Cast Gate Travel to that location</td></tr>
-                <tr><td>Drag &amp; Drop</td><td>Move or register runes (normal chest behavior)</td></tr>
-                <tr><td>Shift + Left-click</td><td>Quick move rune (normal chest behavior)</td></tr>
-            </table>
+            <h3>Rune &amp; Runebook System</h3>
+            <ul>
+                <li><strong>Rune creation:</strong> Combine Teleport Scroll + Amethyst Shard in inventory</li>
+                <li><strong>Mark:</strong> Record location on a blank rune</li>
+                <li><strong>Recall / Gate Travel:</strong> Use marked rune to teleport</li>
+                <li><strong>Runebook:</strong> Stores up to 16 runes. Purchase from Librarian villagers. Right-click rune to Recall, Shift+Right to Gate Travel.</li>
+            </ul>
 
-            <p><em>Note: Normal reagent and mana costs apply when casting from runebook. Only right-click actions are special - all other operations work like a normal chest.</em></p>
+            <h3>Scroll System</h3>
+            <ul>
+                <li><code>/scribe &lt;spell&gt;</code> to create scrolls (Paper + reagents consumed)</li>
+                <li>Right-click scroll to cast (no reagents needed, scroll consumed)</li>
+                <li>Scrolls drop from magic mobs, End Cities, Trial Chambers, and Ender Dragon</li>
+                <li>Librarian villagers sell C1&ndash;C2 scrolls and empty spellbooks</li>
+            </ul>
         </section>
 
-        <!-- Crafting -->
+        <!-- ============================================================ -->
+        <!-- Crafting System -->
+        <!-- ============================================================ -->
         <section id="crafting">
-            <h2>Crafting System</h2>
-            <p>Crafting skills affect the quality and special properties of items you create. Higher skill means better quality and stronger bonuses.</p>
+            <h2>Crafting &amp; Quality System</h2>
 
-            <h3>Quality System</h3>
+            <h3>Quality Levels</h3>
             <table>
-                <tr>
-                    <th>Quality</th>
-                    <th>Skill Required</th>
-                    <th>Damage/Defense</th>
-                    <th>Durability</th>
-                </tr>
-                <tr><td class="quality-lq">Low Quality (LQ)</td><td>0-49</td><td>-15%</td><td>-25%</td></tr>
-                <tr><td>Normal Quality (NQ)</td><td>50-69</td><td>+0%</td><td>+0%</td></tr>
-                <tr><td class="quality-hq">High Quality (HQ)</td><td>70-89</td><td>+15%</td><td>+30%</td></tr>
-                <tr><td class="quality-ex">Exceptional (EX)</td><td>90-100</td><td>+25%</td><td>+50%</td></tr>
+                <tr><th>Quality</th><th>Skill Required</th><th>Judgment</th><th>Damage/Defense</th><th>Durability</th></tr>
+                <tr><td>Low Quality (LQ)</td><td>0&ndash;49</td><td>Guaranteed</td><td>&minus;15%</td><td>&minus;25% (faster wear)</td></tr>
+                <tr><td>Normal Quality (NQ)</td><td>50&ndash;69</td><td>Guaranteed</td><td>&plusmn;0%</td><td>&plusmn;0%</td></tr>
+                <tr><td>High Quality (HQ)</td><td>70&ndash;89</td><td>Skill% chance</td><td>+15%</td><td>+30% (33% cancel wear)</td></tr>
+                <tr><td>Exceptional (EX)</td><td>90&ndash;100</td><td>(Skill&minus;90)&times;10% of HQ</td><td>+25%</td><td>+50% (50% cancel wear) + crafter name</td></tr>
             </table>
 
-            <h3>Cooking Skill</h3>
-            <p>Food you cook gets a recovery bonus based on your Cooking skill level.</p>
+            <h3>Quality Judgment Flow</h3>
+<pre><code>Skill &ge; 70 &rarr; HQ check (Skill% success)
+  &rarr; Success + Skill &ge; 90 &rarr; EX check ((Skill-90)&times;10%)
+    &rarr; Success &rarr; Exceptional
+    &rarr; Fail &rarr; High Quality
+  &rarr; Fail &rarr; Normal Quality
+Skill 50&ndash;69 &rarr; Normal Quality
+Skill 0&ndash;49 &rarr; Low Quality</code></pre>
 
+            <h3>Repair System (UO-style)</h3>
+            <p>Repairing on an anvil reduces max durability:</p>
             <div class="formula">
-                <code>Recovery Bonus = Cooking Skill / 4 + Quality Modifier</code>
-                <p>LQ: -15%, NQ: +0%, HQ: +15%, EX: +25%</p>
+                <code>Max Durability Loss = (110 - Crafting Skill) / 10</code><br>
+                GM (100): loses 1 point. Skill 50: loses 6 points.
             </div>
 
-            <h4>Food Difficulty</h4>
-            <table>
-                <tr>
-                    <th>Difficulty</th>
-                    <th>Foods</th>
-                </tr>
-                <tr><td>5 (Easy)</td><td>Dried Kelp</td></tr>
-                <tr><td>10</td><td>Baked Potato</td></tr>
-                <tr><td>15</td><td>Cooked Chicken, Cooked Rabbit, Cooked Cod</td></tr>
-                <tr><td>20</td><td>Cooked Porkchop, Cooked Beef, Cooked Mutton, Cooked Salmon</td></tr>
-                <tr><td>25</td><td>Bread, Cookie</td></tr>
-                <tr><td>35</td><td>Pumpkin Pie, Mushroom Stew, Beetroot Soup</td></tr>
-                <tr><td>45</td><td>Rabbit Stew, Suspicious Stew, Cake</td></tr>
-                <tr><td>60</td><td>Golden Apple</td></tr>
-                <tr><td>100 (Master)</td><td>Enchanted Golden Apple</td></tr>
-            </table>
-
-            <h3>Alchemy Skill</h3>
-            <p>Potions you brew get extended duration based on your Alchemy skill level.</p>
-
+            <h3>Mending Integration</h3>
             <div class="formula">
-                <code>Duration Bonus = Alchemy Skill / 200 (max +50% at skill 100)</code>
+                <code>Mending Success Rate = min(100, Crafting Skill &times; 100 / 60)</code>
             </div>
+            <p>Skill 0 = 0%, Skill 30 = 50%, Skill 60+ = 100%. Failed mending gives XP but doesn't repair.</p>
 
-            <h4>Potion Difficulty</h4>
-            <table>
-                <tr>
-                    <th>Difficulty</th>
-                    <th>Potions</th>
-                </tr>
-                <tr><td>15 (Easy)</td><td>Mundane, Thick, Awkward</td></tr>
-                <tr><td>25</td><td>Night Vision, Water Breathing</td></tr>
-                <tr><td>30</td><td>Healing, Swiftness, Leaping, Fire Resistance</td></tr>
-                <tr><td>35</td><td>Regeneration, Strength, Slow Falling</td></tr>
-                <tr><td>40</td><td>Invisibility</td></tr>
-                <tr><td>45</td><td>Poison, Weakness, Slowness</td></tr>
-                <tr><td>50</td><td>Harming, Turtle Master, Luck</td></tr>
-                <tr><td>55 (Hard)</td><td>Ominous, Wind Charged, Weaving, Oozing, Infested</td></tr>
-            </table>
-
-            <h4>Difficulty Modifiers</h4>
-            <table>
-                <tr>
-                    <th>Modifier</th>
-                    <th>Added Difficulty</th>
-                </tr>
-                <tr><td>Extended Duration</td><td>+15</td></tr>
-                <tr><td>Enhanced (Level II)</td><td>+20</td></tr>
-                <tr><td>Splash Potion</td><td>+10</td></tr>
-                <tr><td>Lingering Potion</td><td>+20</td></tr>
-            </table>
-
-            <h3>Stack Size Bonus</h3>
-            <p>Production skills increase the maximum stack size of items from 64 to 99.</p>
-
+            <h3>Stack Bonus</h3>
             <div class="formula">
-                <code>Max Stack Size = 64 + (Skill Sum / 400 × 35)</code>
-                <p>Contributing Skills: Craftsmanship + Blacksmithy + Cooking + Alchemy</p>
+                <code>Max Stack = 64 + (Crafting + Cooking + Inscription) / 300 &times; 35</code>
             </div>
+            <p>Production skill total of 300 = max stack of 99. Applied on item pickup, chest extract, and login.</p>
 
-            <h4>Stack Size by Skill Sum</h4>
-            <table>
-                <tr>
-                    <th>Skill Sum</th>
-                    <th>Max Stack Size</th>
-                </tr>
-                <tr><td>0</td><td>64</td></tr>
-                <tr><td>100</td><td>73</td></tr>
-                <tr><td>200</td><td>82</td></tr>
-                <tr><td>300</td><td>90</td></tr>
-                <tr><td>400</td><td>99</td></tr>
-            </table>
-
-            <p>Stack bonus is applied when:</p>
+            <h3>Food Effects (Cooking)</h3>
             <ul>
-                <li>Picking up items from the ground</li>
-                <li>Taking items from containers (chests, furnaces, etc.)</li>
-                <li>Logging in (existing inventory is updated)</li>
+                <li>Recovery bonus: Cooking / 4 + quality modifier</li>
+                <li>HQ food: Health Boost I (+2 hearts) for 30s</li>
+                <li>EX food: Health Boost I (+2 hearts) for 60s</li>
+                <li>Potion duration extension: +Cooking / 200 (max +50% at Skill 100)</li>
             </ul>
         </section>
 
+        <!-- ============================================================ -->
         <!-- Gathering System -->
+        <!-- ============================================================ -->
         <section id="gathering">
-            <h2>Gathering System</h2>
-            <p>Gathering skills provide bonuses when collecting resources. Higher skill means faster gathering, better drops, and reduced tool durability consumption.</p>
+            <h2>Gathering Skills</h2>
 
-            <h3>Mining Skill</h3>
-            <p>Mining skill covers both ore mining (pickaxe) and soft block digging (shovel).</p>
-
-            <h4>Speed Bonus (Haste Effect)</h4>
-            <p>When you start mining ores or digging soft blocks, a Haste effect is applied based on your STR and Mining skill.</p>
-            <div class="formula">
-                <code>Speed Bonus = STR/5 + Mining Skill/5 (max +40%)</code>
-            </div>
+            <h3>Mining</h3>
             <table>
-                <tr>
-                    <th>Combined Bonus</th>
-                    <th>Haste Level</th>
-                    <th>Effect</th>
-                </tr>
-                <tr><td>0-19%</td><td>None</td><td>No Haste applied</td></tr>
-                <tr><td>20-39%</td><td>Haste I</td><td>+20% mining speed</td></tr>
-                <tr><td>40%+</td><td>Haste II</td><td>+40% mining speed</td></tr>
-            </table>
-            <p><em>Example: Mining 100 + STR 100 = 40% bonus → Haste II → Obsidian mined in ~5 seconds instead of 8.35</em></p>
-
-            <h4>Bonus Ore Drops</h4>
-            <div class="formula">
-                <code>Bonus Chance = Mining Skill / 2 (max 50%)</code>
-                <p>When a bonus drop occurs, you'll see green particles, hear a sound, and get a "+1 Bonus!" message.</p>
-            </div>
-
-            <h4>Durability Reduction</h4>
-            <div class="formula">
-                <code>Reduction Chance = Skill × 0.9% (GM = 100%)</code>
-                <p>At skill 100 (Grandmaster), tool durability never decreases.</p>
-            </div>
-
-            <h4>Digging Block Difficulties (Shovel)</h4>
-            <table>
-                <tr>
-                    <th>Difficulty</th>
-                    <th>Blocks</th>
-                </tr>
-                <tr><td>5 (Easy)</td><td>Dirt, Grass Block, Sand, Snow, Farmland, Dirt Path</td></tr>
-                <tr><td>10</td><td>Gravel, Mud, Concrete Powder, Rooted Dirt, Podzol, Snow Block</td></tr>
-                <tr><td>15</td><td>Clay, Mycelium, Muddy Mangrove Roots, Powder Snow</td></tr>
-                <tr><td>20</td><td>Soul Sand, Soul Soil</td></tr>
-                <tr><td>25</td><td>Suspicious Sand, Suspicious Gravel</td></tr>
+                <tr><th>Effect</th><th>Formula</th></tr>
+                <tr><td>Mining speed</td><td>+(STR/5 + Skill/5)% (max +40%)</td></tr>
+                <tr><td>Bonus ore drop</td><td>Skill/2 % chance for +1 ore (with particles + sound)</td></tr>
             </table>
 
-            <h3>Lumberjacking Skill</h3>
-            <p>Chopping logs with axes improves with higher skill. Higher skill allows chain chopping of connected logs.</p>
-
-            <h4>Speed Bonus (Haste Effect)</h4>
-            <div class="formula">
-                <code>Speed Bonus = Lumberjacking Skill / 10 (max +10%)</code>
-            </div>
-
-            <h4>Chain Chopping System</h4>
-            <p>When you chop a log, adjacent logs of the same type are automatically chopped based on your skill level.</p>
+            <h3>Lumberjacking &mdash; Chain Chop</h3>
+            <p>Chopping a log auto-chops connected logs above. Only upward propagation (9 directions). Only 1 durability consumed.</p>
             <table>
-                <tr>
-                    <th>Skill Level</th>
-                    <th>Chain Count</th>
-                </tr>
-                <tr><td>0-9</td><td>1 (no chain)</td></tr>
-                <tr><td>10-19</td><td>2</td></tr>
-                <tr><td>20-29</td><td>3</td></tr>
-                <tr><td>30-39</td><td>4</td></tr>
-                <tr><td>40-49</td><td>5</td></tr>
-                <tr><td>50-59</td><td>6</td></tr>
-                <tr><td>60-69</td><td>7</td></tr>
-                <tr><td>70-79</td><td>8</td></tr>
-                <tr><td>80-89</td><td>9</td></tr>
-                <tr><td>90-99</td><td>10</td></tr>
+                <tr><th>Skill</th><th>Chain Count</th></tr>
+                <tr><td>0&ndash;9</td><td>1 (no chain)</td></tr>
+                <tr><td>10&ndash;19</td><td>2</td></tr>
+                <tr><td>20&ndash;29</td><td>3</td></tr>
+                <tr><td>50&ndash;59</td><td>6</td></tr>
+                <tr><td>90&ndash;99</td><td>10</td></tr>
                 <tr><td>100 (GM)</td><td>Unlimited (entire tree)</td></tr>
             </table>
+            <p>Processing is distributed across ticks (max 5 blocks/tick) for a natural top-down collapse effect.</p>
 
-            <h4>Chain Chopping Rules</h4>
-            <ul>
-                <li><strong>Target:</strong> Logs only (leaves are not destroyed)</li>
-                <li><strong>Range:</strong> Upward only (9 directions: up and diagonal-up) - does NOT chain downward</li>
-                <li><strong>Durability:</strong> Only consumed for the first block</li>
-                <li><strong>Stamina:</strong> No stamina cost</li>
-                <li><strong>Different trees:</strong> Only same wood type chains (Oak → Oak only)</li>
-                <li><strong>Axe required:</strong> No (works with bare hands too)</li>
-                <li><strong>Drops:</strong> Items drop at each log's position and fall naturally</li>
-                <li><strong>Processing:</strong> Distributed over multiple ticks (reduces server load)</li>
-            </ul>
-
-            <h4>Chain Chopping Behavior</h4>
-            <ul>
-                <li><strong>Cut at base:</strong> Entire tree is chopped</li>
-                <li><strong>Cut in middle:</strong> Only logs above the cut point are chopped (below remains)</li>
-                <li><strong>Cut near top:</strong> Only logs above that point are chopped</li>
-            </ul>
-
-            <h3>Fishing Skill</h3>
-            <p>Fishing skill enables automatic fishing. When a fish bites, there's a skill-based chance to auto-reel and auto-recast.</p>
-
-            <h4>Auto-Fishing System</h4>
-            <ul>
-                <li><strong>Manual Cast</strong>: Player casts the fishing rod manually to start</li>
-                <li><strong>Auto-Reel</strong>: When fish bites, skill% chance to automatically reel in</li>
-                <li><strong>Auto-Recast</strong>: After successful auto-reel, automatically recasts</li>
-                <li><strong>Loop</strong>: Continues until rod breaks or player stops manually</li>
-            </ul>
-
-            <h4>Auto-Fishing Probability</h4>
+            <h3>Fishing &mdash; Auto-Fish</h3>
             <table>
-                <tr>
-                    <th>Skill Level</th>
-                    <th>Probability</th>
-                    <th>Description</th>
-                </tr>
-                <tr><td>0-19</td><td>None</td><td>Manual only (vanilla behavior)</td></tr>
-                <tr><td>20-99</td><td>Skill%</td><td>Probability-based auto-fishing</td></tr>
-                <tr><td>100 (GM)</td><td>100%</td><td>Fully automatic (AFK fishing)</td></tr>
+                <tr><th>Skill</th><th>Auto-catch Chance</th></tr>
+                <tr><td>0&ndash;19</td><td>None (manual only)</td></tr>
+                <tr><td>20&ndash;99</td><td>Skill%</td></tr>
+                <tr><td>100 (GM)</td><td>100% (full AFK)</td></tr>
             </table>
+            <p>On success: auto-reel + auto-recast. On failure: fish escapes, manual recast needed. Rod durability reduction: Skill &times; 0.9%.</p>
 
-            <h4>Note</h4>
-            <p>Auto-fishing is a <strong>bonus feature</strong>. If auto-reel fails, you can still manually reel in the fish (vanilla behavior). The fish only escapes if you don't react in time.</p>
-
-            <h3>Farming Skill</h3>
-            <p>Harvesting mature crops triggers auto-replant and auto-growth based on skill level.</p>
-
-            <h4>Auto Farming System</h4>
-            <ul>
-                <li><strong>Auto-Replant</strong>: When harvesting mature crops, automatically replants if you have seeds in inventory (consumes seeds)</li>
-                <li><strong>Auto-Growth</strong>: After planting, crops advance growth stages based on skill (no bone meal consumed)</li>
-            </ul>
-
-            <h4>Growth Stages by Skill</h4>
+            <h3>Farming &mdash; Auto-Replant &amp; Growth</h3>
+            <p>Harvesting mature crops auto-replants (consuming seeds from inventory) and advances growth stages:</p>
             <table>
-                <tr>
-                    <th>Skill Level</th>
-                    <th>Growth Stages</th>
-                </tr>
-                <tr><td>0-19</td><td>+1 stage</td></tr>
-                <tr><td>20-39</td><td>+2 stages</td></tr>
-                <tr><td>40-59</td><td>+3 stages</td></tr>
-                <tr><td>60-79</td><td>+4 stages</td></tr>
-                <tr><td>80-99</td><td>+5 stages</td></tr>
+                <tr><th>Skill</th><th>Growth Stages</th></tr>
+                <tr><td>0&ndash;19</td><td>+1</td></tr>
+                <tr><td>20&ndash;39</td><td>+2</td></tr>
+                <tr><td>40&ndash;59</td><td>+3</td></tr>
+                <tr><td>60&ndash;79</td><td>+4</td></tr>
+                <tr><td>80&ndash;99</td><td>+5</td></tr>
                 <tr><td>100 (GM)</td><td>Instant maturity</td></tr>
             </table>
+            <p>Supported: Wheat, Carrot, Potato, Beetroot, Nether Wart, Torchflower, Pitcher.</p>
+        </section>
 
-            <h4>Supported Crops</h4>
+        <!-- ============================================================ -->
+        <!-- Thief System -->
+        <!-- ============================================================ -->
+        <section id="thief">
+            <h2>Thief System</h2>
+
+            <h3>Hiding &amp; Stealth</h3>
+            <ul>
+                <li><code>/hide</code> &mdash; Success rate = Hiding skill %. Grants invisibility.</li>
+                <li>Broken by: attack, block break, item use, taking damage, running.</li>
+                <li>While hidden, walk up to Stealth/10 blocks (max 10). Running breaks stealth.</li>
+            </ul>
+
+            <h3>Detecting Hidden</h3>
+            <div class="formula">
+                <code>/detect</code> &mdash; Range: Skill/10 blocks<br>
+                <code>Detection Rate = Detecting Hidden - target's Hiding + 50%</code> (min 10%, max 95%)
+            </div>
+
+            <h3>Snooping &rarr; Stealing</h3>
+            <ol>
+                <li><code>/snoop</code> &rarr; target mode &rarr; click player</li>
+                <li>Snooping check: <code>Snooping - (target's Detecting Hidden / 2) + 20%</code></li>
+                <li>Success: view target's inventory GUI</li>
+                <li>Click item in GUI &rarr; Stealing check: <code>Stealing - (target's Detecting Hidden / 2) - stack&times;2% + 10%</code></li>
+                <li>Success: item transferred. Failure: target notified, GUI closed.</li>
+            </ol>
+            <p>Stealing triggers crime recording via Notoriety plugin (soft dependency).</p>
+
+            <h3>Poisoning</h3>
+            <ol>
+                <li>Hold weapon in main hand, have poison potion in inventory</li>
+                <li><code>/poison</code> &mdash; Success rate = Poisoning skill %</li>
+                <li>Success: weapon gains poison (Skill/20 charges, max 5). Hits apply 5s poison effect.</li>
+            </ol>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- Taming System -->
+        <!-- ============================================================ -->
+        <section id="taming">
+            <h2>Taming System</h2>
+
+            <h3>Tameable Animals</h3>
             <table>
-                <tr>
-                    <th>Crop</th>
-                    <th>Seed Item</th>
-                </tr>
-                <tr><td>Wheat</td><td>Wheat Seeds</td></tr>
-                <tr><td>Carrot</td><td>Carrot</td></tr>
-                <tr><td>Potato</td><td>Potato</td></tr>
-                <tr><td>Beetroot</td><td>Beetroot Seeds</td></tr>
-                <tr><td>Nether Wart</td><td>Nether Wart</td></tr>
-                <tr><td>Torchflower</td><td>Torchflower Seeds</td></tr>
-                <tr><td>Pitcher</td><td>Pitcher Pod</td></tr>
+                <tr><th>Mob</th><th>Required Skill</th><th>Favorite Food (+20%)</th></tr>
+                <tr><td>Wolf</td><td>0</td><td>Bone</td></tr>
+                <tr><td>Cat</td><td>0</td><td>Raw Cod / Salmon</td></tr>
+                <tr><td>Parrot</td><td>10</td><td>Seeds</td></tr>
+                <tr><td>Horse</td><td>30</td><td>Golden Carrot</td></tr>
+                <tr><td>Donkey</td><td>30</td><td>Golden Carrot</td></tr>
+                <tr><td>Llama</td><td>40</td><td>Hay Bale</td></tr>
             </table>
 
-            <h4>Excluded Crops</h4>
+            <div class="formula">
+                <code>Tame Success = (Animal Taming - Required Skill) + 30%</code> (+20% with favorite food, max 90%)<br>
+                <code>Max Tamed = Animal Taming / 20</code> (max 5)
+            </div>
+
+            <h3>Commands</h3>
             <ul>
-                <li><strong>Melon/Pumpkin</strong>: Stem remains after harvest</li>
-                <li><strong>Sweet Berry</strong>: Bush remains after harvest</li>
-                <li><strong>Bamboo/Sugar Cane/Cactus</strong>: Stacking crops</li>
-                <li><strong>Cocoa</strong>: Special crop attached to trees</li>
+                <li><code>/tame</code> &rarr; target mode &rarr; click mob</li>
+                <li><code>/lore</code> &rarr; target mode &rarr; click mob (shows HP, owner, tame status)</li>
+                <li>Veterinary: right-click tamed mob with food to heal (recovery &times; (1 + Veterinary/100))</li>
             </ul>
         </section>
 
-        <!-- Repair System -->
-        <section id="repair">
-            <h2>Repair & Mending System</h2>
+        <!-- ============================================================ -->
+        <!-- Party System -->
+        <!-- ============================================================ -->
+        <section id="party">
+            <h2>Party System</h2>
+            <p>UO-inspired party system for team play. Max 8 players per party.</p>
 
-            <h3>Anvil Repair</h3>
-            <p>Repairing items on an anvil reduces their maximum durability, adding a realistic wear system.</p>
+            <h3>Features</h3>
+            <ul>
+                <li><strong>Friendly Fire:</strong> All physical and magic damage between party members is nullified (melee, ranged, AoE spells, poison weapons, harmful splash potions). Beneficial potions still work. Environmental damage (TNT, lava) is NOT blocked.</li>
+                <li><strong>Party Teleport:</strong> <code>/party tp &lt;player&gt;</code> &mdash; 5-second cast (moving cancels), 120s cooldown, same world only. Cannot use in combat (5s after last damage). User's Hiding is broken on TP; target's Hiding is preserved.</li>
+                <li><strong>Party Chat:</strong> <code>/pc &lt;message&gt;</code> &mdash; Aqua-colored messages visible only to party members.</li>
+                <li><strong>Thief Protection:</strong> Snooping and Stealing cannot target party members.</li>
+                <li><strong>Hidden Member Visibility:</strong> Party members who are hidden appear as semi-transparent particles to other party members (1s interval, no Detecting Hidden needed).</li>
+                <li><strong>Nametag Color:</strong> Party members see each other's names in aqua. Reverts on leave/disband.</li>
+                <li><strong>Notoriety Integration:</strong> Actions between party members do not affect Notoriety reputation.</li>
+            </ul>
 
-            <div class="formula">
-                <code>Max Durability Reduction = (110 - Blacksmithy Skill) / 10</code>
-            </div>
-
+            <h3>Party Commands</h3>
             <table>
-                <tr>
-                    <th>Blacksmithy Skill</th>
-                    <th>Durability Lost</th>
-                </tr>
-                <tr><td>100 (GM)</td><td>1 per repair</td></tr>
-                <tr><td>50</td><td>6 per repair</td></tr>
-                <tr><td>0</td><td>11 per repair</td></tr>
+                <tr><th>Command</th><th>Description</th><th>Who</th></tr>
+                <tr><td><code>/party invite &lt;player&gt;</code></td><td>Invite (auto-creates party if needed)</td><td>Any member</td></tr>
+                <tr><td><code>/party accept</code></td><td>Accept latest invitation</td><td>Invitee</td></tr>
+                <tr><td><code>/party decline</code></td><td>Decline latest invitation</td><td>Invitee</td></tr>
+                <tr><td><code>/party leave</code></td><td>Leave party</td><td>Any member</td></tr>
+                <tr><td><code>/party kick &lt;player&gt;</code></td><td>Kick a member</td><td>Leader only</td></tr>
+                <tr><td><code>/party disband</code></td><td>Disband party</td><td>Leader only</td></tr>
+                <tr><td><code>/party list</code></td><td>Show members + HP</td><td>Any member</td></tr>
+                <tr><td><code>/party leader &lt;player&gt;</code></td><td>Transfer leadership</td><td>Leader only</td></tr>
+                <tr><td><code>/party tp &lt;player&gt;</code></td><td>Teleport to member</td><td>Any member</td></tr>
+                <tr><td><code>/pc &lt;message&gt;</code></td><td>Party chat</td><td>Any member</td></tr>
             </table>
 
-            <h3>Mending Enchantment</h3>
-            <p>Mending success rate depends on the appropriate crafting skill for the item type.</p>
-
-            <div class="formula">
-                <code>Mending Success Rate = min(100, Skill × 100 / 60)</code>
-            </div>
-
-            <h4>Required Skills by Item Type</h4>
-            <table>
-                <tr>
-                    <th>Item Type</th>
-                    <th>Required Skill</th>
-                </tr>
-                <tr><td>Iron/Gold/Diamond/Netherite/Chain/Stone items</td><td>Blacksmithy</td></tr>
-                <tr><td>Trident, Mace, Spears</td><td>Blacksmithy</td></tr>
-                <tr><td>Bow, Crossbow, Leather armor, Wood items, Shield</td><td>Craftsmanship</td></tr>
-                <tr><td>Fishing Rod, Shears, Flint and Steel</td><td>Craftsmanship</td></tr>
-                <tr><td>Elytra, Turtle Helmet</td><td>None (always 100%)</td></tr>
-            </table>
-
-            <h4>Success Rate by Skill</h4>
-            <table>
-                <tr>
-                    <th>Skill Level</th>
-                    <th>Mending Success Rate</th>
-                </tr>
-                <tr><td>0</td><td>0%</td></tr>
-                <tr><td>20</td><td>33%</td></tr>
-                <tr><td>30</td><td>50%</td></tr>
-                <tr><td>40</td><td>67%</td></tr>
-                <tr><td>50</td><td>83%</td></tr>
-                <tr><td>60+</td><td>100%</td></tr>
-            </table>
+            <h3>Offline Behavior</h3>
+            <ul>
+                <li>Members stay in the party when logging out</li>
+                <li>Parties are <strong>not persistent</strong> &mdash; server restart dissolves all parties</li>
+            </ul>
         </section>
 
+        <!-- ============================================================ -->
         <!-- Scoreboard -->
+        <!-- ============================================================ -->
         <section id="scoreboard">
             <h2>Scoreboard</h2>
-            <p>The sidebar scoreboard displays your current status in real-time. Use <code>/skills sb</code> command to toggle visibility.</p>
+            <p>Displays player status on the sidebar. Supports per-section toggling and compatibility with other plugins.</p>
 
-            <h3>Scoreboard Display Example</h3>
-            <div class="formula">
-                <pre>Grandmaster
-Swordsman
-
-H 156/180
-M 15/20
-S 145/200
-$ 1,234
-
-Stats: 75/225
-STR: 25 ▲
-DEX: 25 ▲
-INT: 25 ▼</pre>
-            </div>
-
-            <h3>Display Items</h3>
+            <h3>Sections</h3>
             <table>
-                <tr>
-                    <th>Item</th>
-                    <th>Description</th>
-                </tr>
-                <tr>
-                    <td><strong>Title</strong></td>
-                    <td>Player title based on highest skill. Example: "Grandmaster Swordsman"</td>
-                </tr>
-                <tr>
-                    <td><strong>H (HP)</strong></td>
-                    <td>Current HP / Max HP. Max HP = 100 + STR</td>
-                </tr>
-                <tr>
-                    <td><strong>M (Mana)</strong></td>
-                    <td>Current Mana / Max Mana. Used for spellcasting. Max Mana is fixed at 20</td>
-                </tr>
-                <tr>
-                    <td><strong>S (Stamina)</strong></td>
-                    <td>Current Stamina / Max Stamina. Consumed by sprinting. Max Stamina = 100 + DEX + (Focus/2)</td>
-                </tr>
-                <tr>
-                    <td><strong>$ (Gold)</strong></td>
-                    <td>Only shown when economy system is enabled. Integrates with Vault plugin</td>
-                </tr>
-                <tr>
-                    <td><strong>Stats</strong></td>
-                    <td>Total Stats / Stat Cap (225)</td>
-                </tr>
-                <tr>
-                    <td><strong>STR/DEX/INT</strong></td>
-                    <td>Each stat value with lock mode indicator</td>
-                </tr>
+                <tr><th>Section</th><th>Label</th><th>Content</th></tr>
+                <tr><td>Title</td><td><code>title</code></td><td>Player title (e.g., "Grandmaster Swordsman")</td></tr>
+                <tr><td>HMS</td><td><code>hms</code></td><td>HP / Mana / Stamina bars</td></tr>
+                <tr><td>Gold</td><td><code>gold</code></td><td>Gold display (if applicable)</td></tr>
+                <tr><td>Stats</td><td><code>stats</code></td><td>STR / DEX / INT with lock indicators</td></tr>
+                <tr><td>Party</td><td><code>party</code></td><td>Party member list</td></tr>
             </table>
 
-            <h3>Stat Lock Modes</h3>
-            <p>The icon displayed next to each stat indicates its lock mode. When the stat total reaches the cap (225), increasing one stat requires decreasing another.</p>
-
-            <table>
-                <tr>
-                    <th>Icon</th>
-                    <th>Mode</th>
-                    <th>Description</th>
-                </tr>
-                <tr>
-                    <td class="str"><strong>▲</strong></td>
-                    <td>UP</td>
-                    <td>Stat can increase. When at cap, other stats (DOWN or UP mode) will decrease to make room</td>
-                </tr>
-                <tr>
-                    <td class="dex"><strong>▼</strong></td>
-                    <td>DOWN</td>
-                    <td>Stat can only decrease. Prioritized for reduction when other stats need to increase</td>
-                </tr>
-                <tr>
-                    <td class="int"><strong>■</strong></td>
-                    <td>LOCKED</td>
-                    <td>Stat cannot change at all. Will not increase or decrease</td>
-                </tr>
-            </table>
-
-            <h3>Changing Lock Mode</h3>
-            <p>Use <code>/stats lock &lt;str|dex|int&gt;</code> command to cycle through lock modes.</p>
-            <p>Cycle order: UP → DOWN → LOCKED → UP...</p>
-
-            <h4>Example Builds</h4>
+            <h3>Toggle Commands</h3>
             <ul>
-                <li><strong>Warrior Build</strong>: Set STR to UP, DEX to UP, INT to DOWN → INT decreases to raise STR/DEX</li>
-                <li><strong>Mage Build</strong>: Set INT to UP, STR/DEX to DOWN → STR/DEX decrease to raise INT</li>
-                <li><strong>Balanced Build</strong>: Set all to UP → Stats rise evenly (lowest stat decreases when at cap)</li>
-                <li><strong>Maintain Specific Value</strong>: Set desired stat to LOCKED → That stat won't change</li>
+                <li><code>/skills sb</code> &mdash; Toggle entire scoreboard ON/OFF</li>
+                <li><code>/skills sb &lt;section&gt;</code> &mdash; Toggle individual section (e.g., <code>/skills sb title</code>, <code>/skills sb hms</code>)</li>
             </ul>
 
-            <h3>Plugin Conflict Handling</h3>
-            <p>The <code>scoreboard.conflict_mode</code> setting in config controls behavior when other plugins use the sidebar.</p>
+            <h3>Conflict Modes (config.yml)</h3>
             <table>
-                <tr>
-                    <th>Mode</th>
-                    <th>Description</th>
-                </tr>
-                <tr>
-                    <td><code>ALWAYS</code></td>
-                    <td>Always show Skills scoreboard (overwrites other plugins)</td>
-                </tr>
-                <tr>
-                    <td><code>RESPECT</code></td>
-                    <td>Don't show if another plugin is using the sidebar (default)</td>
-                </tr>
+                <tr><th>Mode</th><th>Behavior</th></tr>
+                <tr><td><code>ALWAYS</code></td><td>Always show Skills scoreboard (may override other plugins)</td></tr>
+                <tr><td><code>RESPECT</code> (default)</td><td>Skip if another plugin is using SIDEBAR</td></tr>
             </table>
         </section>
 
+        <!-- ============================================================ -->
+        <!-- VengefulMobs -->
+        <!-- ============================================================ -->
+        <section id="vengeful">
+            <h2>VengefulMobs</h2>
+            <p>Passive mobs fight back when attacked! Configurable per-mob attack power and anger duration.</p>
+
+            <table>
+                <tr><th>Mob</th><th>Attack Power</th><th>Attack Interval</th></tr>
+                <tr><td>Chicken / Rabbit</td><td>1.0</td><td>1500ms</td></tr>
+                <tr><td>Pig / Sheep</td><td>2.0</td><td>1000ms</td></tr>
+                <tr><td>Cow / Mooshroom</td><td>3.0</td><td>1000ms</td></tr>
+                <tr><td>Horse</td><td>4.0</td><td>1000ms</td></tr>
+                <tr><td>Donkey / Llama / Mule</td><td>3.0&ndash;3.5</td><td>1000ms</td></tr>
+                <tr><td>Goat</td><td>4.0</td><td>800ms</td></tr>
+            </table>
+
+            <h4>Config (config.yml)</h4>
+<pre><code>vengeful_mobs:
+  enabled: true
+  anger_duration: 100        # ticks
+  chase_distance: 16.0       # blocks
+  default_attack_cooldown: 1000  # ms</code></pre>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- Chunk Mob Limit -->
+        <!-- ============================================================ -->
+        <section id="chunklimit">
+            <h2>Chunk Mob Limit</h2>
+            <p>Per-chunk mob caps to prevent lag from auto-breeders and spawners.</p>
+
+            <table>
+                <tr><th>Category</th><th>Default Limit</th></tr>
+                <tr><td>Passive (cow, sheep, pig, etc.)</td><td>24</td></tr>
+                <tr><td>Hostile (zombie, skeleton, etc.)</td><td>32</td></tr>
+                <tr><td>Ambient (bat)</td><td>8</td></tr>
+                <tr><td>Water Creature (squid, dolphin)</td><td>8</td></tr>
+                <tr><td>Water Ambient (fish)</td><td>16</td></tr>
+            </table>
+
+            <p><strong>Exempt:</strong> Boss mobs (Ender Dragon, Wither, Elder Guardian), protected mobs (Villagers, Iron Golems, Wandering Traders), and mobs spawned by commands, curing, building, etc.</p>
+
+            <h4>Config (config.yml)</h4>
+<pre><code>chunk_mob_limit:
+  enabled: true
+  limits:
+    passive: 24
+    hostile: 32
+    ambient: 8
+    water_creature: 8
+    water_ambient: 16
+  check_interval_ticks: 100
+  notify_on_limit: true</code></pre>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- Ender Dragon Scaling -->
+        <!-- ============================================================ -->
+        <section id="dragon">
+            <h2>Ender Dragon Scaling Respawn</h2>
+            <p>The Ender Dragon auto-respawns after 24 hours, growing stronger each time with anti-cheese skills.</p>
+
+            <h3>Stat Scaling</h3>
+            <table>
+                <tr><th>Stat</th><th>Base</th><th>Per Kill</th><th>Cap</th></tr>
+                <tr><td>HP</td><td>200</td><td>+50</td><td>1000</td></tr>
+                <tr><td>Attack Multiplier</td><td>1.0x</td><td>+0.15x</td><td>4.0x</td></tr>
+                <tr><td>Charge Damage</td><td>1.0x</td><td>+0.2x</td><td>5.0x</td></tr>
+                <tr><td>Dragon Breath Duration</td><td>3s</td><td>+0.5s</td><td>10s</td></tr>
+                <tr><td>Ender Charge Frequency</td><td>1.0x</td><td>+0.1x</td><td>3.0x</td></tr>
+            </table>
+
+            <h3>Dragon Skills (Anti-Cheese)</h3>
+            <p>One skill added per kill (cumulative). After 6 kills, all skills are active:</p>
+            <table>
+                <tr><th>Kill #</th><th>Skill</th><th>Effect</th></tr>
+                <tr><td>0 (first)</td><td>None</td><td>Vanilla dragon</td></tr>
+                <tr><td>1</td><td>Explosion Resist</td><td>100% immunity to bed/TNT/respawn anchor explosions</td></tr>
+                <tr><td>2</td><td>Structure Destroy</td><td>Periodically destroys placed blocks (except obsidian/endstone)</td></tr>
+                <tr><td>3</td><td>Healing Aura</td><td>Heals 5% HP/sec after 30s without damage</td></tr>
+                <tr><td>4</td><td>Enderman Summon</td><td>Summons 3 Endermen every 60s (max 9)</td></tr>
+                <tr><td>5</td><td>Crystal Regen</td><td>Regenerates destroyed End Crystals after 120s</td></tr>
+                <tr><td>6+</td><td>Player Pull</td><td>Teleports players &gt;50 blocks away to within 20 blocks</td></tr>
+            </table>
+
+            <h3>Drop Rewards</h3>
+            <ul>
+                <li><strong>Equipment:</strong> 1 weapon or armor (Iron 70% / Diamond 25% / Netherite 5%; NQ 94% / HQ 5% / EX 1%)</li>
+                <li><strong>EX items:</strong> Crafted by legendary smiths (Zardoz, Volund, or Mondain)</li>
+                <li><strong>Scroll:</strong> 1 magic scroll (C4 40% / C5 25% / C6 18% / C7 12% / C8 5%)</li>
+                <li><strong>XP:</strong> 12000 &times; (1 + kills &times; 0.25)</li>
+                <li><strong>Dragon Egg:</strong> First kill only (vanilla behavior)</li>
+            </ul>
+
+            <p>Command: <code>/dragoninfo</code> shows kill count, next respawn time, current stats, and active skills.</p>
+        </section>
+
+        <!-- ============================================================ -->
         <!-- Commands -->
+        <!-- ============================================================ -->
         <section id="commands">
             <h2>Commands</h2>
 
-            <h3>Player Commands</h3>
+            <h3>General Commands</h3>
             <table>
-                <tr>
-                    <th>Command</th>
-                    <th>Description</th>
-                </tr>
-                <tr><td><code>/skills</code></td><td>View your skills</td></tr>
-                <tr><td><code>/skills lock &lt;skill&gt;</code></td><td>Toggle skill lock mode (UP/DOWN/LOCKED)</td></tr>
-                <tr><td><code>/skills guide</code></td><td>Get the guidebook</td></tr>
-                <tr><td><code>/skills sb</code></td><td>Toggle scoreboard visibility</td></tr>
-                <tr><td><code>/skills language &lt;en|ja|reset&gt;</code></td><td>Change display language</td></tr>
-                <tr><td><code>/stats</code></td><td>View your STR/DEX/INT</td></tr>
-                <tr><td><code>/cast &lt;spell&gt;</code></td><td>Cast a spell (by English name)</td></tr>
-                <tr><td><code>/rune &lt;Power Words&gt;</code></td><td>Cast a spell using Power Words (e.g., /rune In Mani)</td></tr>
-                <tr><td><code>/arms</code></td><td>Examine held weapon/armor</td></tr>
-                <tr><td><code>/sleep</code></td><td>Count as sleeping without a bed (requires night + someone in bed)</td></tr>
+                <tr><th>Command</th><th>Description</th><th>Permission</th></tr>
+                <tr><td><code>/skills</code> or <code>/skills list</code></td><td>Show your skill list</td><td>skills.use</td></tr>
+                <tr><td><code>/skills lock &lt;skill&gt;</code></td><td>Toggle skill lock mode (UP / DOWN / LOCKED)</td><td>skills.use</td></tr>
+                <tr><td><code>/skills guide</code></td><td>Get guide book</td><td>skills.use</td></tr>
+                <tr><td><code>/skills sb</code></td><td>Toggle scoreboard ON/OFF</td><td>skills.use</td></tr>
+                <tr><td><code>/skills sb &lt;section&gt;</code></td><td>Toggle scoreboard section (title/hms/gold/stats/party)</td><td>skills.use</td></tr>
+                <tr><td><code>/skills language [lang]</code></td><td>Change display language (en/ja/reset)</td><td>skills.use</td></tr>
+                <tr><td><code>/stats</code></td><td>Show your STR/DEX/INT details</td><td>skills.use</td></tr>
+                <tr><td><code>/arms</code></td><td>Show held weapon/armor details</td><td>skills.use</td></tr>
+            </table>
+
+            <h3>Magic Commands</h3>
+            <table>
+                <tr><th>Command</th><th>Description</th><th>Permission</th></tr>
+                <tr><td><code>/cast &lt;spell&gt;</code></td><td>Cast a spell</td><td>skills.magic</td></tr>
+                <tr><td><code>/cast cancel</code></td><td>Cancel casting</td><td>skills.magic</td></tr>
+                <tr><td><code>/scribe &lt;spell&gt;</code></td><td>Create a scroll</td><td>skills.magic</td></tr>
+                <tr><td><code>/spellbook [spell]</code></td><td>Get a spellbook</td><td>skills.magic</td></tr>
+                <tr><td><code>/spellbook all</code></td><td>Get all spellbooks</td><td>skills.magic</td></tr>
+                <tr><td><code>/spellbook list</code></td><td>List all spells</td><td>skills.magic</td></tr>
+                <tr><td><code>/evaluate</code></td><td>Check target's mana</td><td>skills.magic</td></tr>
             </table>
 
             <h3>Thief Commands</h3>
             <table>
-                <tr>
-                    <th>Command</th>
-                    <th>Description</th>
-                </tr>
-                <tr><td><code>/hide</code></td><td>Attempt to hide</td></tr>
-                <tr><td><code>/detect</code></td><td>Detect hidden players</td></tr>
-                <tr><td><code>/snoop</code></td><td>Peek at player inventory</td></tr>
-                <tr><td><code>/poison</code></td><td>Apply poison to weapon</td></tr>
+                <tr><th>Command</th><th>Description</th><th>Permission</th></tr>
+                <tr><td><code>/hide</code></td><td>Attempt to hide</td><td>skills.thief</td></tr>
+                <tr><td><code>/detect</code></td><td>Find hidden players</td><td>skills.thief</td></tr>
+                <tr><td><code>/snoop</code></td><td>View target's inventory</td><td>skills.thief</td></tr>
+                <tr><td><code>/poison</code></td><td>Coat weapon with poison</td><td>skills.thief</td></tr>
             </table>
 
             <h3>Taming Commands</h3>
             <table>
-                <tr>
-                    <th>Command</th>
-                    <th>Description</th>
-                </tr>
-                <tr><td><code>/tame</code></td><td>Attempt to tame a creature</td></tr>
-                <tr><td><code>/lore</code></td><td>View creature information</td></tr>
-                <tr><td><code>/evaluate</code></td><td>Check target's mana</td></tr>
+                <tr><th>Command</th><th>Description</th><th>Permission</th></tr>
+                <tr><td><code>/tame</code></td><td>Begin taming</td><td>skills.taming</td></tr>
+                <tr><td><code>/lore</code></td><td>View mob information</td><td>skills.taming</td></tr>
+            </table>
+
+            <h3>Party Commands</h3>
+            <table>
+                <tr><th>Command</th><th>Description</th><th>Permission</th></tr>
+                <tr><td><code>/party invite &lt;player&gt;</code></td><td>Invite to party</td><td>skills.party</td></tr>
+                <tr><td><code>/party accept</code></td><td>Accept invitation</td><td>skills.party</td></tr>
+                <tr><td><code>/party decline</code></td><td>Decline invitation</td><td>skills.party</td></tr>
+                <tr><td><code>/party leave</code></td><td>Leave party</td><td>skills.party</td></tr>
+                <tr><td><code>/party kick &lt;player&gt;</code></td><td>Kick member (leader only)</td><td>skills.party</td></tr>
+                <tr><td><code>/party disband</code></td><td>Disband party (leader only)</td><td>skills.party</td></tr>
+                <tr><td><code>/party list</code></td><td>Show members</td><td>skills.party</td></tr>
+                <tr><td><code>/party leader &lt;player&gt;</code></td><td>Transfer leadership</td><td>skills.party</td></tr>
+                <tr><td><code>/party tp &lt;player&gt;</code></td><td>Teleport to member</td><td>skills.party</td></tr>
+                <tr><td><code>/pc &lt;message&gt;</code></td><td>Party chat</td><td>skills.party</td></tr>
+            </table>
+
+            <h3>Dragon Command</h3>
+            <table>
+                <tr><th>Command</th><th>Description</th><th>Permission</th></tr>
+                <tr><td><code>/dragoninfo</code></td><td>Show dragon status, kills, next respawn</td><td>skills.use</td></tr>
             </table>
 
             <h3>Admin Commands</h3>
             <table>
-                <tr>
-                    <th>Command</th>
-                    <th>Description</th>
-                </tr>
-                <tr><td><code>/skilladmin check &lt;player&gt;</code></td><td>View player's skills</td></tr>
-                <tr><td><code>/skilladmin setstat &lt;player&gt; &lt;stat&gt; &lt;value&gt;</code></td><td>Set player stat</td></tr>
+                <tr><th>Command</th><th>Description</th><th>Permission</th></tr>
+                <tr><td><code>/skillcheck &lt;player&gt;</code></td><td>View target's skills</td><td>skills.admin</td></tr>
+                <tr><td><code>/skillset &lt;player&gt; &lt;skill&gt; &lt;value&gt;</code></td><td>Set skill value</td><td>skills.admin</td></tr>
+                <tr><td><code>/skillreset &lt;player&gt;</code></td><td>Reset all skills</td><td>skills.admin</td></tr>
             </table>
         </section>
 
+        <!-- ============================================================ -->
+        <!-- Permissions -->
+        <!-- ============================================================ -->
+        <section id="permissions">
+            <h2>Permissions</h2>
+            <table>
+                <tr><th>Permission</th><th>Description</th></tr>
+                <tr><td><code>skills.use</code></td><td>Basic features (skills list, stats, arms, scoreboard, guide, dragoninfo)</td></tr>
+                <tr><td><code>skills.magic</code></td><td>Magic commands (cast, scribe, spellbook, evaluate)</td></tr>
+                <tr><td><code>skills.thief</code></td><td>Thief commands (hide, detect, snoop, poison)</td></tr>
+                <tr><td><code>skills.taming</code></td><td>Taming commands (tame, lore)</td></tr>
+                <tr><td><code>skills.party</code></td><td>Party commands (party, pc)</td></tr>
+                <tr><td><code>skills.admin</code></td><td>Admin commands (skillcheck, skillset, skillreset)</td></tr>
+                <tr><td><code>skills.*</code></td><td>All permissions</td></tr>
+            </table>
+        </section>
+
+        <!-- ============================================================ -->
         <!-- Changelog -->
+        <!-- ============================================================ -->
         <section id="changelog">
             <h2>Changelog</h2>
 
             <div class="changelog-entry">
-                <h4>v0.4.7</h4>
-                <span class="date">2026-01-11</span>
+                <h4>Party System, Scoreboard Customization, Fly/Targeting Fixes</h4>
+                <p class="date">March 2026</p>
                 <ul>
-                    <li><strong>DEX Requirement Added</strong> - Added DEX requirement to armor (UO-style). STR/INT focused builds cannot wear plate armor and must use chain/leather instead</li>
-                    <li><strong>End City Scroll Drops</strong> - Now focuses on C5-C8 (endgame content), increased drop rates (C5-C6: 10%, C7: 5%, C8: 2%)</li>
+                    <li>Added Party System: invite, accept/decline, friendly fire, party TP, party chat, nametag color, hidden member visibility, thief protection, Notoriety integration</li>
+                    <li>Added scoreboard section toggle (<code>/skills sb &lt;section&gt;</code>): title, hms, gold, stats, party</li>
+                    <li>Fixed Fly spell and targeting system issues</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v0.4.4</h4>
-                <span class="date">2026-01-06</span>
+                <h4>Fly Spell &amp; Continuous Effect Manager</h4>
+                <p class="date">March 2026</p>
                 <ul>
-                    <li><strong>/rune Command</strong> - New command for Power Words casting (e.g., /rune In Mani for Heal)</li>
-                    <li><strong>Command Separation</strong> - /cast for spell names, /rune for Power Words</li>
-                    <li><strong>Spellbook Improvements</strong> - Target type display, one spell per page, cleaner layout</li>
-                    <li><strong>Fixed:</strong> Tab completion for multi-word Power Words</li>
+                    <li>Added Fly spell (5th Circle): mana-drain flight, 0.2 MP/sec. INT 100 = infinite flight</li>
+                    <li>Added generic continuous effect management system for sustained buff spells</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v0.4.2</h4>
-                <span class="date">2026-01-05</span>
+                <h4>Ender Dragon Scaling Respawn</h4>
+                <p class="date">March 2026</p>
                 <ul>
-                    <li><strong>Chunk-Based Mob Limit</strong> - Prevents server lag from breeding farms and spawners by limiting mobs per chunk (Passive: 24, Hostile: 32, Ambient: 8, Water: 8/16)</li>
-                    <li><strong>Protected Entities</strong> - Boss mobs and villagers exempt from limits</li>
-                    <li><strong>Breeding Notification</strong> - Players notified when breeding is blocked due to chunk limit</li>
+                    <li>Dragon auto-respawns after 24h, growing stronger each time</li>
+                    <li>6 anti-cheese skills added progressively (explosion resist, structure destroy, healing aura, enderman summon, crystal regen, player pull)</li>
+                    <li>Equipment and scroll drops with quality system integration</li>
+                    <li>Legendary smiths (Zardoz, Volund, Mondain) for EX drops</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v0.4.1</h4>
-                <span class="date">2026-01-05</span>
+                <h4>Combat Skill Armor Stand Limit</h4>
+                <p class="date">March 2026</p>
                 <ul>
-                    <li><strong>Trial Chamber Scroll Drops</strong> - Scrolls can now drop from Trial Chamber vault rewards (C1-C8)</li>
-                    <li><strong>Fixed:</strong> Trial Chamber Vault interference - Trial Keys now properly consumed</li>
+                    <li>Combat skill gains from armor stands are now capped at skill 70</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v0.4.0</h4>
-                <span class="date">2026-01-04</span>
+                <h4>Parrying Bug Fix &amp; Enhancement</h4>
+                <p class="date">March 2026</p>
                 <ul>
-                    <li><strong>Expanded Magery Spells</strong> - Added 23 new spells across all circles (Clumsy, Weaken, Agility, Strength, Cunning, Poison, Wall of Stone, Arch Cure, Curse, Mana Drain, Dispel, Mass Curse, Reveal, Paralyze Field, Chain Lightning, Flamestrike, Energy Field, Mana Vampire, Mass Dispel, Summon Creature, Earthquake, Word of Death, Mass Sleep)</li>
-                    <li><strong>Summoning System</strong> - New SummonManager for summoned creatures with skill-based creature selection</li>
-                    <li><strong>Improved Spell Visuals</strong> - Fireball uses real SmallFireball entity, Meteor Swarm spawns falling meteors, Wall of Stone creates actual blocks, Explosion uses TNT-style effect</li>
-                    <li><strong>Resisting Spells Buff</strong> - Max damage reduction increased from 50% to 70% at skill 100</li>
-                    <li><strong>Fixed:</strong> Invisibility/Hide now breaks on attack and block breaking</li>
+                    <li>Fixed Parrying skill bugs and significantly enhanced parry mechanics</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v0.3.1</h4>
-                <span class="date">2026-01-04</span>
+                <h4>Hide &amp; Snoop Tuning</h4>
+                <p class="date">February 2026</p>
                 <ul>
-                    <li><strong>Sleep Skip Command</strong> - /sleep lets you count as sleeping without a bed (requires night + someone in bed)</li>
+                    <li>Balance adjustments and feature expansion for Hiding and Snooping systems</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v0.3.0</h4>
-                <span class="date">2026-01-04</span>
+                <h4>Bed Rest Recovery</h4>
+                <p class="date">February 2026</p>
                 <ul>
-                    <li><strong>Health Boost for HQ/EX Food</strong> - HQ food grants +2 hearts (30s), EX food grants +2 hearts (1min)</li>
-                    <li><strong>GM (Skill 100) Complete Immunity</strong> - All survival skills at 100 grant complete immunity with no screen shake</li>
-                    <li><strong>Survival Skills Rebalance</strong> - Environmental damage maintains vanilla lethality with STR scaling (80% of HP bonus applies to damage)</li>
-                    <li><strong>Fixed:</strong> Food stacking issue (floating point precision)</li>
-                    <li><strong>Fixed:</strong> Admin command parsing for skill names with spaces</li>
+                    <li>Sleeping in a bed fully restores HP</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v0.2.9</h4>
-                <span class="date">2026-01-04</span>
+                <h4>Mining Enhancement</h4>
+                <p class="date">February 2026</p>
                 <ul>
-                    <li><strong>UO-Style Runebook</strong> - Store up to 16 runes, cast Recall/Gate Travel from GUI</li>
-                    <li><strong>Fixed:</strong> Gate Travel duration now fixed at 30 seconds</li>
-                    <li><strong>Fixed:</strong> Runebook memory leak prevention</li>
+                    <li>Mining skill effects strengthened</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v0.2.8</h4>
-                <span class="date">2026-01-03</span>
+                <h4>Wrestling Enhancement</h4>
+                <p class="date">February 2026</p>
                 <ul>
-                    <li><strong>Skill Consolidation</strong> - Bowcraft and Tinkering merged into Craftsmanship</li>
-                    <li><strong>Stack Size Bonus</strong> - Items can stack up to 99 based on production skills (Craftsmanship + Blacksmithy + Cooking + Alchemy)</li>
-                    <li><strong>Craftsmanship Update</strong> - Now covers bows, arrows, and tools; stat contribution changed to STR 50% + DEX 50%</li>
+                    <li>Added damage modifier and stun effect to Wrestling skill</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v0.2.7</h4>
-                <span class="date">2026-01-02</span>
+                <h4>Scoreboard Compatibility</h4>
+                <p class="date">January 2026</p>
                 <ul>
-                    <li><strong>Shovel Digging System</strong> - Digging soft blocks with shovels now gains Mining skill, with durability reduction and Haste speed bonus</li>
-                    <li><strong>Gathering Speed Bonus</strong> - Mining, Lumberjacking, and Digging now apply Haste effect based on skill level</li>
-                    <li><strong>Cooking Skill Effects</strong> - Food cooked gets recovery bonus based on Cooking skill and quality</li>
-                    <li><strong>Alchemy Skill Effects</strong> - Brewed potions get duration extension based on Alchemy skill</li>
-                    <li><strong>Tinkering Skill Effects</strong> - Mending success rate depends on Tinkering skill for applicable items</li>
-                    <li><strong>Spear Skill</strong> - New combat skill for spear weapons (1.21.5+)</li>
-                    <li><strong>Repair Degradation System</strong> - Anvil repairs reduce max durability</li>
-                    <li><strong>Mending + Skill Integration</strong> - Mending success depends on crafting skills</li>
-                    <li><strong>Stamina System</strong> - Monster Hunter-style stamina for sprinting</li>
-                    <li><strong>Farming Skill</strong> - New gathering skill for agriculture</li>
-                    <li><strong>Bow/Crossbow Balance</strong> - Distance falloff and movement penalties</li>
-                    <li><strong>Energy Bolt Spell</strong> - New 5th circle damage spell</li>
-                    <li><strong>Power Words</strong> - Incantations when casting spells</li>
-                    <li><strong>Librarian Trades</strong> - Spellbooks and scrolls from villagers</li>
-                    <li><strong>Fixed:</strong> MiniMessage legacy format code error - All text now uses Adventure Components</li>
+                    <li>Added config options for scoreboard (enabled, conflict_mode, show_by_default)</li>
+                    <li>RESPECT mode: yield to other plugins' sidebar</li>
+                    <li>Player toggle: <code>/skills sb</code> with persistent setting</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v0.2.2</h4>
-                <span class="date">2025-12-27</span>
+                <h4>Chunk Mob Limit</h4>
+                <p class="date">January 2026</p>
                 <ul>
-                    <li>Per-mob attack cooldown for VengefulMobs</li>
-                    <li>Armor validation on STR change</li>
-                    <li>Fixed vanilla critical hit precision</li>
+                    <li>Per-chunk mob caps by category (passive, hostile, ambient, water)</li>
+                    <li>Exempt: bosses, villagers, golems, command-spawned</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v1.0.0 - Initial Release</h4>
+                <h4>VengefulMobs</h4>
+                <p class="date">January 2026</p>
                 <ul>
-                    <li>38 skills inspired by classic MMORPGs</li>
-                    <li>STR/DEX/INT stat system</li>
-                    <li>Internal HP/Mana system</li>
-                    <li>Skill cap system (700 total, 100 per skill)</li>
-                    <li>20+ spells across 8 circles</li>
-                    <li>Crafting quality system</li>
-                    <li>Thief system (hiding, stealing, poisoning)</li>
-                    <li>Taming system</li>
-                    <li>English and Japanese language support</li>
+                    <li>Passive mobs fight back when attacked</li>
+                    <li>Configurable anger duration, chase distance, attack power per mob type</li>
+                </ul>
+            </div>
+
+            <div class="changelog-entry">
+                <h4>SkillsAPI</h4>
+                <p class="date">January 2026</p>
+                <ul>
+                    <li>External plugin integration via Bukkit ServicesManager</li>
+                    <li>Skill query, stat query, HP/Mana/Stamina access</li>
                 </ul>
             </div>
         </section>
     </main>
 
     <footer>
-        <p>Skills Plugin Documentation</p>
-        <p>Classic MMORPG-inspired | Built for Minecraft</p>
+        <p>Skills Plugin Documentation &mdash; Ultima Online-inspired skill system for Minecraft</p>
+        <p>Built with Paper API 1.21+ &bull; Kotlin 2.3.0 &bull; JVM 21</p>
     </footer>
 </body>
 </html>

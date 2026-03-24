@@ -9,7 +9,7 @@
 <body>
     <header>
         <h1>Skills プラグイン</h1>
-        <p>クラシックMMORPGにインスパイアされたスキルシステム</p>
+        <p>Ultima Online にインスパイアされた Minecraft 用スキルシステム</p>
         <div class="lang-switch">
             <a href="index.html">English</a>
             <a href="index_ja.html" class="active">日本語</a>
@@ -20,1232 +20,1164 @@
         <ul>
             <li><a href="#overview">概要</a></li>
             <li><a href="#stats">ステータス</a></li>
-            <li><a href="#skills">スキル</a></li>
+            <li><a href="#internal-hp">HP/マナ/スタミナ</a></li>
+            <li><a href="#skills">スキル一覧</a></li>
             <li><a href="#combat">戦闘</a></li>
+            <li><a href="#armor">防具</a></li>
             <li><a href="#magic">魔法</a></li>
             <li><a href="#crafting">生産</a></li>
             <li><a href="#gathering">採集</a></li>
-            <li><a href="#repair">修理システム</a></li>
+            <li><a href="#thief">シーフ</a></li>
+            <li><a href="#taming">テイム</a></li>
+            <li><a href="#party">パーティ</a></li>
             <li><a href="#scoreboard">スコアボード</a></li>
+            <li><a href="#vengeful">VengefulMobs</a></li>
+            <li><a href="#chunk-limit">チャンクモブ制限</a></li>
+            <li><a href="#dragon">ドラゴンスケーリング</a></li>
             <li><a href="#commands">コマンド</a></li>
+            <li><a href="#permissions">権限</a></li>
             <li><a href="#changelog">変更履歴</a></li>
         </ul>
     </nav>
 
     <main>
-        <!-- 概要 -->
+        <!-- ===== 概要 ===== -->
         <section id="overview">
             <h2>概要</h2>
-            <p>SkillsプラグインはクラシックMMORPGにインスパイアされたスキルシステムをマインクラフトに導入します。プレイヤーは行動によってスキルを向上させ、スキル合計上限により特化か万能かの選択を迫られます。</p>
+            <p>Skills プラグインは Ultima Online のスキルシステムを参考に、プレイヤーが行動するほどスキルが上昇する成長システムを Minecraft に導入します。スキル合計には上限があり、特定のスキルに特化するか万能型になるかをプレイヤーが選択できます。</p>
 
             <h3>主な機能</h3>
             <ul>
-                <li><strong>38スキル</strong> - 戦闘、魔法、生産、採集、シーフ、テイム、サバイバルの各カテゴリ</li>
-                <li><strong>スキルキャップ</strong> - 合計700ポイント、各スキル最大100ポイント</li>
-                <li><strong>使用による成長</strong> - スキルは使用することで上昇、難易度が成長率に影響</li>
-                <li><strong>ステータスシステム</strong> - 関連スキルからSTR、DEX、INTを計算</li>
-                <li><strong>品質クラフト</strong> - 生産スキルによりアイテム品質が変動</li>
-                <li><strong>触媒魔法</strong> - 触媒を消費する8サークルの魔法システム</li>
+                <li><strong>37スキル</strong> &mdash; 戦闘、魔法、生産、採集、シーフ、テイム、サバイバルの各カテゴリ</li>
+                <li><strong>スキルキャップ</strong> &mdash; 合計700ポイント、各スキル最大100ポイント（7スキルをMAXにできる計算）</li>
+                <li><strong>使用による成長</strong> &mdash; スキルは使用することで上昇し、難易度が成長率に影響</li>
+                <li><strong>ステータスシステム</strong> &mdash; STR / DEX / INT が関連スキルから自動計算される</li>
+                <li><strong>内部HP / マナ / スタミナ</strong> &mdash; バニラとは独立した内部数値管理</li>
+                <li><strong>品質クラフト</strong> &mdash; 生産スキルによりアイテム品質が LQ / NQ / HQ / EX に変動</li>
+                <li><strong>触媒魔法</strong> &mdash; 触媒を消費する8サークルの魔法システム（40以上の魔法）</li>
+                <li><strong>パーティシステム</strong> &mdash; フレンドリファイヤー無効、パーティTP、パーティチャット</li>
+                <li><strong>エンダードラゴンスケーリング</strong> &mdash; 討伐ごとに強化されてリスポーンするエンドゲームコンテンツ</li>
             </ul>
-        </section>
-
-        <!-- ステータス -->
-        <section id="stats">
-            <h2>ステータスシステム</h2>
-            <p>3つの内部ステータスが関連スキルから計算されます：</p>
-
-            <table>
-                <tr>
-                    <th>ステータス</th>
-                    <th>効果</th>
-                    <th>関連スキル</th>
-                </tr>
-                <tr>
-                    <td class="str"><strong>STR</strong></td>
-                    <td>+HP、+採掘・伐採速度</td>
-                    <td>Swordsmanship, Axe, Mace Fighting, Wrestling, Tactics, Anatomy, Mining, Lumberjacking, Blacksmithy, Craftsmanship, Cooking, Heat/Cold Resistance, Endurance</td>
-                </tr>
-                <tr>
-                    <td class="dex"><strong>DEX</strong></td>
-                    <td>+攻撃速度、+移動速度</td>
-                    <td>Archery, Throwing, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Athletics, Swimming</td>
-                </tr>
-                <tr>
-                    <td class="int"><strong>INT</strong></td>
-                    <td>-マナ消費、+詠唱成功率</td>
-                    <td>Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Alchemy, Animal Lore</td>
-                </tr>
-                <tr>
-                    <td><strong>複合</strong></td>
-                    <td>個別スキル参照</td>
-                    <td>Craftsmanship（STR 50% + DEX 50%）、Animal Taming、Veterinary、Detecting Hidden、Arms Lore</td>
-                </tr>
-            </table>
-
-            <h3>ステータス計算</h3>
-            <div class="formula">
-                <code>ステータス = 関連スキル合計 / 関連スキル数</code>
-                <p>各ステータスは0〜100で、関連スキルの平均値となります。</p>
-            </div>
-
-            <h3>ステータス効果</h3>
-            <table>
-                <tr>
-                    <th>ステータス</th>
-                    <th>効果計算式</th>
-                </tr>
-                <tr>
-                    <td class="str">STR</td>
-                    <td>最大HP = 100 + STR、採掘・伐採速度 +STR/5%</td>
-                </tr>
-                <tr>
-                    <td class="dex">DEX</td>
-                    <td>攻撃速度 +DEX/2%、移動速度 +DEX/10%</td>
-                </tr>
-                <tr>
-                    <td class="int">INT</td>
-                    <td>マナ消費 -INT/2%、詠唱成功率 +INT/5%</td>
-                </tr>
-            </table>
-        </section>
-
-        <!-- スキル -->
-        <section id="skills">
-            <h2>スキル</h2>
 
             <h3>スキル上昇システム</h3>
             <div class="formula">
-                <code>上昇確率 = (100 - スキル値) / 10 × 難易度補正</code>
-                <p>上昇量：判定成功時 0.1ポイント</p>
+                <code>基礎確率 = (100 - スキル値) / 10 %</code><br>
+                <code>上昇確率 = 基礎確率 &times; 難易度補正</code><br>
+                <code>上昇量 = 0.1 ポイント</code>
+                <p>難易度がスキル値に近いほど上昇しやすく、簡単すぎたり難しすぎると上がりにくくなります。</p>
             </div>
 
             <h4>難易度補正</h4>
             <table>
+                <tr><th>条件</th><th>補正</th><th>説明</th></tr>
+                <tr><td>難易度 &gt; スキル + 20</td><td>&times;0.5</td><td>難しすぎ</td></tr>
+                <tr><td>難易度 &asymp; スキル（&plusmn;20）</td><td>&times;1.0</td><td>適正</td></tr>
+                <tr><td>難易度 &lt; スキル - 20</td><td>&times;0.2</td><td>簡単すぎ</td></tr>
+            </table>
+
+            <h3>スキル下降システム</h3>
+            <p>スキル合計が600に達すると、新しいスキルが上昇しようとした時に<strong>最長未使用スキル</strong>が0.1ポイント下降します。プレイヤーの行動パターンに応じて自然にスキル構成が変化します。</p>
+        </section>
+
+        <!-- ===== ステータスシステム ===== -->
+        <section id="stats">
+            <h2>ステータスシステム</h2>
+            <p>UO風の3つの内部ステータスを持ち、関連スキルの平均値で自動計算されます。各ステータスは0〜100の範囲です。</p>
+
+            <h3>ステータス対象スキル</h3>
+            <table>
                 <tr>
-                    <th>条件</th>
-                    <th>補正</th>
+                    <th>ステータス</th>
+                    <th>効果</th>
+                    <th>対象スキル</th>
                 </tr>
                 <tr>
-                    <td>難易度 > スキル + 20</td>
-                    <td>×0.5（難しすぎる）</td>
+                    <td><span class="badge badge-str">STR</span></td>
+                    <td>最大HP +STR、採掘/伐採速度 +(STR/10)%</td>
+                    <td>Swordsmanship, Axe, Mace Fighting, Wrestling, Tactics, Anatomy, Mining, Lumberjacking, Heat Resistance, Cold Resistance, Endurance（11スキル）</td>
                 </tr>
                 <tr>
-                    <td>難易度がスキル±20以内</td>
-                    <td>×1.0（最適）</td>
+                    <td><span class="badge badge-dex">DEX</span></td>
+                    <td>攻撃速度 +(DEX/2)%、移動速度 +(DEX/10)%</td>
+                    <td>Archery, Throwing, Spear, Parrying, Focus, Hiding, Stealth, Snooping, Stealing, Poisoning, Fishing, Farming, Athletics, Swimming（14スキル）</td>
                 </tr>
                 <tr>
-                    <td>難易度 < スキル - 20</td>
-                    <td>×0.2（簡単すぎる）</td>
+                    <td><span class="badge badge-int">INT</span></td>
+                    <td>マナ消費 -(INT/2)%、詠唱成功率 +(INT/5)%</td>
+                    <td>Magery, Evaluating Intelligence, Meditation, Resisting Spells, Inscription, Animal Lore（6スキル）</td>
                 </tr>
             </table>
 
-            <h3>戦闘系スキル</h3>
+            <h4>複数ステータスに影響するスキル</h4>
+            <table>
+                <tr><th>スキル</th><th>影響ステータス</th></tr>
+                <tr><td>Crafting</td><td><span class="badge badge-str">STR</span> 60% + <span class="badge badge-dex">DEX</span> 40%</td></tr>
+                <tr><td>Cooking</td><td><span class="badge badge-str">STR</span> 50% + <span class="badge badge-int">INT</span> 50%</td></tr>
+                <tr><td>Animal Taming</td><td><span class="badge badge-str">STR</span> 50% + <span class="badge badge-dex">DEX</span> 50%</td></tr>
+                <tr><td>Veterinary</td><td><span class="badge badge-str">STR</span> 50% + <span class="badge badge-int">INT</span> 50%</td></tr>
+                <tr><td>Detecting Hidden</td><td><span class="badge badge-dex">DEX</span> 50% + <span class="badge badge-int">INT</span> 50%</td></tr>
+                <tr><td>Arms Lore</td><td><span class="badge badge-str">STR</span> 33% + <span class="badge badge-dex">DEX</span> 33% + <span class="badge badge-int">INT</span> 34%</td></tr>
+            </table>
+
+            <h3>ステータス計算式</h3>
+            <div class="formula">
+                <code>STR = STR対象スキル合計 / 対象スキル数 &times; 100 / 100</code>
+                <p>各対象スキルの平均値がそのままステータス値となります。全対象スキルが100なら、ステータスも100です。</p>
+            </div>
+        </section>
+
+        <!-- ===== 内部HP / マナ / スタミナ ===== -->
+        <section id="internal-hp">
+            <h2>内部HP / マナ / スタミナ</h2>
+            <p>バニラのハート・空腹ゲージとは別に、内部でHP / マナ / スタミナを管理します。</p>
+
+            <h3>内部HP</h3>
+            <div class="formula">
+                <code>最大HP = 100 + STR</code>
+                <p>範囲: 100〜200（STR 0〜100）。小数点ダメージ対応。バニラのハートと同期します。</p>
+            </div>
+
+            <h4>ダメージ計算フロー</h4>
+            <ol>
+                <li>バニラダメージ発生</li>
+                <li>内部ダメージに変換: <code>内部ダメージ = バニラダメージ &times; 10</code></li>
+                <li>スキル補正適用（Parrying, Resisting Spells等）</li>
+                <li>内部HPを減少</li>
+                <li>バニラHPに同期: <code>バニラHP = (内部HP / 最大内部HP) &times; 20</code></li>
+            </ol>
+
+            <h3>内部マナ</h3>
+            <p>空腹ゲージとは<strong>連動しない</strong>UOスタイルのマナシステムです。魔法詠唱で消費され、スコアボードに表示されます。</p>
+            <div class="formula">
+                <code>最大マナ = 20</code><br>
+                <code>実消費 = 基礎消費 &times; (1 - INT / 200)</code>
+                <p>INT 100でマナ消費50%軽減。</p>
+            </div>
+
+            <h4>マナ回復方法</h4>
+            <table>
+                <tr><th>方法</th><th>回復量</th></tr>
+                <tr><td>自然回復（5秒ごと）</td><td>0.5 &times; (1 + INT/100)</td></tr>
+                <tr><td>瞑想（Meditation、スニーク静止中）</td><td>0.5秒ごとに 0.1 &times; (1 + Meditation/100)</td></tr>
+                <tr><td>金のリンゴ</td><td>+5 MP</td></tr>
+                <tr><td>エンチャントされた金のリンゴ</td><td>+10 MP</td></tr>
+            </table>
+
+            <h3>内部スタミナ（モンハン式）</h3>
+            <div class="formula">
+                <code>最大スタミナ = 100 + DEX + (Focus / 2)</code><br>
+                <code>消費量 = 基礎消費 &times; (1 - Focus / 200)</code><br>
+                <code>回復量 = 基礎回復 &times; (1 + Focus / 100)</code>
+                <p>DEX 100 + Focus 100 で最大250スタミナ。ダッシュ中に消費（20/秒）、静止時に回復（40/秒）。</p>
+            </div>
+
+            <h4>スタミナ切れ時の挙動</h4>
+            <ul>
+                <li>スタミナ0で<strong>疲労状態</strong>: 歩行速度50%低下、ジャンプ不可</li>
+                <li>50スタミナ回復するまで通常移動に戻らない</li>
+                <li>0.5秒ごとに息切れエフェクト（パーティクル + サウンド）</li>
+            </ul>
+
+            <h3>スコアボード表示</h3>
+            <pre><code>Grandmaster
+Swordsman
+
+&#x2764; 156/180
+&#x1F356; 15/20
+&#x26A1; 145/200
+
+Stats: 225/225
+STR: 80 &#x1F512;
+DEX: 45 &#x25B2;
+INT: 60 &#x25BC;</code></pre>
+        </section>
+
+        <!-- ===== スキル一覧 ===== -->
+        <section id="skills">
+            <h2>スキル一覧（全37スキル）</h2>
+
+            <h3>戦闘系スキル &mdash; 武器（7スキル）</h3>
             <div class="skill-category">
                 <div class="skill-card">
                     <h4>Swordsmanship <span class="badge badge-str">STR</span></h4>
-                    <p>剣の扱い。剣でのダメージに影響。</p>
-                    <p class="skill-effect">上昇条件：剣でダメージを与える</p>
+                    <p class="skill-effect">剣（木〜ネザライト）のダメージに影響。剣で攻撃時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Axe <span class="badge badge-str">STR</span></h4>
-                    <p>斧の扱い。斧でのダメージに影響。</p>
-                    <p class="skill-effect">上昇条件：斧でダメージを与える</p>
+                    <p class="skill-effect">斧（木〜ネザライト）のダメージに影響。斧で攻撃時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Mace Fighting <span class="badge badge-str">STR</span></h4>
-                    <p>メイスの扱い（1.21+）。</p>
-                    <p class="skill-effect">上昇条件：メイスでダメージを与える</p>
+                    <p class="skill-effect">メイス（1.21+）のダメージに影響。メイスで攻撃時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Spear <span class="badge badge-dex">DEX</span></h4>
-                    <p>槍の扱い（1.21.5+）。</p>
-                    <p class="skill-effect">上昇条件：槍でダメージを与える</p>
+                    <p class="skill-effect">槍（1.21.5+）の突き・突撃攻撃に影響。槍で攻撃時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Archery <span class="badge badge-dex">DEX</span></h4>
-                    <p>弓とクロスボウの扱い。</p>
-                    <p class="skill-effect">上昇条件：弓/クロスボウでダメージを与える</p>
+                    <p class="skill-effect">弓・クロスボウのダメージに影響。射撃でダメージを与えた時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Throwing <span class="badge badge-dex">DEX</span></h4>
-                    <p>トライデントの扱い。</p>
-                    <p class="skill-effect">上昇条件：トライデントでダメージを与える</p>
+                    <p class="skill-effect">トライデントの投擲ダメージに影響。トライデントで攻撃時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Wrestling <span class="badge badge-str">STR</span></h4>
-                    <p>素手戦闘。</p>
-                    <p class="skill-effect">上昇条件：素手でダメージを与える</p>
+                    <p class="skill-effect">素手戦闘。ダメージ補正 (0.5+スキル/100)、スタン確率 (スキル/4 %、最大25%)。</p>
                 </div>
+            </div>
+
+            <h3>戦闘補助スキル（4スキル）</h3>
+            <div class="skill-category">
                 <div class="skill-card">
                     <h4>Tactics <span class="badge badge-str">STR</span></h4>
-                    <p>ダメージボーナス：+スキル/5%</p>
-                    <p class="skill-effect">上昇条件：敵に攻撃を当てる</p>
+                    <p class="skill-effect">ダメージ乗数（スキル/100、0.1〜1.0）。攻撃の必須スキル。攻撃が命中した時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Anatomy <span class="badge badge-str">STR</span></h4>
-                    <p>クリティカル率：+スキル/2%</p>
-                    <p class="skill-effect">上昇条件：敵を倒す</p>
+                    <p class="skill-effect">ダメージ補正 (0.5+スキル/100)、クリティカル率 +(スキル/2)%。敵を倒した時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Parrying <span class="badge badge-dex">DEX</span></h4>
-                    <p>盾・武器での受け流し。</p>
-                    <p class="skill-effect">上昇条件：パリィ成功時</p>
+                    <p class="skill-effect">盾・武器での受け流し。パリィ成功時にダメージ50%軽減。パリィ成功時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Focus <span class="badge badge-dex">DEX</span></h4>
-                    <p>スタミナ回復：+スキル%</p>
-                    <p class="skill-effect">上昇条件：5秒間ダッシュする</p>
+                    <p class="skill-effect">最大スタミナ +(スキル/2)、消費軽減、回復増加。ダッシュ時に上昇。</p>
                 </div>
             </div>
 
-            <h3>魔法系スキル</h3>
+            <h3>魔法系スキル（4スキル）</h3>
             <div class="skill-category">
                 <div class="skill-card">
                     <h4>Magery <span class="badge badge-int">INT</span></h4>
-                    <p>魔法詠唱能力。成功率とダメージに影響。</p>
-                    <p class="skill-effect">上昇条件：魔法を詠唱する</p>
+                    <p class="skill-effect">魔法詠唱の成功率に影響。魔法詠唱時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Evaluating Intelligence <span class="badge badge-int">INT</span></h4>
-                    <p>魔法ダメージ：+スキル/2%</p>
-                    <p class="skill-effect">上昇条件：魔法ダメージを与える</p>
+                    <p class="skill-effect">魔法ダメージ +(スキル/2)%。<code>/evaluate</code> で相手のマナ確認。魔法ダメージを与えた時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Meditation <span class="badge badge-int">INT</span></h4>
-                    <p>スニーク時のマナ回復：+スキル%</p>
-                    <p class="skill-effect">上昇条件：瞑想中にマナ回復</p>
+                    <p class="skill-effect">スニーク静止中のマナ回復速度向上。瞑想状態でマナが回復した時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Resisting Spells <span class="badge badge-int">INT</span></h4>
-                    <p>魔法ダメージ軽減：-スキル/2%</p>
-                    <p class="skill-effect">上昇条件：魔法ダメージを受ける</p>
+                    <p class="skill-effect">被魔法ダメージ -(スキル/2)%、状態異常抵抗 +(スキル&times;0.8)%。魔法ダメージを受けた時に上昇。</p>
+                </div>
+            </div>
+
+            <h3>生産系スキル（3スキル）</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Crafting <span class="badge badge-mixed">STR+DEX</span></h4>
+                    <p class="skill-effect">装備・ツール全般（金属製品、木製品、革製品、弓矢、細工品、金床修理）。クラフト時に上昇。</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Cooking <span class="badge badge-mixed">STR+INT</span></h4>
+                    <p class="skill-effect">食料・ポーション（かまど調理、クラフト食品、醸造台でのポーション作成）。食料取り出し・ポーション作成時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Inscription <span class="badge badge-int">INT</span></h4>
-                    <p>魔法スクロールの作成。</p>
-                    <p class="skill-effect">上昇条件：スクロールを作成する</p>
+                    <p class="skill-effect">魔法スクロールの書写。Mageryと連携。スクロール作成時に上昇。</p>
                 </div>
             </div>
 
-            <h3>生産系スキル</h3>
-            <div class="skill-category">
-                <div class="skill-card">
-                    <h4>Blacksmithy <span class="badge badge-str">STR</span></h4>
-                    <p>金属武器・防具・ツール。金床修理。</p>
-                    <p class="skill-effect">上昇条件：金属製品をクラフト、金床で修理</p>
-                </div>
-                <div class="skill-card">
-                    <h4>Craftsmanship <span class="badge badge-mixed">STR/DEX</span></h4>
-                    <p>木製品、革製品、盾、弓、クロスボウ、矢、小物（ハサミ、釣り竿など）。</p>
-                    <p class="skill-effect">上昇条件：木・革・弓・ツール製品をクラフト</p>
-                </div>
-                <div class="skill-card">
-                    <h4>Alchemy <span class="badge badge-int">INT</span></h4>
-                    <p>ポーションの醸造。</p>
-                    <p class="skill-effect">上昇条件：ポーションを作成</p>
-                </div>
-                <div class="skill-card">
-                    <h4>Cooking <span class="badge badge-str">STR</span></h4>
-                    <p>食料の調理。</p>
-                    <p class="skill-effect">上昇条件：食料を調理</p>
-                </div>
-            </div>
-
-            <h3>採集系スキル</h3>
+            <h3>資源収集系スキル（4スキル）</h3>
             <div class="skill-category">
                 <div class="skill-card">
                     <h4>Mining <span class="badge badge-str">STR</span></h4>
-                    <p>採掘速度（最大+40%の採掘速度上昇）、ボーナス鉱石確率：スキル/2%（視覚フィードバック付き）、耐久消費軽減</p>
-                    <p>シャベルでの土・砂・砂利の掘削も対象</p>
-                    <p class="skill-effect">上昇条件：鉱石を採掘、シャベルで掘る</p>
+                    <p class="skill-effect">採掘速度 +(STR/5 + スキル/5)%。レア鉱石ボーナスドロップ。鉱石採掘時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Lumberjacking <span class="badge badge-str">STR</span></h4>
-                    <p>伐採速度（採掘速度上昇）、連鎖伐採（隣接する原木を自動伐採）</p>
-                    <p class="skill-effect">上昇条件：原木を伐採</p>
+                    <p class="skill-effect">伐採速度向上、連鎖伐採（スキル100で木全体）。原木伐採時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Fishing <span class="badge badge-dex">DEX</span></h4>
-                    <p>自動釣り（スキルに応じた確率で自動釣り上げ＆再キャスト）</p>
-                    <p class="skill-effect">上昇条件：魚を釣る</p>
+                    <p class="skill-effect">自動釣り上げ（スキル20以上で発動、100で常時成功）。釣りで何かを釣った時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Farming <span class="badge badge-dex">DEX</span></h4>
-                    <p>自動植え直し + 自動成長（スキルに応じた骨粉効果）</p>
-                    <p class="skill-effect">上昇条件：作物を収穫、土を耕す</p>
+                    <p class="skill-effect">自動植え直し、自動成長（スキル100で即座に成熟）。成熟作物収穫時に上昇。</p>
                 </div>
             </div>
 
-            <h3>サバイバル系スキル</h3>
-            <p class="note">※環境ダメージはバニラと同等の致死性を維持。STRによるHP増加の恩恵は20%に制限（80%はダメージスケールに反映）。スキル100で完全免疫。</p>
-            <div class="formula">
-                <pre>ダメージ倍率 = 0.5 × STRスケール × (1 - スキル/100)
-STRスケール = 1.0 + ((maxHP/100 - 1) × 0.8)
-
-例: STR 25 (maxHP 125), スキル 0
-  STRスケール = 1.0 + (0.25 × 0.8) = 1.2
-  ダメージ倍率 = 0.5 × 1.2 × 1.0 = 0.6
-  → バニラ致死ダメージでほぼ死亡（STRの恩恵は5%程度）</pre>
+            <h3>シーフ系スキル（6スキル）</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Hiding <span class="badge badge-dex">DEX</span></h4>
+                    <p class="skill-effect"><code>/hide</code> で透明化（成功率=スキル値%）。隠れ成功時に上昇。</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Stealth <span class="badge badge-dex">DEX</span></h4>
+                    <p class="skill-effect">Hiding中に移動可能（距離=スキル/10ブロック）。ステルス移動中に上昇。</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Detecting Hidden <span class="badge badge-mixed">DEX+INT</span></h4>
+                    <p class="skill-effect"><code>/detect</code> で隠れたプレイヤー発見（範囲=スキル/10ブロック）。発見試行時に上昇。</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Snooping <span class="badge badge-dex">DEX</span></h4>
+                    <p class="skill-effect"><code>/snoop</code> で相手のインベントリを覗く。覗き試行時に上昇。</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Stealing <span class="badge badge-dex">DEX</span></h4>
+                    <p class="skill-effect">Snooping中にアイテムを盗む。窃盗試行時に上昇。</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Poisoning <span class="badge badge-dex">DEX</span></h4>
+                    <p class="skill-effect"><code>/poison</code> で武器に毒付与（持続=スキル/20回）。毒塗り・毒攻撃時に上昇。</p>
+                </div>
             </div>
+
+            <h3>テイミング系スキル（3スキル）</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Animal Taming <span class="badge badge-mixed">STR+DEX</span></h4>
+                    <p class="skill-effect">テイム成功率向上。同時テイム数 = スキル/20（最大5体）。テイム試行時に上昇。</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Animal Lore <span class="badge badge-int">INT</span></h4>
+                    <p class="skill-effect"><code>/lore</code> でMobのHP・状態確認。コマンド使用時に上昇。</p>
+                </div>
+                <div class="skill-card">
+                    <h4>Veterinary <span class="badge badge-mixed">STR+INT</span></h4>
+                    <p class="skill-effect">エサでテイムMobを回復（回復量=スキル&times;0.2）。Mob回復時に上昇。</p>
+                </div>
+            </div>
+
+            <h3>サバイバル系スキル（5スキル）</h3>
             <div class="skill-category">
                 <div class="skill-card">
                     <h4>Athletics <span class="badge badge-dex">DEX</span></h4>
-                    <p>落下ダメージ軽減：スキル%で軽減（エリトラ衝突も対象）</p>
-                    <p class="skill-effect">スキル100で完全免疫。上昇条件：落下ダメージを受ける</p>
+                    <p class="skill-effect">落下ダメージ軽減。スキル100で完全免疫。落下ダメージを受けた時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Swimming <span class="badge badge-dex">DEX</span></h4>
-                    <p>溺れダメージ軽減：スキル%で軽減。空気消費軽減：スキル/2%の確率で消費なし</p>
-                    <p class="skill-effect">スキル100で完全免疫。スキル80+で水中呼吸付与。上昇条件：溺れダメージを受ける</p>
+                    <p class="skill-effect">溺れダメージ軽減、空気消費軽減。スキル100で完全免疫。溺れダメージを受けた時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Heat Resistance <span class="badge badge-str">STR</span></h4>
-                    <p>炎・溶岩・雷ダメージ軽減：スキル%で軽減。燃焼時間短縮：スキル/200%</p>
-                    <p class="skill-effect">スキル95+で消火チャンス。スキル100で完全免疫+即消火。上昇条件：炎ダメージを受ける</p>
+                    <p class="skill-effect">炎/溶岩ダメージ軽減。スキル100で完全免疫+即消火。炎/溶岩ダメージを受けた時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Cold Resistance <span class="badge badge-str">STR</span></h4>
-                    <p>凍結ダメージ軽減：スキル%で軽減。凍結蓄積軽減：スキル/200%</p>
-                    <p class="skill-effect">スキル95+で解凍チャンス。スキル100で完全免疫+即解凍。上昇条件：凍結ダメージを受ける</p>
+                    <p class="skill-effect">凍結ダメージ軽減。スキル100で完全免疫+解凍。凍結ダメージを受けた時に上昇。</p>
                 </div>
                 <div class="skill-card">
                     <h4>Endurance <span class="badge badge-str">STR</span></h4>
-                    <p>窒息・爆発・接触ダメージ軽減：スキル%で軽減</p>
-                    <p class="skill-effect">スキル100で完全免疫。上昇条件：窒息/爆発/接触ダメージを受ける</p>
+                    <p class="skill-effect">窒息/接触ダメージ軽減。スキル100で完全免疫。窒息/接触ダメージを受けた時に上昇。</p>
+                </div>
+            </div>
+
+            <h3>その他スキル（1スキル）</h3>
+            <div class="skill-category">
+                <div class="skill-card">
+                    <h4>Arms Lore <span class="badge badge-mixed">STR+DEX+INT</span></h4>
+                    <p class="skill-effect"><code>/arms</code> で武器・防具の詳細情報（攻撃力、品質、耐久度、製作者名等）を表示。コマンド使用時に上昇。</p>
                 </div>
             </div>
         </section>
 
-        <!-- 戦闘 -->
+        <!-- ===== 戦闘システム ===== -->
         <section id="combat">
             <h2>戦闘システム</h2>
+            <p>UO準拠の命中判定・ダメージ計算で、TacticsとAnatomyが重要な役割を果たします。</p>
 
-            <h3>ダメージ計算式</h3>
-            <div class="formula">
-                <pre>基礎ダメージ = 武器の基礎攻撃力（設定ファイルから）
-STRボーナス = 1 + (STR / 200)     // 最大 +50%
-Tacticsボーナス = Tactics / 100    // 0.1 〜 1.0
-Anatomyボーナス = 0.5 + (Anatomy / 100)  // 0.6 〜 1.5
-クリティカル = Anatomy / 2 % の確率で2倍ダメージ
-
-最終 = 基礎 × STR × Tactics × Anatomy × 品質 × エンチャント</pre>
-            </div>
-
-            <h3>命中率</h3>
+            <h3>命中判定（UO準拠）</h3>
             <div class="formula">
                 <code>命中率 = 武器スキル - (対象防御値 / 2) + 50</code>
-                <p>最小：5%、最大：95%</p>
+                <p>最小: 5%、最大: 95%。対Mob: physical_defense、対プレイヤー: Parryingスキル。</p>
             </div>
 
-            <h3>パリィ</h3>
+            <h3>ダメージ計算</h3>
+            <div class="formula">
+                <code>最終ダメージ = 基礎ダメージ &times; Tactics補正 &times; Anatomy補正 &times; [Wrestling補正] &times; STR補正 &times; 品質補正 &times; DI補正 &times; クリティカル倍率</code>
+            </div>
+
             <table>
-                <tr>
-                    <th>装備</th>
-                    <th>ブロック確率</th>
-                    <th>ダメージ軽減</th>
-                </tr>
-                <tr>
-                    <td>盾</td>
-                    <td>Parrying × 0.5%（最大50%）</td>
-                    <td>50%</td>
-                </tr>
-                <tr>
-                    <td>武器のみ</td>
-                    <td>Parrying × 0.25%（最大25%）</td>
-                    <td>50%</td>
-                </tr>
+                <tr><th>補正項目</th><th>計算式</th><th>範囲</th></tr>
+                <tr><td>Tactics補正</td><td>Tactics / 100</td><td>0.1〜1.0</td></tr>
+                <tr><td>Anatomy補正</td><td>0.5 + (Anatomy / 100)</td><td>0.5〜1.5</td></tr>
+                <tr><td>Wrestling補正（素手時のみ）</td><td>0.5 + (Wrestling / 100)</td><td>0.5〜1.5</td></tr>
+                <tr><td>STR補正</td><td>1 + (STR / 200)</td><td>1.0〜1.5</td></tr>
+                <tr><td>品質補正</td><td>LQ:-15%, NQ:0%, HQ:+15%, EX:+25%</td><td>0.85〜1.25</td></tr>
+                <tr><td>DI（エンチャント）</td><td>1 + (合計DI / 100)</td><td>&mdash;</td></tr>
+                <tr><td>クリティカル</td><td>発動率=Anatomy/2 %、倍率=2.0</td><td>最大50%</td></tr>
             </table>
+
+            <h4>防御適用</h4>
+            <div class="formula">
+                <code>防御軽減率 = AR / (AR + 50)</code><br>
+                <code>最終ダメージ = 生ダメージ &times; (1 - 防御軽減率)</code>
+            </div>
+
+            <h3>Parrying（受け流し）</h3>
+            <table>
+                <tr><th>装備</th><th>近接攻撃の発動率</th><th>射撃攻撃の発動率</th></tr>
+                <tr><td>盾装備</td><td>Parrying &times; 0.5%（最大50%）</td><td>Parrying &times; 0.6%（最大60%）</td></tr>
+                <tr><td>武器のみ</td><td>Parrying &times; 0.25%（最大25%）</td><td>0%（ブロック不可）</td></tr>
+                <tr><td>素手</td><td>0%（パリィ不可）</td><td>0%（パリィ不可）</td></tr>
+            </table>
+            <p>パリィ成功時: <strong>ダメージ50%軽減</strong>。その後、ARによる軽減も適用されます。</p>
+
+            <h3>弓/クロスボウのバランス調整</h3>
+            <table>
+                <tr><th>項目</th><th>補正</th></tr>
+                <tr><td>距離15ブロック以内</td><td>100%</td></tr>
+                <tr><td>距離15〜30ブロック</td><td>100%→50%（線形減少）</td></tr>
+                <tr><td>距離30ブロック以上</td><td>50%</td></tr>
+                <tr><td>移動中に射撃</td><td>-30%</td></tr>
+            </table>
+
+            <h3>素手戦闘（Wrestling）</h3>
+            <p>基礎ダメージ3。Wrestling 100で木の剣〜鉄の剣相当のダメージ。スタン確率はスキル/4 %（最大25%）で、持続1秒、同一対象への連続スタンは5秒間不可。</p>
         </section>
 
-        <!-- 魔法 -->
+        <!-- ===== 防具システム ===== -->
+        <section id="armor">
+            <h2>防具システム（UOスタイル）</h2>
+            <p>各防具にはAR（Armor Rating）、STR必要値、DEX必要値、DEXペナルティが設定されます。</p>
+
+            <h3>防具別AR値（抜粋）</h3>
+            <table>
+                <tr><th>防具</th><th>AR</th><th>STR必要値</th><th>DEX必要値</th><th>DEXペナルティ</th></tr>
+                <tr><td>ネザライトチェストプレート</td><td>18</td><td>95</td><td>50</td><td>12</td></tr>
+                <tr><td>ダイヤチェストプレート</td><td>16</td><td>80</td><td>45</td><td>10</td></tr>
+                <tr><td>鉄チェストプレート</td><td>12</td><td>55</td><td>35</td><td>7</td></tr>
+                <tr><td>チェーンチェストプレート</td><td>10</td><td>45</td><td>25</td><td>5</td></tr>
+                <tr><td>金チェストプレート</td><td>7</td><td>0</td><td>0</td><td>4</td></tr>
+                <tr><td>革のジャケット</td><td>5</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td>盾</td><td>5</td><td>25</td><td>15</td><td>2</td></tr>
+            </table>
+
+            <h4>DEXペナルティ</h4>
+            <div class="formula">
+                <code>有効DEX = DEX - 防具DEXペナルティ合計</code>
+                <p>フルネザライト: -29、フルダイヤ: -23、フル鉄: -17、フルレザー: 0</p>
+            </div>
+
+            <h4>品質によるAR補正</h4>
+            <table>
+                <tr><th>品質</th><th>AR補正</th></tr>
+                <tr><td>Low Quality (LQ)</td><td>&times;0.85</td></tr>
+                <tr><td>Normal Quality (NQ)</td><td>&times;1.00</td></tr>
+                <tr><td>High Quality (HQ)</td><td>&times;1.15</td></tr>
+                <tr><td>Exceptional (EX)</td><td>&times;1.30</td></tr>
+            </table>
+
+            <h4>エンチャントARボーナス</h4>
+            <table>
+                <tr><th>エンチャント</th><th>AR増加/レベル</th></tr>
+                <tr><td>Protection</td><td>+2</td></tr>
+                <tr><td>Fire Protection</td><td>+1</td></tr>
+                <tr><td>Blast Protection</td><td>+1</td></tr>
+                <tr><td>Projectile Protection</td><td>+1</td></tr>
+            </table>
+
+            <p><strong>STR/DEX必要値</strong>: STRやDEXが不足していると防具を装備できません。低下した場合は自動的に装備が外れます。STR/INT特化ビルドはプレート防具を装備できず、チェーン以下を使用する必要があります。</p>
+        </section>
+
+        <!-- ===== 魔法システム ===== -->
         <section id="magic">
             <h2>魔法システム</h2>
+            <p>UOスタイルの8サークル制魔法システム。触媒（リージェント）を消費し、2段階の詠唱フェーズ（CASTING → TARGETING）で発動します。</p>
 
-            <h3>詠唱条件</h3>
-            <ul>
-                <li><strong>スペルブック必須</strong> - その魔法が記されたスペルブックを所持</li>
-                <li><strong>触媒</strong> - 魔法ごとに指定のマインクラフトアイテムを消費</li>
-                <li><strong>マナ</strong> - 空腹ゲージを使用</li>
-                <li><strong>ターゲット</strong> - 多くの魔法は詠唱後にターゲットモードに入る</li>
-            </ul>
+            <h3>詠唱フロー</h3>
+            <ol>
+                <li><code>/cast &lt;魔法名&gt;</code> を実行（Power Words でも可）</li>
+                <li>チェック（魔法の書所持、触媒、マナ）</li>
+                <li><strong>CASTINGフェーズ</strong>: 詠唱時間経過（ボスバー青で表示）。0.5ブロック以上移動で中断</li>
+                <li><strong>TARGETINGフェーズ</strong>: ボスバー赤に変化。5秒以内にターゲット選択</li>
+                <li>左クリック → 発動 / 右クリック → キャンセル</li>
+            </ol>
+
+            <div class="formula">
+                <code>詠唱時間 = (2000ms + サークル &times; 500ms) &times; (1 - Magery軽減)</code>
+                <p>Magery軽減: 最大30%短縮（Magery 100時）</p>
+            </div>
 
             <h3>詠唱成功率</h3>
             <div class="formula">
-                <code>成功率 = (Magery - サークル × 10) + 50 + (INT / 5)</code>
-                <p>最小：5%、最大：100%</p>
+                <code>基礎成功率 = (Magery - サークル &times; 10) + 50</code><br>
+                <code>INTボーナス = INT / 5</code><br>
+                <code>最終成功率 = 基礎成功率 + INTボーナス（最小5%、最大100%）</code>
             </div>
 
-            <h3>魔法サークル</h3>
-            <table>
-                <tr>
-                    <th>サークル</th>
-                    <th>マナ消費</th>
-                    <th>魔法数</th>
-                    <th>代表的な魔法</th>
-                </tr>
-                <tr><td>1st</td><td>1</td><td>6</td><td>Magic Arrow, Heal, Night Sight, Clumsy, Weaken</td></tr>
-                <tr><td>2nd</td><td>2</td><td>6</td><td>Harm, Cure, Feather Fall, Agility, Strength, Cunning</td></tr>
-                <tr><td>3rd</td><td>3</td><td>6</td><td>Fireball, Teleport, Bless, Poison, Wall of Stone</td></tr>
-                <tr><td>4th</td><td>4</td><td>6</td><td>Lightning, Greater Heal, Fire Wall, Curse, Mana Drain</td></tr>
-                <tr><td>5th</td><td>5</td><td>7</td><td>Energy Bolt, Mark, Recall, Paralyze, Summon Creature</td></tr>
-                <tr><td>6th</td><td>6</td><td>6</td><td>Explosion, Invisibility, Dispel, Reveal, Mass Curse</td></tr>
-                <tr><td>7th</td><td>7</td><td>6</td><td>Gate Travel, Chain Lightning, Flamestrike, Mana Vampire</td></tr>
-                <tr><td>8th</td><td>8</td><td>4</td><td>Meteor Swarm, Earthquake, Word of Death, Mass Sleep</td></tr>
-            </table>
+            <h3>魔法ダメージ計算</h3>
+            <div class="formula">
+                <code>最終ダメージ = 基礎ダメージ &times; (Magery/100) &times; (0.5 + EvalInt/100) &times; (1 - Resist軽減)</code>
+                <p>Resist軽減 = 対象の Resisting Spells &times; 0.7 / 100（最大70%軽減）</p>
+            </div>
 
             <h3>魔法一覧</h3>
 
-            <h4>1stサークル（マナ1）</h4>
+            <h4>1st Circle</h4>
             <table>
-                <tr>
-                    <th>魔法名</th>
-                    <th>パワーワード</th>
-                    <th>触媒</th>
-                    <th>効果</th>
-                </tr>
-                <tr><td>Magic Arrow</td><td><em>In Por Ylem</em></td><td>糸</td><td>投射体で20ダメージ</td></tr>
-                <tr><td>Heal</td><td><em>In Mani</em></td><td>金のニンジン</td><td>対象を小回復（3+Magery/25）</td></tr>
-                <tr><td>Create Food</td><td><em>In Mani Ylem</em></td><td>小麦</td><td>食料を生成</td></tr>
-                <tr><td>Night Sight</td><td><em>In Lor</em></td><td>グロウストーンダスト</td><td>暗視効果を付与</td></tr>
-                <tr><td>Clumsy</td><td><em>Uus Jux</em></td><td>スパイダーアイ</td><td>対象に鈍足効果</td></tr>
-                <tr><td>Weaken</td><td><em>Des Mani</em></td><td>スパイダーアイ</td><td>対象に弱体化効果</td></tr>
+                <tr><th>魔法</th><th>Power Words</th><th>種別</th><th>効果</th><th>触媒</th><th>MP</th></tr>
+                <tr><td>Magic Arrow</td><td>In Por Ylem</td><td>攻撃</td><td>投射体小ダメージ（20）</td><td>糸</td><td>1</td></tr>
+                <tr><td>Heal</td><td>In Mani</td><td>回復</td><td>小回復: 3+(Magery/25)</td><td>金のニンジン</td><td>1</td></tr>
+                <tr><td>Create Food</td><td>In Mani Ylem</td><td>ユーティリティ</td><td>食料を生成</td><td>小麦</td><td>1</td></tr>
+                <tr><td>Night Sight</td><td>In Lor</td><td>バフ</td><td>暗視</td><td>グロウストーンダスト</td><td>1</td></tr>
+                <tr><td>Clumsy</td><td>Uus Jux</td><td>デバフ</td><td>DEX低下</td><td>スパイダーアイ</td><td>1</td></tr>
+                <tr><td>Weaken</td><td>Des Mani</td><td>デバフ</td><td>STR低下</td><td>スパイダーアイ</td><td>1</td></tr>
             </table>
 
-            <h4>2ndサークル（マナ2）</h4>
+            <h4>2nd Circle</h4>
             <table>
-                <tr>
-                    <th>魔法名</th>
-                    <th>パワーワード</th>
-                    <th>触媒</th>
-                    <th>効果</th>
-                </tr>
-                <tr><td>Harm</td><td><em>An Mani</em></td><td>スパイダーアイ</td><td>対象に35ダメージ</td></tr>
-                <tr><td>Cure</td><td><em>An Nox</em></td><td>金のニンジン + 毒じゃがいも</td><td>状態異常を解除</td></tr>
-                <tr><td>Feather Fall</td><td><em>Rel Des Por</em></td><td>羽</td><td>落下ダメージ軽減</td></tr>
-                <tr><td>Agility</td><td><em>Ex Uus</em></td><td>ネザーウォート</td><td>移動速度+20%</td></tr>
-                <tr><td>Strength</td><td><em>Uus Mani</em></td><td>スパイダーアイ</td><td>攻撃力+20%</td></tr>
-                <tr><td>Cunning</td><td><em>Uus Wis</em></td><td>スパイダーアイ</td><td>採掘速度上昇</td></tr>
+                <tr><th>魔法</th><th>Power Words</th><th>種別</th><th>効果</th><th>触媒</th><th>MP</th></tr>
+                <tr><td>Harm</td><td>An Mani</td><td>攻撃</td><td>単体中ダメージ（35）</td><td>スパイダーアイ</td><td>2</td></tr>
+                <tr><td>Cure</td><td>An Nox</td><td>回復</td><td>状態異常解除</td><td>金のニンジン + 毒じゃがいも</td><td>2</td></tr>
+                <tr><td>Feather Fall</td><td>Rel Des Por</td><td>バフ</td><td>落下ダメージ軽減</td><td>羽</td><td>2</td></tr>
+                <tr><td>Agility</td><td>Ex Uus</td><td>バフ</td><td>DEX上昇</td><td>ネザーウォート</td><td>2</td></tr>
+                <tr><td>Strength</td><td>Uus Mani</td><td>バフ</td><td>STR上昇</td><td>スパイダーアイ</td><td>2</td></tr>
+                <tr><td>Cunning</td><td>Uus Wis</td><td>バフ</td><td>INT上昇</td><td>スパイダーアイ</td><td>2</td></tr>
             </table>
 
-            <h4>3rdサークル（マナ3）</h4>
+            <h4>3rd Circle</h4>
             <table>
-                <tr>
-                    <th>魔法名</th>
-                    <th>パワーワード</th>
-                    <th>触媒</th>
-                    <th>効果</th>
-                </tr>
-                <tr><td>Fireball</td><td><em>Vas Flam</em></td><td>火薬 + スパイダーアイ</td><td>火の玉で50ダメージ + 炎上3秒</td></tr>
-                <tr><td>Bless</td><td><em>Rel Sanct</em></td><td>ネザーウォート</td><td>攻撃力上昇</td></tr>
-                <tr><td>Water Breathing</td><td><em>Vas An Ort</em></td><td>フグ</td><td>水中呼吸効果</td></tr>
-                <tr><td>Teleport</td><td><em>Rel Por</em></td><td>エンダーパール</td><td>指定地点へ短距離テレポート（15ブロック）</td></tr>
-                <tr><td>Poison</td><td><em>In Nox</em></td><td>スパイダーアイ</td><td>対象に毒効果（10秒）</td></tr>
-                <tr><td>Wall of Stone</td><td><em>In Sanct Ylem</em></td><td>ネザーウォート + 毒じゃがいも</td><td>石壁を召喚（5秒後消滅）</td></tr>
+                <tr><th>魔法</th><th>Power Words</th><th>種別</th><th>効果</th><th>触媒</th><th>MP</th></tr>
+                <tr><td>Fireball</td><td>Vas Flam</td><td>攻撃</td><td>火炎ダメージ（50）+ 炎上3秒</td><td>ガンパウダー + スパイダーアイ</td><td>3</td></tr>
+                <tr><td>Bless</td><td>Rel Sanct</td><td>バフ</td><td>攻撃力UP</td><td>ネザーウォート</td><td>3</td></tr>
+                <tr><td>Water Breathing</td><td>Vas An Ort</td><td>バフ</td><td>水中呼吸</td><td>フグ</td><td>3</td></tr>
+                <tr><td>Teleport</td><td>Rel Por</td><td>移動</td><td>短距離TP（射程15ブロック）</td><td>エンダーパール</td><td>3</td></tr>
+                <tr><td>Poison</td><td>In Nox</td><td>デバフ</td><td>毒付与</td><td>スパイダーアイ</td><td>3</td></tr>
+                <tr><td>Wall of Stone</td><td>In Sanct Ylem</td><td>フィールド</td><td>石の壁を生成</td><td>ネザーウォート + 毒じゃがいも</td><td>3</td></tr>
             </table>
 
-            <h4>4thサークル（マナ4）</h4>
+            <h4>4th Circle</h4>
             <table>
-                <tr>
-                    <th>魔法名</th>
-                    <th>パワーワード</th>
-                    <th>触媒</th>
-                    <th>効果</th>
-                </tr>
-                <tr><td>Lightning</td><td><em>Por Ort Grav</em></td><td>火薬 + ブレイズパウダー</td><td>雷撃で65ダメージ</td></tr>
-                <tr><td>Fire Wall</td><td><em>Kal Vas Flam</em></td><td>ブレイズパウダー×2 + スパイダーアイ</td><td>炎の壁で40ダメージ + 範囲炎上</td></tr>
-                <tr><td>Greater Heal</td><td><em>In Vas Mani</em></td><td>金のニンジン×2</td><td>対象を大回復（8+Magery/15）</td></tr>
-                <tr><td>Arch Cure</td><td><em>Vas An Nox</em></td><td>金のニンジン + 毒じゃがいも</td><td>範囲内の状態異常解除</td></tr>
-                <tr><td>Curse</td><td><em>Des Sanct</em></td><td>スパイダーアイ + 毒じゃがいも</td><td>対象にスロー+弱体化+採掘疲労</td></tr>
-                <tr><td>Mana Drain</td><td><em>Ort Rel</em></td><td>ブレイズパウダー + エンダーパール</td><td>対象のマナ3を奪う</td></tr>
+                <tr><th>魔法</th><th>Power Words</th><th>種別</th><th>効果</th><th>触媒</th><th>MP</th></tr>
+                <tr><td>Lightning</td><td>Por Ort Grav</td><td>攻撃</td><td>大ダメージ（65）</td><td>ガンパウダー + ブレイズパウダー</td><td>4</td></tr>
+                <tr><td>Fire Wall</td><td>Kal Vas Flam</td><td>攻撃</td><td>火の壁（範囲炎上、40）</td><td>ブレイズパウダー&times;2 + スパイダーアイ</td><td>4</td></tr>
+                <tr><td>Greater Heal</td><td>In Vas Mani</td><td>回復</td><td>大回復: 8+(Magery/15)</td><td>金のニンジン&times;2</td><td>4</td></tr>
+                <tr><td>Arch Cure</td><td>Vas An Nox</td><td>範囲回復</td><td>範囲状態異常解除</td><td>金のニンジン + 毒じゃがいも</td><td>4</td></tr>
+                <tr><td>Curse</td><td>Des Sanct</td><td>デバフ</td><td>全ステータス低下</td><td>スパイダーアイ + 毒じゃがいも</td><td>4</td></tr>
+                <tr><td>Mana Drain</td><td>Ort Rel</td><td>デバフ</td><td>対象のマナを減少</td><td>ブレイズパウダー + エンダーパール</td><td>4</td></tr>
             </table>
 
-            <h4>5thサークル（マナ5）</h4>
+            <h4>5th Circle</h4>
             <table>
-                <tr>
-                    <th>魔法名</th>
-                    <th>パワーワード</th>
-                    <th>触媒</th>
-                    <th>効果</th>
-                </tr>
-                <tr><td>Energy Bolt</td><td><em>Corp Por</em></td><td>スパイダーアイ + ブレイズパウダー</td><td>対象に80ダメージ</td></tr>
-                <tr><td>Mind Blast</td><td><em>Por Corp Wis</em></td><td>スパイダーアイ + ネザーウォート</td><td>対象のマナを3減少</td></tr>
-                <tr><td>Protection</td><td><em>Uus Sanct</em></td><td>ネザーウォート + 糸</td><td>防御力上昇</td></tr>
-                <tr><td>Mark</td><td><em>Kal Por Ylem</em></td><td>エンダーパール + ブレイズパウダー</td><td>現在地をルーンに記録</td></tr>
-                <tr><td>Recall</td><td><em>Kal Ort Por</em></td><td>エンダーパール</td><td>ルーンの場所へテレポート</td></tr>
-                <tr><td>Paralyze</td><td><em>An Ex Por</em></td><td>スパイダーアイ + 糸</td><td>対象を2秒間移動不可</td></tr>
-                <tr><td>Summon Creature</td><td><em>Kal Xen</em></td><td>ネザーウォート + ブレイズパウダー</td><td>スキルに応じた召喚獣を召喚</td></tr>
+                <tr><th>魔法</th><th>Power Words</th><th>種別</th><th>効果</th><th>触媒</th><th>MP</th></tr>
+                <tr><td>Energy Bolt</td><td>Corp Por</td><td>攻撃</td><td>単体大ダメージ（80）</td><td>スパイダーアイ + ブレイズパウダー</td><td>5</td></tr>
+                <tr><td>Mind Blast</td><td>Por Corp Wis</td><td>攻撃</td><td>対象のマナを減少</td><td>スパイダーアイ + ネザーウォート</td><td>5</td></tr>
+                <tr><td>Protection</td><td>Uus Sanct</td><td>バフ</td><td>防御力UP</td><td>ネザーウォート + 糸</td><td>5</td></tr>
+                <tr><td>Mark</td><td>Kal Por Ylem</td><td>移動</td><td>現在地をルーンに記憶</td><td>エンダーパール + ブレイズパウダー</td><td>5</td></tr>
+                <tr><td>Recall</td><td>Kal Ort Por</td><td>移動</td><td>ルーンの地点へTP</td><td>エンダーパール</td><td>5</td></tr>
+                <tr><td>Paralyze</td><td>An Ex Por</td><td>デバフ</td><td>移動不可（数秒）</td><td>スパイダーアイ + 糸</td><td>5</td></tr>
+                <tr><td>Fly</td><td>Vas Uus Por</td><td>継続バフ</td><td>飛行（0.2MP/秒消費）</td><td>ネザーウォート + 羽</td><td>5</td></tr>
+                <tr><td>Summon Creature</td><td>Kal Xen</td><td>召喚</td><td>クリーチャーを召喚</td><td>ネザーウォート + ブレイズパウダー</td><td>5</td></tr>
             </table>
 
-            <h4>6thサークル（マナ6）</h4>
+            <h4>6th Circle</h4>
             <table>
-                <tr>
-                    <th>魔法名</th>
-                    <th>パワーワード</th>
-                    <th>触媒</th>
-                    <th>効果</th>
-                </tr>
-                <tr><td>Explosion</td><td><em>Vas Ort Flam</em></td><td>火薬 + ブレイズパウダー</td><td>TNT爆発で90ダメージ（範囲3ブロック）</td></tr>
-                <tr><td>Invisibility</td><td><em>An Lor Xen</em></td><td>ネザーウォート + ブレイズパウダー</td><td>透明化（攻撃/ブロック破壊で解除）</td></tr>
-                <tr><td>Dispel</td><td><em>An Ort</em></td><td>毒じゃがいも + 火薬</td><td>対象のバフ効果を解除</td></tr>
-                <tr><td>Reveal</td><td><em>Wis Quas</em></td><td>ネザーウォート + 火薬</td><td>範囲内の隠れた対象を発見</td></tr>
-                <tr><td>Mass Curse</td><td><em>Vas Des Sanct</em></td><td>スパイダーアイ + ブレイズパウダー</td><td>範囲内にスロー+弱体化</td></tr>
-                <tr><td>Paralyze Field</td><td><em>In Ex Grav</em></td><td>エンダーパール + 金のニンジン</td><td>麻痺フィールドを設置（10秒）</td></tr>
+                <tr><th>魔法</th><th>Power Words</th><th>種別</th><th>効果</th><th>触媒</th><th>MP</th></tr>
+                <tr><td>Explosion</td><td>Vas Ort Flam</td><td>攻撃</td><td>範囲ダメージ（90、半径3ブロック）</td><td>ガンパウダー + ブレイズパウダー</td><td>6</td></tr>
+                <tr><td>Invisibility</td><td>An Lor Xen</td><td>バフ</td><td>透明化</td><td>ネザーウォート + ブレイズパウダー</td><td>6</td></tr>
+                <tr><td>Dispel</td><td>An Ort</td><td>ユーティリティ</td><td>対象のバフを解除</td><td>毒じゃがいも + ガンパウダー</td><td>6</td></tr>
+                <tr><td>Reveal</td><td>Wis Quas</td><td>ユーティリティ</td><td>範囲内の隠れた対象を暴く</td><td>ネザーウォート + ガンパウダー</td><td>6</td></tr>
+                <tr><td>Mass Curse</td><td>Vas Des Sanct</td><td>範囲デバフ</td><td>範囲内全ステータス低下</td><td>スパイダーアイ + ブレイズパウダー</td><td>6</td></tr>
+                <tr><td>Paralyze Field</td><td>In Ex Grav</td><td>フィールド</td><td>麻痺フィールドを設置</td><td>エンダーパール + 金のニンジン</td><td>6</td></tr>
             </table>
 
-            <h4>7thサークル（マナ7）</h4>
+            <h4>7th Circle</h4>
             <table>
-                <tr>
-                    <th>魔法名</th>
-                    <th>パワーワード</th>
-                    <th>触媒</th>
-                    <th>効果</th>
-                </tr>
-                <tr><td>Gate Travel</td><td><em>Vas Rel Por</em></td><td>エンダーパール×2 + ブレイズパウダー</td><td>ルーンの場所へゲートを開く（30秒）</td></tr>
-                <tr><td>Chain Lightning</td><td><em>Vas Ort Grav</em></td><td>エンダーパール + 火薬 + ブレイズパウダー</td><td>連鎖雷撃（最大5体）</td></tr>
-                <tr><td>Flamestrike</td><td><em>Kal Vas Flam</em></td><td>火薬 + 糸</td><td>上空から火柱で85ダメージ + 炎上</td></tr>
-                <tr><td>Energy Field</td><td><em>In Sanct Grav</em></td><td>エンダーパール + ブレイズパウダー + 糸</td><td>エネルギーフィールドを設置（15秒）</td></tr>
-                <tr><td>Mana Vampire</td><td><em>Ort Sanct</em></td><td>エンダーパール + ネザーウォート + ブレイズパウダー</td><td>対象のマナを5吸収</td></tr>
-                <tr><td>Mass Dispel</td><td><em>Vas An Ort</em></td><td>エンダーパール + 毒じゃがいも + ブレイズパウダー</td><td>範囲内の全バフを解除</td></tr>
+                <tr><th>魔法</th><th>Power Words</th><th>種別</th><th>効果</th><th>触媒</th><th>MP</th></tr>
+                <tr><td>Gate Travel</td><td>Vas Rel Por</td><td>移動</td><td>ルーン地点へゲートを開く（30秒、双方向）</td><td>エンダーパール&times;2 + ブレイズパウダー</td><td>7</td></tr>
+                <tr><td>Chain Lightning</td><td>Vas Ort Grav</td><td>攻撃</td><td>連鎖雷撃（90）</td><td>エンダーパール + ガンパウダー + ブレイズパウダー</td><td>7</td></tr>
+                <tr><td>Flamestrike</td><td>Kal Vas Flam</td><td>攻撃</td><td>炎柱攻撃（85）</td><td>ガンパウダー + 糸</td><td>7</td></tr>
+                <tr><td>Energy Field</td><td>In Sanct Grav</td><td>フィールド</td><td>エネルギーフィールドを設置</td><td>エンダーパール + ブレイズパウダー + 糸</td><td>7</td></tr>
+                <tr><td>Mana Vampire</td><td>Ort Sanct</td><td>ユーティリティ</td><td>対象のマナを吸収</td><td>エンダーパール + ネザーウォート + ブレイズパウダー</td><td>7</td></tr>
+                <tr><td>Mass Dispel</td><td>Vas An Ort</td><td>範囲ユーティリティ</td><td>範囲バフ解除</td><td>エンダーパール + 毒じゃがいも + ブレイズパウダー</td><td>7</td></tr>
             </table>
 
-            <h4>8thサークル（マナ8）</h4>
+            <h4>8th Circle</h4>
             <table>
-                <tr>
-                    <th>魔法名</th>
-                    <th>パワーワード</th>
-                    <th>触媒</th>
-                    <th>効果</th>
-                </tr>
-                <tr><td>Meteor Swarm</td><td><em>Kal Des Flam Ylem</em></td><td>火薬 + ブレイズパウダー×3</td><td>流星群で130ダメージ（範囲5ブロック）</td></tr>
-                <tr><td>Earthquake</td><td><em>In Vas Por</em></td><td>ネザーウォート + 金のニンジン + ブレイズパウダー + 火薬</td><td>地震で100ダメージ + 浮遊</td></tr>
-                <tr><td>Word of Death</td><td><em>Kal Vas An Mani</em></td><td>スパイダーアイ + 火薬 + ブレイズパウダー + ネザーウォート</td><td>対象HP50%以下で即死（失敗時80ダメージ）</td></tr>
-                <tr><td>Mass Sleep</td><td><em>Vas Zu</em></td><td>ネザーウォート + スパイダーアイ + 糸 + ブレイズパウダー</td><td>範囲内を暗闘+スロー（4秒）</td></tr>
+                <tr><th>魔法</th><th>Power Words</th><th>種別</th><th>効果</th><th>触媒</th><th>MP</th></tr>
+                <tr><td>Meteor Swarm</td><td>Kal Des Flam Ylem</td><td>攻撃</td><td>大範囲ダメージ（130、半径5ブロック）</td><td>ガンパウダー + ブレイズパウダー&times;3</td><td>8</td></tr>
+                <tr><td>Earthquake</td><td>In Vas Por</td><td>攻撃</td><td>範囲地震ダメージ（100）</td><td>ネザーウォート + 金のニンジン + ブレイズパウダー + ガンパウダー</td><td>8</td></tr>
+                <tr><td>Word of Death</td><td>Kal Vas An Mani</td><td>特殊攻撃</td><td>即死魔法（HP条件あり）</td><td>スパイダーアイ + ガンパウダー + ブレイズパウダー + ネザーウォート</td><td>8</td></tr>
+                <tr><td>Mass Sleep</td><td>Vas Zu</td><td>範囲デバフ</td><td>範囲睡眠</td><td>ネザーウォート + スパイダーアイ + 糸 + ブレイズパウダー</td><td>8</td></tr>
             </table>
 
-            <h3>触媒対応表</h3>
-            <table>
-                <tr>
-                    <th>UO名</th>
-                    <th>マインクラフトアイテム</th>
-                    <th>主な用途</th>
-                </tr>
-                <tr><td>Black Pearl</td><td>エンダーパール</td><td>移動系魔法（Teleport, Mark, Recall, Gate）</td></tr>
-                <tr><td>Blood Moss</td><td>ネザーウォート</td><td>バフ・強化系魔法</td></tr>
-                <tr><td>Garlic</td><td>毒じゃがいも</td><td>解毒・防御系魔法</td></tr>
-                <tr><td>Ginseng</td><td>金のニンジン</td><td>回復系魔法</td></tr>
-                <tr><td>Mandrake Root</td><td>ブレイズパウダー</td><td>強力な魔法の触媒</td></tr>
-                <tr><td>Nightshade</td><td>スパイダーアイ</td><td>攻撃・毒系魔法</td></tr>
-                <tr><td>Spider's Silk</td><td>糸</td><td>束縛・防御系魔法</td></tr>
-                <tr><td>Sulphurous Ash</td><td>火薬</td><td>火・爆発系魔法</td></tr>
-            </table>
-
-            <h3>ルーン</h3>
-            <p>ルーンはMark、Recall、Gate Travel魔法に必要なアイテムです。空のルーンに場所を記録してから使用します。</p>
-
-            <h4>ルーンの入手方法</h4>
-            <p>インベントリ内でTeleportスクロールとアメジストの欠片を合成：</p>
-            <ol>
-                <li>Teleportスクロールをカーソルで持つ</li>
-                <li>インベントリ内のアメジストの欠片をクリック</li>
-                <li>空のルーンが作成される（逆の操作でも可）</li>
-            </ol>
-            <p><em>スキル不要、成功率100%</em></p>
-            <p><strong>Teleportスクロールの入手先：</strong> Mobドロップ（ウィッチ等）、End City宝箱、トライアルチャンバー宝物庫、自作（<code>/scribe teleport</code>）</p>
-
-            <h4>ルーンの使い方</h4>
-            <table>
-                <tr>
-                    <th>手順</th>
-                    <th>操作</th>
-                </tr>
-                <tr><td>1</td><td>空のルーンをメインハンドに持つ</td></tr>
-                <tr><td>2</td><td><code>/cast mark</code> で場所を記録</td></tr>
-                <tr><td>3</td><td>記録済みルーンでRecallまたはGate Travelを詠唱</td></tr>
-            </table>
-
-            <h3>ルーンの書</h3>
-            <p>複数のルーンを保存できる魔法の本。チェストのようにルーンを自由に出し入れでき、GUIから直接RecallやGate Travelを詠唱できます。</p>
-
-            <h4>入手方法</h4>
+            <h3>Fly（飛行魔法）</h3>
+            <p>5th Circleの<strong>継続効果</strong>魔法。発動するとクリエイティブモードのように飛行できますが、1秒あたり0.2MPを消費し続けます。</p>
             <ul>
-                <li>司書の村人（Lv.3）から購入（40〜60エメラルド）</li>
+                <li><strong>マナ消費</strong>: 0.2 MP/秒（自然回復でINT 100なら0.2/秒回復するため、実質無限飛行）</li>
+                <li><strong>マナ切れ</strong>: マナが0になると飛行終了、Slow Falling（5秒）で安全に着地</li>
+                <li><strong>解除条件</strong>: マナ切れ、水中、ワールド変更、死亡、ログアウト</li>
+                <li><strong>触媒</strong>: ネザーウォート + 羽</li>
             </ul>
 
-            <h4>使い方</h4>
-            <table>
-                <tr>
-                    <th>操作</th>
-                    <th>説明</th>
-                </tr>
-                <tr><td>右クリック（本）</td><td>ルーンの書GUIを開く</td></tr>
-                <tr><td>ルーン登録</td><td>マーク済みルーンのみ登録可能（最大16個）</td></tr>
-            </table>
+            <h3>スクロールシステム</h3>
+            <p><code>/scribe &lt;魔法名&gt;</code> で紙+触媒からスクロールを作成。使用時は触媒不要（作成時に消費済み）。スクロール使用時の成功率は品質に依存して加算されます（LQ:+10%、NQ:+20%、HQ:+30%、EX:+40%）。</p>
 
-            <h4>GUI操作</h4>
+            <h3>ルーンシステム</h3>
+            <ul>
+                <li><strong>作成</strong>: Teleportスクロール + アメジストの欠片 をインベントリ内で合成</li>
+                <li><strong>Mark</strong>: 空のルーンに現在地を記録</li>
+                <li><strong>Recall</strong>: ルーンの地点へテレポート</li>
+                <li><strong>Gate Travel</strong>: ルーンの地点へ双方向ゲートを開く（30秒間）</li>
+            </ul>
+
+            <h3>ルーンの書（Runebook）</h3>
+            <p>最大16個のルーンを保存できる魔法の本。司書の村人（Lv.3）から購入（40〜60エメラルド）。GUIからRecall/Gate Travelを直接実行可能。</p>
+
+            <h3>魔法の書・スクロールの入手</h3>
             <table>
-                <tr>
-                    <th>操作</th>
-                    <th>説明</th>
-                </tr>
-                <tr><td>左クリック</td><td>ルーンを取り出す（通常のチェスト動作）</td></tr>
-                <tr><td>右クリック</td><td>選択したルーンへRecall詠唱</td></tr>
-                <tr><td>Shift+右クリック</td><td>選択したルーンへGate Travel詠唱（30秒）</td></tr>
-                <tr><td>ドラッグ＆ドロップ</td><td>ルーンの移動・登録（通常のチェスト動作）</td></tr>
-                <tr><td>Shift+左クリック</td><td>ルーンを素早く移動（通常のチェスト動作）</td></tr>
+                <tr><th>入手先</th><th>内容</th></tr>
+                <tr><td>司書の村人（Lv.1〜4）</td><td>C1〜C2スクロール、空のスペルブック</td></tr>
+                <tr><td>Mobドロップ（ウィッチ、エヴォーカー等）</td><td>C1〜C6スクロール</td></tr>
+                <tr><td>End City宝箱</td><td>C7〜C8スクロール（低確率）</td></tr>
+                <tr><td>トライアルチャンバー宝物庫</td><td>全サークル（高サークルほど低確率）</td></tr>
             </table>
-            <p class="note">※ 右クリック系以外は通常のチェストと同じ動作です。通常詠唱と同じ触媒・マナ・詠唱時間が必要です。</p>
         </section>
 
-        <!-- 生産システム -->
+        <!-- ===== 生産システム ===== -->
         <section id="crafting">
             <h2>生産システム</h2>
-            <p>生産スキルはアイテムの品質と特殊効果に影響します。スキルが高いほど良い品質と強いボーナスが得られます。</p>
 
             <h3>品質システム</h3>
+            <p>クラフトは必ず成功（素材ロストなし）。スキル値に応じて品質が決定されます。</p>
+
             <table>
-                <tr>
-                    <th>品質</th>
-                    <th>必要スキル</th>
-                    <th>攻撃力/防御力</th>
-                    <th>耐久度</th>
-                </tr>
-                <tr><td class="quality-lq">低品質（LQ）</td><td>0-49</td><td>-15%</td><td>-25%</td></tr>
-                <tr><td>通常品質（NQ）</td><td>50-69</td><td>+0%</td><td>+0%</td></tr>
-                <tr><td class="quality-hq">高品質（HQ）</td><td>70-89</td><td>+15%</td><td>+30%</td></tr>
-                <tr><td class="quality-ex">最高品質（EX）</td><td>90-100</td><td>+25%</td><td>+50%</td></tr>
+                <tr><th>品質</th><th>スキル条件</th><th>性能補正</th><th>耐久度補正</th></tr>
+                <tr><td>Low Quality (LQ)</td><td>0〜49</td><td>-15%</td><td>耐久度減少確率増加</td></tr>
+                <tr><td>Normal Quality (NQ)</td><td>50〜69</td><td>&plusmn;0%</td><td>&plusmn;0%</td></tr>
+                <tr><td>High Quality (HQ)</td><td>70〜89（確率判定）</td><td>+15%</td><td>33%で減少キャンセル</td></tr>
+                <tr><td>Exceptional (EX)</td><td>90〜100（確率判定）</td><td>+25% + 製作者名</td><td>50%で減少キャンセル</td></tr>
             </table>
 
-            <h3>Cookingスキル</h3>
-            <p>調理した食べ物にCookingスキルに基づいた回復ボーナスが付与されます。</p>
+            <h4>品質判定フロー</h4>
+            <pre><code>スキル70以上 → HQ判定（成功率 = スキル値%）
+  ├─ 成功 → スキル90以上なら EX判定（成功率 = (スキル-90)*10%）
+  │           ├─ 成功 → Exceptional
+  │           └─ 失敗 → High Quality
+  └─ 失敗 → Normal Quality
 
+スキル50〜69 → Normal Quality（確定）
+スキル0〜49 → Low Quality（確定）</code></pre>
+
+            <h3>UOスタイル修理システム</h3>
+            <p>金床で装備を修理すると最大耐久度が減少します。</p>
             <div class="formula">
-                <code>回復ボーナス = Cookingスキル / 4 + 品質補正</code>
-                <p>LQ: -15%、NQ: +0%、HQ: +15%、EX: +25%</p>
+                <code>減少量 = (110 - Craftingスキル) / 10</code>
+                <p>スキル100（GM）: 1ポイント、スキル50: 6ポイント、スキル0: 11ポイント減少。</p>
             </div>
 
-            <h4>食べ物の難易度</h4>
-            <table>
-                <tr>
-                    <th>難易度</th>
-                    <th>食べ物</th>
-                </tr>
-                <tr><td>5（簡単）</td><td>乾燥昆布</td></tr>
-                <tr><td>10</td><td>ベイクドポテト</td></tr>
-                <tr><td>15</td><td>焼き鳥、焼きウサギ、焼き鱈</td></tr>
-                <tr><td>20</td><td>焼き豚、ステーキ、焼き羊肉、焼き鮭</td></tr>
-                <tr><td>25</td><td>パン、クッキー</td></tr>
-                <tr><td>35</td><td>パンプキンパイ、キノコシチュー、ビートルートスープ</td></tr>
-                <tr><td>45</td><td>ウサギシチュー、怪しげなシチュー、ケーキ</td></tr>
-                <tr><td>60</td><td>金のリンゴ</td></tr>
-                <tr><td>100（マスター）</td><td>エンチャントされた金のリンゴ</td></tr>
-            </table>
-
-            <h3>Alchemyスキル</h3>
-            <p>醸造したポーションにAlchemyスキルに基づいた効果時間延長ボーナスが付与されます。</p>
-
+            <h3>修繕エンチャント連携</h3>
             <div class="formula">
-                <code>効果時間延長 = Alchemyスキル / 200（スキル100で最大+50%）</code>
+                <code>修繕成功率 = min(100, Craftingスキル &times; 100 / 60)</code>
+                <p>スキル60以上で修繕が100%成功。失敗時は経験値はプレイヤーに入るが修繕は発動しない。</p>
             </div>
-
-            <h4>ポーションの難易度</h4>
-            <table>
-                <tr>
-                    <th>難易度</th>
-                    <th>ポーション</th>
-                </tr>
-                <tr><td>15（簡単）</td><td>ありふれた、濃厚な、奇妙な</td></tr>
-                <tr><td>25</td><td>暗視、水中呼吸</td></tr>
-                <tr><td>30</td><td>治癒、俊敏、跳躍、耐火</td></tr>
-                <tr><td>35</td><td>再生、力、低速落下</td></tr>
-                <tr><td>40</td><td>透明化</td></tr>
-                <tr><td>45</td><td>毒、弱体化、鈍化</td></tr>
-                <tr><td>50</td><td>負傷、タートルマスター、幸運</td></tr>
-                <tr><td>55（難しい）</td><td>不吉、風帯電、糸繰り、粘液、蟲憑き</td></tr>
-            </table>
-
-            <h4>難易度補正</h4>
-            <table>
-                <tr>
-                    <th>条件</th>
-                    <th>追加難易度</th>
-                </tr>
-                <tr><td>効果時間延長版</td><td>+15</td></tr>
-                <tr><td>強化版（レベルII）</td><td>+20</td></tr>
-                <tr><td>スプラッシュポーション</td><td>+10</td></tr>
-                <tr><td>残留ポーション</td><td>+20</td></tr>
-            </table>
 
             <h3>スタック上限ボーナス</h3>
-            <p>生産スキルによりアイテムの最大スタック数が64から99まで増加します。</p>
-
+            <p>Crafting + Cooking + Inscription の合計に応じてスタック上限が64→99に増加します。</p>
             <div class="formula">
-                <code>最大スタック数 = 64 + (スキル合計 / 400 × 35)</code>
-                <p>対象スキル：Craftsmanship + Blacksmithy + Cooking + Alchemy</p>
+                <code>スタック上限 = 64 + (対象スキル合計 / 300 &times; 35)</code>
             </div>
-
-            <h4>スキル合計別スタック上限</h4>
             <table>
-                <tr>
-                    <th>スキル合計</th>
-                    <th>最大スタック数</th>
-                </tr>
+                <tr><th>スキル合計</th><th>スタック上限</th></tr>
                 <tr><td>0</td><td>64</td></tr>
-                <tr><td>100</td><td>73</td></tr>
-                <tr><td>200</td><td>82</td></tr>
-                <tr><td>300</td><td>90</td></tr>
-                <tr><td>400</td><td>99</td></tr>
+                <tr><td>100</td><td>76</td></tr>
+                <tr><td>200</td><td>87</td></tr>
+                <tr><td>300</td><td>99</td></tr>
             </table>
 
-            <p>スタックボーナスが適用されるタイミング：</p>
-            <ul>
-                <li>地面からアイテムを拾った時</li>
-                <li>コンテナ（チェスト、かまど等）からアイテムを取り出した時</li>
-                <li>ログイン時（既存のインベントリが更新される）</li>
-            </ul>
+            <h3>食べ物の効果</h3>
+            <p>Cookingスキルに基づいた回復ボーナスが付与されます。HQ/EX品質の食べ物にはHealth Boost効果も付きます。</p>
+            <table>
+                <tr><th>品質</th><th>Health Boost効果</th><th>持続時間</th></tr>
+                <tr><td>HQ</td><td>+2ハート（+4HP）</td><td>30秒</td></tr>
+                <tr><td>EX</td><td>+2ハート（+4HP）</td><td>1分</td></tr>
+            </table>
+
+            <h3>ポーションの効果</h3>
+            <div class="formula">
+                <code>効果時間延長 = Cookingスキル / 200（スキル100で最大+50%）</code>
+            </div>
         </section>
 
-        <!-- 採集システム -->
+        <!-- ===== 採集システム ===== -->
         <section id="gathering">
             <h2>採集システム</h2>
-            <p>採集スキルは資源収集時にボーナスを提供します。スキルが高いほど、採集速度が上がり、ドロップが良くなり、ツールの耐久消費が軽減されます。</p>
 
-            <h3>Miningスキル</h3>
-            <p>Miningスキルは鉱石採掘（ツルハシ）とソフトブロックの掘削（シャベル）の両方に適用されます。</p>
-
-            <h4>速度ボーナス（採掘速度上昇効果）</h4>
-            <p>鉱石を採掘したり、ソフトブロックを掘り始めると、STRとMiningスキルに応じた採掘速度上昇効果が適用されます。</p>
-            <div class="formula">
-                <code>速度ボーナス = STR/5 + Miningスキル/5（最大+40%）</code>
-            </div>
+            <h3>Mining（採掘）</h3>
             <table>
-                <tr>
-                    <th>合計ボーナス</th>
-                    <th>採掘速度上昇レベル</th>
-                    <th>効果</th>
-                </tr>
-                <tr><td>0-19%</td><td>なし</td><td>採掘速度上昇なし</td></tr>
-                <tr><td>20-39%</td><td>採掘速度上昇 I</td><td>+20%採掘速度</td></tr>
-                <tr><td>40%+</td><td>採掘速度上昇 II</td><td>+40%採掘速度</td></tr>
-            </table>
-            <p><em>例：Mining 100 + STR 100 = 40%ボーナス → 採掘速度上昇II → 黒曜石が約5秒で採掘可能（バニラは8.35秒）</em></p>
-
-            <h4>ボーナス鉱石ドロップ</h4>
-            <div class="formula">
-                <code>ボーナス確率 = Miningスキル / 2（最大50%）</code>
-                <p>ボーナスドロップ発生時、緑のパーティクルとサウンド、「+1 ボーナス!」メッセージが表示されます。</p>
-            </div>
-
-            <h4>耐久消費軽減</h4>
-            <div class="formula">
-                <code>軽減確率 = スキル × 0.9%（GM = 100%）</code>
-                <p>スキル100（グランドマスター）では、ツールの耐久度が減らなくなります。</p>
-            </div>
-
-            <h4>掘削ブロックの難易度（シャベル）</h4>
-            <table>
-                <tr>
-                    <th>難易度</th>
-                    <th>ブロック</th>
-                </tr>
-                <tr><td>5（簡単）</td><td>土、草ブロック、砂、雪、農地、土の道</td></tr>
-                <tr><td>10</td><td>砂利、泥、コンクリートパウダー、根付いた土、ポドゾル、雪ブロック</td></tr>
-                <tr><td>15</td><td>粘土、菌糸、泥だらけのマングローブの根、粉雪</td></tr>
-                <tr><td>20</td><td>ソウルサンド、ソウルソイル</td></tr>
-                <tr><td>25</td><td>怪しい砂、怪しい砂利</td></tr>
+                <tr><th>効果</th><th>計算式</th></tr>
+                <tr><td>採掘速度</td><td>+(STR/5 + スキル/5)%（最大+40%）</td></tr>
+                <tr><td>レア鉱石ボーナスドロップ</td><td>スキル値/2 %で追加1個（パーティクル・サウンド通知）</td></tr>
             </table>
 
-            <h3>Lumberjackingスキル</h3>
-            <p>斧で原木を伐採する際、スキルが高いほど効率が上がります。高スキルになると隣接する原木を連鎖して伐採できます。</p>
-
-            <h4>速度ボーナス（採掘速度上昇効果）</h4>
-            <div class="formula">
-                <code>速度ボーナス = Lumberjackingスキル / 10（最大 +10%）</code>
-            </div>
-
-            <h4>連鎖伐採システム</h4>
-            <p>原木を伐採すると、スキルに応じて隣接する同種の原木が自動的に伐採されます。</p>
+            <h3>Lumberjacking（連鎖伐採）</h3>
+            <p>原木を伐採すると、スキルに応じて上方向の隣接する同種原木を自動伐採します。</p>
             <table>
-                <tr>
-                    <th>スキル値</th>
-                    <th>連鎖数</th>
-                </tr>
-                <tr><td>0-9</td><td>1（連鎖なし）</td></tr>
-                <tr><td>10-19</td><td>2</td></tr>
-                <tr><td>20-29</td><td>3</td></tr>
-                <tr><td>30-39</td><td>4</td></tr>
-                <tr><td>40-49</td><td>5</td></tr>
-                <tr><td>50-59</td><td>6</td></tr>
-                <tr><td>60-69</td><td>7</td></tr>
-                <tr><td>70-79</td><td>8</td></tr>
-                <tr><td>80-89</td><td>9</td></tr>
-                <tr><td>90-99</td><td>10</td></tr>
-                <tr><td>100（GM）</td><td>無制限（木全体）</td></tr>
+                <tr><th>スキル値</th><th>連鎖数</th></tr>
+                <tr><td>0〜9</td><td>1（連鎖なし）</td></tr>
+                <tr><td>10〜19</td><td>2</td></tr>
+                <tr><td>50〜59</td><td>6</td></tr>
+                <tr><td>90〜99</td><td>10</td></tr>
+                <tr><td>100 (GM)</td><td>無制限（木全体）</td></tr>
             </table>
-
-            <h4>連鎖伐採のルール</h4>
             <ul>
-                <li><strong>対象：</strong>原木のみ（葉は破壊しない）</li>
-                <li><strong>範囲：</strong>上方向のみ（上、斜め上の9方向）※下方向には連鎖しない</li>
-                <li><strong>耐久度：</strong>最初の1ブロック分のみ消費</li>
-                <li><strong>スタミナ：</strong>消費なし</li>
-                <li><strong>別種の木：</strong>連鎖しない（オーク→オークのみ）</li>
-                <li><strong>斧の要件：</strong>不要（素手でも連鎖する）</li>
-                <li><strong>ドロップ：</strong>各原木の位置にドロップし、自然落下する</li>
-                <li><strong>処理方式：</strong>分散処理（数tickに分けて破壊、サーバー負荷軽減）</li>
+                <li>対象: 原木のみ（葉は破壊しない）</li>
+                <li>範囲: 上方向のみ（下方向には連鎖しない）</li>
+                <li>耐久度: 最初の1ブロック分のみ消費</li>
+                <li>分散処理: 数tickに分けて破壊（サーバー負荷軽減）</li>
             </ul>
 
-            <h4>連鎖伐採の挙動</h4>
-            <ul>
-                <li><strong>根本を切る：</strong>木全体が伐採される</li>
-                <li><strong>真ん中を切る：</strong>切った位置から上だけが伐採される（下は残る）</li>
-                <li><strong>上の方を切る：</strong>その部分から上だけが伐採される</li>
-            </ul>
-
-            <h3>Fishingスキル</h3>
-            <p>Fishingスキルは自動釣りを可能にします。魚がかかると、スキルに応じた確率で自動釣り上げと再キャストが行われます。</p>
-
-            <h4>自動釣りシステム</h4>
-            <ul>
-                <li><strong>手動キャスト</strong>：プレイヤーが手動で釣り竿をキャストして開始</li>
-                <li><strong>自動釣り上げ</strong>：魚がかかると、スキル値%の確率で自動的に釣り上げ</li>
-                <li><strong>自動再キャスト</strong>：自動釣り上げ成功後、自動的に再キャスト</li>
-                <li><strong>ループ</strong>：釣り竿が壊れるかプレイヤーが手動で止めるまで継続</li>
-            </ul>
-
-            <h4>自動釣り上げ確率</h4>
+            <h3>Fishing（自動釣り）</h3>
+            <p>魚がかかるとスキルに応じた確率で自動的に釣り上げ＆再キャストを行います。</p>
             <table>
-                <tr>
-                    <th>スキルレベル</th>
-                    <th>確率</th>
-                    <th>説明</th>
-                </tr>
-                <tr><td>0-19</td><td>なし</td><td>手動のみ（バニラ動作）</td></tr>
-                <tr><td>20-99</td><td>スキル値%</td><td>確率で自動釣り上げ</td></tr>
+                <tr><th>スキル値</th><th>確率</th><th>説明</th></tr>
+                <tr><td>0〜19</td><td>なし</td><td>手動のみ</td></tr>
+                <tr><td>20〜99</td><td>スキル値%</td><td>確率で自動。失敗時は手動巻き上げ必要</td></tr>
                 <tr><td>100 (GM)</td><td>100%</td><td>完全自動（放置可能）</td></tr>
             </table>
 
-            <h4>備考</h4>
-            <p>自動釣りは<strong>ボーナス機能</strong>です。自動釣り上げが失敗しても、手動で釣り上げれば魚は釣れます（バニラ動作）。時間内に反応しなかった場合のみ魚が逃げます。</p>
-
-            <h3>Farmingスキル</h3>
-            <p>成熟した作物を収穫すると、スキルレベルに応じて自動植え直しと自動成長が発動します。</p>
-
-            <h4>自動農業システム</h4>
+            <h3>Farming（自動農業）</h3>
             <ul>
-                <li><strong>自動植え直し</strong>：成熟した作物を収穫した時、インベントリに種があれば自動で植え付け（種を消費）</li>
-                <li><strong>自動成長</strong>：植え付け後、スキルに応じて成長段階を進める（骨粉不要）</li>
+                <li><strong>自動植え直し</strong>: 成熟作物を収穫時、同じ種を持っていれば自動植え付け</li>
+                <li><strong>自動成長</strong>: スキルに応じて成長段階を進める（スキル100で即座に成熟）</li>
             </ul>
-
-            <h4>スキル別成長段階</h4>
             <table>
-                <tr>
-                    <th>スキルレベル</th>
-                    <th>成長段階</th>
-                </tr>
-                <tr><td>0-19</td><td>+1段階</td></tr>
-                <tr><td>20-39</td><td>+2段階</td></tr>
-                <tr><td>40-59</td><td>+3段階</td></tr>
-                <tr><td>60-79</td><td>+4段階</td></tr>
-                <tr><td>80-99</td><td>+5段階</td></tr>
+                <tr><th>スキル値</th><th>成長段階</th></tr>
+                <tr><td>0〜19</td><td>+1段階</td></tr>
+                <tr><td>40〜59</td><td>+3段階</td></tr>
+                <tr><td>80〜99</td><td>+5段階</td></tr>
                 <tr><td>100 (GM)</td><td>即座に成熟</td></tr>
             </table>
+        </section>
 
-            <h4>対象作物</h4>
+        <!-- ===== シーフシステム ===== -->
+        <section id="thief">
+            <h2>シーフシステム</h2>
+
+            <h3>Hiding（隠れる）</h3>
+            <ul>
+                <li>発動: <code>/hide</code></li>
+                <li>成功率: スキル値%</li>
+                <li>効果: 透明化（Invisibilityエフェクト）</li>
+                <li>解除条件: 攻撃、ブロック破壊、アイテム使用、ダメージ、走る</li>
+            </ul>
+
+            <h3>Stealth（ステルス移動）</h3>
+            <ul>
+                <li>Hiding成功後に歩くと自動発動</li>
+                <li>移動可能距離: スキル値/10 ブロック（最大10ブロック）</li>
+                <li>解除条件: 距離超過、走る、攻撃、ブロック破壊</li>
+            </ul>
+
+            <h3>Detecting Hidden（発見）</h3>
+            <div class="formula">
+                <code>発見成功率 = Detecting Hidden - 対象のHiding + 50%（最小10%、最大95%）</code>
+                <p>範囲: スキル/10 ブロック（最大10ブロック）。成功すると対象のHidingが解除されます。</p>
+            </div>
+
+            <h3>Snooping → Stealing</h3>
+            <ol>
+                <li><code>/snoop</code> 実行 → ターゲットモード</li>
+                <li>プレイヤーをクリック → Snooping判定</li>
+                <li>成功: 相手のインベントリをGUIで表示</li>
+                <li>GUI内でアイテムをクリック → Stealing判定</li>
+                <li>成功: アイテムを取得 / 失敗: 相手に通知、GUI強制終了</li>
+            </ol>
+
+            <h3>Poisoning（毒塗り）</h3>
+            <ol>
+                <li>毒のポーションをインベントリに所持</li>
+                <li>武器をメインハンドに持って <code>/poison</code> を実行</li>
+                <li>成功率 = Poisoningスキル%</li>
+                <li>成功: 武器に毒付与（スキル/20回の攻撃分）、ポーション1本消費</li>
+            </ol>
+        </section>
+
+        <!-- ===== テイミングシステム ===== -->
+        <section id="taming">
+            <h2>テイミングシステム</h2>
+
+            <h3>テイム対象</h3>
             <table>
-                <tr>
-                    <th>作物</th>
-                    <th>対応する種</th>
-                </tr>
-                <tr><td>小麦</td><td>小麦の種</td></tr>
-                <tr><td>ニンジン</td><td>ニンジン</td></tr>
-                <tr><td>ジャガイモ</td><td>ジャガイモ</td></tr>
-                <tr><td>ビートルート</td><td>ビートルートの種</td></tr>
-                <tr><td>ネザーウォート</td><td>ネザーウォート</td></tr>
-                <tr><td>トーチフラワー</td><td>トーチフラワーの種</td></tr>
-                <tr><td>ピッチャー</td><td>ピッチャーポッド</td></tr>
+                <tr><th>難易度</th><th>Mob</th><th>必要スキル</th><th>好物（成功率+20%）</th></tr>
+                <tr><td>易</td><td>狼</td><td>0〜</td><td>骨</td></tr>
+                <tr><td>易</td><td>猫</td><td>0〜</td><td>生鱈、生鮭</td></tr>
+                <tr><td>易</td><td>オウム</td><td>10〜</td><td>種</td></tr>
+                <tr><td>中</td><td>馬</td><td>30〜</td><td>金のニンジン</td></tr>
+                <tr><td>中</td><td>ロバ</td><td>30〜</td><td>金のニンジン</td></tr>
+                <tr><td>中</td><td>ラマ</td><td>40〜</td><td>干草の俵</td></tr>
             </table>
 
-            <h4>対象外の作物</h4>
+            <div class="formula">
+                <code>テイム成功率 = (Animal Taming - 必要スキル) + 30%（好物所持: +20%、最大90%）</code>
+            </div>
+
+            <h3>テイムフロー</h3>
+            <ol>
+                <li><code>/tame</code> を実行</li>
+                <li>ターゲット待ち状態（10秒）</li>
+                <li>対象Mobを左クリック → テイム判定</li>
+                <li>右クリック → キャンセル</li>
+            </ol>
+
+            <h3>テイム上限</h3>
+            <p>同時テイム数 = Animal Tamingスキル / 20（最大5体）</p>
+
+            <h3>Veterinary（獣医）</h3>
+            <p>食料を持ってテイムMobを右クリックで回復。回復量 = 食料の回復量 &times; (1 + Veterinaryスキル / 100)。</p>
+
+            <h3>Animal Lore（動物知識）</h3>
+            <p><code>/lore</code> コマンドでMobのHP、状態、オーナー等を確認できます。</p>
+        </section>
+
+        <!-- ===== パーティシステム ===== -->
+        <section id="party">
+            <h2>パーティシステム</h2>
+            <p>UOのパーティシステムを参考に、チームプレイを円滑に行うための機能です。フレンドリファイヤー無効化、パーティテレポート、専用チャットを提供します。</p>
+
+            <h3>基本仕様</h3>
+            <table>
+                <tr><th>項目</th><th>仕様</th></tr>
+                <tr><td>最大人数</td><td>8人（リーダー含む）</td></tr>
+                <tr><td>パーティリーダー</td><td>招待を最初に行ったプレイヤー</td></tr>
+                <tr><td>複数パーティ所属</td><td>不可（1人1パーティのみ）</td></tr>
+                <tr><td>永続化</td><td>なし（サーバー再起動で解散）</td></tr>
+            </table>
+
+            <h3>パーティコマンド</h3>
+            <table>
+                <tr><th>コマンド</th><th>説明</th></tr>
+                <tr><td><code>/party invite &lt;プレイヤー&gt;</code></td><td>招待（パーティ未作成なら自動作成）</td></tr>
+                <tr><td><code>/party accept</code></td><td>招待を承諾</td></tr>
+                <tr><td><code>/party decline</code></td><td>招待を拒否</td></tr>
+                <tr><td><code>/party leave</code></td><td>パーティを離脱</td></tr>
+                <tr><td><code>/party kick &lt;プレイヤー&gt;</code></td><td>メンバーをキック（リーダーのみ）</td></tr>
+                <tr><td><code>/party disband</code></td><td>パーティを解散（リーダーのみ）</td></tr>
+                <tr><td><code>/party list</code></td><td>メンバー一覧を表示（HP付き）</td></tr>
+                <tr><td><code>/party leader &lt;プレイヤー&gt;</code></td><td>リーダーを移譲（リーダーのみ）</td></tr>
+                <tr><td><code>/party tp &lt;プレイヤー&gt;</code></td><td>メンバーのところにテレポート</td></tr>
+                <tr><td><code>/pc &lt;メッセージ&gt;</code></td><td>パーティチャットにメッセージ送信</td></tr>
+            </table>
+
+            <h3>フレンドリファイヤー無効</h3>
+            <p>パーティメンバー間のダメージが無効化されます。</p>
+            <table>
+                <tr><th>ダメージ種別</th><th>パーティメンバー間</th></tr>
+                <tr><td>近接攻撃（剣、斧、素手等）</td><td>無効</td></tr>
+                <tr><td>遠距離攻撃（弓、クロスボウ）</td><td>無効（矢はメンバーをすり抜け）</td></tr>
+                <tr><td>攻撃魔法（直接・範囲）</td><td>無効</td></tr>
+                <tr><td>毒武器の毒効果</td><td>無効</td></tr>
+                <tr><td>スプラッシュポーション（有害）</td><td>無効</td></tr>
+                <tr><td>スプラッシュポーション（有益）</td><td>有効</td></tr>
+                <tr><td>TNT・溶岩・火（環境ダメージ）</td><td>有効（無効化しない）</td></tr>
+            </table>
+
+            <h3>パーティテレポート</h3>
+            <table>
+                <tr><th>項目</th><th>仕様</th></tr>
+                <tr><td>コマンド</td><td><code>/party tp &lt;プレイヤー&gt;</code></td></tr>
+                <tr><td>クールダウン</td><td>120秒</td></tr>
+                <tr><td>詠唱時間</td><td>5秒（移動で中断）</td></tr>
+                <tr><td>同一ワールド制限</td><td>同じワールドにいるメンバーのみ</td></tr>
+                <tr><td>戦闘中制限</td><td>直近5秒以内にダメージを受けた場合は使用不可</td></tr>
+                <tr><td>コスト</td><td>なし（マナ・触媒不要）</td></tr>
+                <tr><td>Hiding</td><td>TP使用者のHidingは解除、TP先メンバーのHidingは維持</td></tr>
+            </table>
+
+            <h3>パーティチャット</h3>
+            <p><code>/pc &lt;メッセージ&gt;</code> でパーティメンバーだけにメッセージを送信。表示形式: <code>[Party] &lt;名前&gt; メッセージ</code>（水色）。サーバーコンソールにも出力されます。</p>
+
+            <h3>その他の連携機能</h3>
             <ul>
-                <li><strong>メロン・カボチャ</strong>：茎が残るため植え直し不要</li>
-                <li><strong>スイートベリー</strong>：茂みが残るため植え直し不要</li>
-                <li><strong>竹・サトウキビ・サボテン</strong>：積み重ね式の作物</li>
-                <li><strong>ココア</strong>：木に付ける特殊作物</li>
+                <li><strong>シーフブロック</strong>: パーティメンバーにはSnooping/Stealingを使用不可</li>
+                <li><strong>Hiding可視性</strong>: 隠れ中のパーティメンバーの位置が半透明パーティクルで見える（1秒ごと）</li>
+                <li><strong>ネームタグ色</strong>: パーティメンバーのネームタグが水色で表示される</li>
+                <li><strong>Notoriety連携</strong>: パーティメンバー間の行動はNotorietyの評判に影響しない</li>
             </ul>
         </section>
 
-        <!-- 修理システム -->
-        <section id="repair">
-            <h2>修理・修繕システム</h2>
-
-            <h3>金床修理</h3>
-            <p>金床でアイテムを修理すると、最大耐久度が減少するリアルな摩耗システムです。</p>
-
-            <div class="formula">
-                <code>最大耐久度減少 = (110 - Blacksmithyスキル) / 10</code>
-            </div>
-
-            <table>
-                <tr>
-                    <th>Blacksmithyスキル</th>
-                    <th>減少量</th>
-                </tr>
-                <tr><td>100（GM）</td><td>修理ごとに1</td></tr>
-                <tr><td>50</td><td>修理ごとに6</td></tr>
-                <tr><td>0</td><td>修理ごとに11</td></tr>
-            </table>
-
-            <h3>修繕エンチャント</h3>
-            <p>修繕の成功率はアイテム種別に応じた生産スキルに依存します。</p>
-
-            <div class="formula">
-                <code>修繕成功率 = min(100, スキル × 100 / 60)</code>
-            </div>
-
-            <h4>アイテム種別ごとの必要スキル</h4>
-            <table>
-                <tr>
-                    <th>アイテム種別</th>
-                    <th>必要スキル</th>
-                </tr>
-                <tr><td>鉄/金/ダイヤ/ネザライト/チェーン/石の装備</td><td>Blacksmithy</td></tr>
-                <tr><td>トライデント、メイス、槍</td><td>Blacksmithy</td></tr>
-                <tr><td>弓、クロスボウ、革の防具、木製品、盾</td><td>Craftsmanship</td></tr>
-                <tr><td>釣り竿、ハサミ、火打石と打ち金</td><td>Craftsmanship</td></tr>
-                <tr><td>エリトラ、タートルヘルメット</td><td>不要（常に100%）</td></tr>
-            </table>
-
-            <h4>スキル別成功率</h4>
-            <table>
-                <tr>
-                    <th>スキルレベル</th>
-                    <th>修繕成功率</th>
-                </tr>
-                <tr><td>0</td><td>0%</td></tr>
-                <tr><td>20</td><td>33%</td></tr>
-                <tr><td>30</td><td>50%</td></tr>
-                <tr><td>40</td><td>67%</td></tr>
-                <tr><td>50</td><td>83%</td></tr>
-                <tr><td>60+</td><td>100%</td></tr>
-            </table>
-        </section>
-
-        <!-- スコアボード -->
+        <!-- ===== スコアボード ===== -->
         <section id="scoreboard">
             <h2>スコアボード</h2>
-            <p>サイドバーに表示されるスコアボードには、プレイヤーの現在の状態がリアルタイムで表示されます。<code>/skills sb</code>コマンドで表示/非表示を切り替えられます。</p>
+            <p>サイドバーにHP / マナ / スタミナ、ステータス、パーティ情報等を表示します。プレイヤーごとにセクション単位で表示/非表示を切り替えられます。</p>
 
-            <h3>スコアボード表示例</h3>
-            <div class="formula">
-                <pre>Grandmaster
-Swordsman
-
-H 156/180
-M 15/20
-S 145/200
-$ 1,234
-
-Stats: 75/225
-STR: 25 ▲
-DEX: 25 ▲
-INT: 25 ▼</pre>
-            </div>
-
-            <h3>表示項目</h3>
+            <h3>セクション</h3>
             <table>
-                <tr>
-                    <th>項目</th>
-                    <th>説明</th>
-                </tr>
-                <tr>
-                    <td><strong>タイトル</strong></td>
-                    <td>プレイヤーの称号（最も高いスキルに基づく）。例：「Grandmaster Swordsman」</td>
-                </tr>
-                <tr>
-                    <td><strong>H（HP）</strong></td>
-                    <td>現在HP / 最大HP。最大HP = 100 + STR</td>
-                </tr>
-                <tr>
-                    <td><strong>M（マナ）</strong></td>
-                    <td>現在マナ / 最大マナ。魔法詠唱に使用。最大マナは固定で20</td>
-                </tr>
-                <tr>
-                    <td><strong>S（スタミナ）</strong></td>
-                    <td>現在スタミナ / 最大スタミナ。ダッシュで消費。最大スタミナ = 100 + DEX + (Focus/2)</td>
-                </tr>
-                <tr>
-                    <td><strong>$（所持金）</strong></td>
-                    <td>経済システムが有効な場合のみ表示。Vaultプラグインと連携</td>
-                </tr>
-                <tr>
-                    <td><strong>Stats</strong></td>
-                    <td>ステータス合計 / ステータス上限（225）</td>
-                </tr>
-                <tr>
-                    <td><strong>STR/DEX/INT</strong></td>
-                    <td>各ステータス値とロックモード</td>
-                </tr>
+                <tr><th>セクション</th><th>ラベル</th><th>表示内容</th></tr>
+                <tr><td>Title</td><td><code>title</code></td><td>プレイヤーの称号</td></tr>
+                <tr><td>HMS</td><td><code>hms</code></td><td>HP / マナ / スタミナ</td></tr>
+                <tr><td>Gold</td><td><code>gold</code></td><td>所持金（Vault連携時）</td></tr>
+                <tr><td>Stats</td><td><code>stats</code></td><td>STR / DEX / INT</td></tr>
+                <tr><td>Party</td><td><code>party</code></td><td>パーティメンバー情報</td></tr>
             </table>
 
-            <h3>ステータスロックモード</h3>
-            <p>各ステータスの右側に表示されるアイコンは、そのステータスの変動モードを示します。ステータス合計上限（225）に達すると、あるステータスを上げるには別のステータスを下げる必要があります。</p>
-
-            <table>
-                <tr>
-                    <th>アイコン</th>
-                    <th>モード</th>
-                    <th>説明</th>
-                </tr>
-                <tr>
-                    <td class="str"><strong>▲</strong></td>
-                    <td>UP（上昇）</td>
-                    <td>ステータスが上昇可能。合計上限に達している場合、他のステータス（DOWNまたはUPモード）を下げて上昇</td>
-                </tr>
-                <tr>
-                    <td class="dex"><strong>▼</strong></td>
-                    <td>DOWN（下降）</td>
-                    <td>ステータスが下降のみ可能。他のステータスが上昇する際に優先的に下がる</td>
-                </tr>
-                <tr>
-                    <td class="int"><strong>■</strong></td>
-                    <td>LOCKED（固定）</td>
-                    <td>ステータスは一切変化しない。上昇も下降もしない</td>
-                </tr>
-            </table>
-
-            <h3>ロックモードの切り替え</h3>
-            <p><code>/stats lock &lt;str|dex|int&gt;</code>コマンドでロックモードを切り替えられます。</p>
-            <p>切り替え順序: UP → DOWN → LOCKED → UP...</p>
-
-            <h4>使用例</h4>
+            <h3>トグルコマンド</h3>
             <ul>
-                <li><strong>戦士ビルド</strong>：STRをUP、DEXをUP、INTをDOWNに設定 → INTを犠牲にSTR/DEXが上昇</li>
-                <li><strong>魔法使いビルド</strong>：INTをUP、STR/DEXをDOWNに設定 → STR/DEXを犠牲にINTが上昇</li>
-                <li><strong>バランス型</strong>：全てUPに設定 → 均等に上昇（上限到達後は最も低いものが優先的に下がる）</li>
-                <li><strong>特定値を維持</strong>：維持したいステータスをLOCKEDに設定 → そのステータスは変化しない</li>
+                <li><code>/skills sb</code> &mdash; スコアボード全体の表示/非表示を切り替え</li>
+                <li><code>/skills sb &lt;セクション&gt;</code> &mdash; 特定セクションの表示/非表示を切り替え</li>
             </ul>
-
-            <h3>他プラグインとの競合</h3>
-            <p>設定ファイルの<code>scoreboard.conflict_mode</code>で他プラグインとのスコアボード競合時の動作を設定できます。</p>
-            <table>
-                <tr>
-                    <th>モード</th>
-                    <th>説明</th>
-                </tr>
-                <tr>
-                    <td><code>ALWAYS</code></td>
-                    <td>常にSkillsのスコアボードを表示（他プラグインを上書き）</td>
-                </tr>
-                <tr>
-                    <td><code>RESPECT</code></td>
-                    <td>他プラグインがサイドバーを使用している場合は表示しない（デフォルト）</td>
-                </tr>
-            </table>
+            <p>例: <code>/skills sb stats</code> でステータスセクションだけを非表示にできます。</p>
         </section>
 
-        <!-- コマンド -->
-        <section id="commands">
-            <h2>コマンド</h2>
+        <!-- ===== VengefulMobs ===== -->
+        <section id="vengeful">
+            <h2>VengefulMobs</h2>
+            <p>受動的なMob（羊、牛、豚など）が攻撃されると反撃する機能です。config.ymlで有効/無効を切り替えられます。</p>
 
-            <h3>プレイヤーコマンド</h3>
+            <h3>対象Mob</h3>
             <table>
-                <tr>
-                    <th>コマンド</th>
-                    <th>説明</th>
-                </tr>
-                <tr><td><code>/skills</code></td><td>スキル一覧を表示</td></tr>
-                <tr><td><code>/skills lock &lt;スキル名&gt;</code></td><td>スキルのロックモード切替（UP/DOWN/LOCKED）</td></tr>
-                <tr><td><code>/skills guide</code></td><td>ガイドブック取得</td></tr>
-                <tr><td><code>/skills sb</code></td><td>スコアボード表示切替</td></tr>
-                <tr><td><code>/skills language &lt;en|ja|reset&gt;</code></td><td>表示言語を変更</td></tr>
-                <tr><td><code>/stats</code></td><td>STR/DEX/INTを表示</td></tr>
-                <tr><td><code>/cast &lt;魔法名&gt;</code></td><td>魔法を詠唱（英語名）</td></tr>
-                <tr><td><code>/rune &lt;Power Words&gt;</code></td><td>Power Wordsで魔法を詠唱（例: /rune In Mani）</td></tr>
-                <tr><td><code>/arms</code></td><td>手持ちの武器・防具を鑑定</td></tr>
-                <tr><td><code>/sleep</code></td><td>ベッドなしで睡眠中としてカウント（夜＋誰かがベッドで寝ている時のみ）</td></tr>
+                <tr><th>Mob</th><th>攻撃力</th><th>攻撃間隔</th></tr>
+                <tr><td>ニワトリ / ウサギ</td><td>1.0</td><td>1500ms</td></tr>
+                <tr><td>豚 / 羊</td><td>2.0</td><td>1000ms</td></tr>
+                <tr><td>牛 / ムーシュルーム</td><td>3.0</td><td>1000ms</td></tr>
+                <tr><td>馬</td><td>4.0</td><td>1000ms</td></tr>
+                <tr><td>ヤギ</td><td>4.0</td><td>800ms</td></tr>
+            </table>
+
+            <h3>設定</h3>
+            <pre><code>vengeful_mobs:
+  enabled: true
+  anger_duration: 100        # 怒り持続時間（tick）
+  chase_distance: 16.0       # 追跡距離（ブロック）
+  default_attack_cooldown: 1000</code></pre>
+        </section>
+
+        <!-- ===== チャンクモブ制限 ===== -->
+        <section id="chunk-limit">
+            <h2>チャンクモブ制限</h2>
+            <p>チャンク単位でモブ数を制限し、自動繁殖場やスポナーによるサーバー負荷を軽減します。</p>
+
+            <h3>カテゴリ別デフォルト上限</h3>
+            <table>
+                <tr><th>カテゴリ</th><th>上限</th><th>対象</th></tr>
+                <tr><td>Passive（友好的）</td><td>24</td><td>牛、羊、豚、鶏など</td></tr>
+                <tr><td>Hostile（敵対的）</td><td>32</td><td>ゾンビ、スケルトン、クリーパーなど</td></tr>
+                <tr><td>Ambient（環境）</td><td>8</td><td>コウモリ</td></tr>
+                <tr><td>Water Creature</td><td>8</td><td>イカ、イルカなど</td></tr>
+                <tr><td>Water Ambient</td><td>16</td><td>魚類</td></tr>
+            </table>
+
+            <p><strong>制限対象外</strong>: ボスMob（エンダードラゴン、ウィザー等）、村人、アイアンゴーレム、スノーゴーレム、行商人。</p>
+        </section>
+
+        <!-- ===== エンダードラゴンスケーリング ===== -->
+        <section id="dragon">
+            <h2>エンダードラゴン スケーリングリスポーン</h2>
+            <p>エンダードラゴンが討伐されると24時間後に自動リスポーンし、討伐ごとに強化されます。エンドゲームの繰り返しコンテンツとして機能します。</p>
+
+            <h3>ステータススケーリング</h3>
+            <table>
+                <tr><th>ステータス</th><th>基本値</th><th>スケーリング</th><th>上限</th></tr>
+                <tr><td>HP</td><td>200</td><td>+50 /討伐</td><td>1000</td></tr>
+                <tr><td>攻撃力倍率</td><td>1.0x</td><td>+0.15 /討伐</td><td>4.0x</td></tr>
+                <tr><td>チャージ攻撃ダメージ</td><td>1.0x</td><td>+0.2 /討伐</td><td>5.0x</td></tr>
+                <tr><td>ブレス持続時間</td><td>3秒</td><td>+0.5秒 /討伐</td><td>10秒</td></tr>
+            </table>
+
+            <h3>ドラゴンスキル（ハメ技対策）</h3>
+            <p>討伐回数に応じてスキルが1つずつ追加され、6回目以降は全スキル搭載で復活します。</p>
+            <table>
+                <tr><th>討伐回数</th><th>追加スキル</th><th>効果</th></tr>
+                <tr><td>0（初回）</td><td>なし</td><td>バニラドラゴン</td></tr>
+                <tr><td>1</td><td>爆発耐性</td><td>ベッド・TNT等の爆発ダメージ完全無効</td></tr>
+                <tr><td>2</td><td>建造物破壊</td><td>周辺の設置ブロック（黒曜石・エンドストーン以外）を定期的に破壊</td></tr>
+                <tr><td>3</td><td>回復オーラ</td><td>30秒ダメージ無しで急速回復（HP 5%/秒）</td></tr>
+                <tr><td>4</td><td>エンダーマン召喚</td><td>60秒ごとにエンダーマン3体召喚（最大9体）</td></tr>
+                <tr><td>5</td><td>クリスタル再生</td><td>破壊されたエンドクリスタルを120秒後に再生成</td></tr>
+                <tr><td>6+</td><td>プレイヤー引き寄せ</td><td>50ブロック以上離れたプレイヤーをTP</td></tr>
+            </table>
+
+            <h3>ドロップ報酬</h3>
+            <ul>
+                <li><strong>装備</strong>: 武器または防具1つ（鉄70% / ダイヤ25% / ネザライト5%、品質: NQ 94% / HQ 5% / EX 1%）</li>
+                <li><strong>スクロール</strong>: C4〜C8の魔法スクロール1つ</li>
+                <li><strong>経験値</strong>: 12000 &times; (1 + 討伐回数 &times; 0.25)</li>
+                <li><strong>ドラゴンの卵</strong>: 初回のみ（2回目以降はドロップしない）</li>
+                <li><strong>EX品質の製作者名</strong>: 三大伝説の鍛冶師（Zardoz / Volund / Mondain）からランダム</li>
+            </ul>
+
+            <h3>コマンド</h3>
+            <p><code>/dragoninfo</code> で現在の討伐回数、次回リスポーン時刻、ドラゴンのステータスとスキル一覧を確認できます。</p>
+        </section>
+
+        <!-- ===== コマンド一覧 ===== -->
+        <section id="commands">
+            <h2>コマンド一覧</h2>
+
+            <h3>一般コマンド</h3>
+            <table>
+                <tr><th>コマンド</th><th>説明</th><th>権限</th></tr>
+                <tr><td><code>/skills</code></td><td>自分のスキル一覧表示</td><td>skills.use</td></tr>
+                <tr><td><code>/skills list</code></td><td>自分のスキル一覧表示</td><td>skills.use</td></tr>
+                <tr><td><code>/skills lock &lt;スキル名&gt;</code></td><td>スキルのロックモード切替（UP/DOWN/LOCKED）</td><td>skills.use</td></tr>
+                <tr><td><code>/skills guide</code></td><td>ガイドブック取得</td><td>skills.use</td></tr>
+                <tr><td><code>/skills sb</code></td><td>スコアボード表示切替</td><td>skills.use</td></tr>
+                <tr><td><code>/skills sb &lt;section&gt;</code></td><td>スコアボードセクション個別切替（title/hms/gold/stats/party）</td><td>skills.use</td></tr>
+                <tr><td><code>/skills language [言語]</code></td><td>表示言語を変更（en/ja/reset）</td><td>skills.use</td></tr>
+                <tr><td><code>/stats</code></td><td>自分のSTR/DEX/INT表示</td><td>skills.use</td></tr>
+                <tr><td><code>/arms</code></td><td>手持ち武器・防具の詳細表示</td><td>skills.use</td></tr>
+            </table>
+
+            <h3>魔法コマンド</h3>
+            <table>
+                <tr><th>コマンド</th><th>説明</th><th>権限</th></tr>
+                <tr><td><code>/cast &lt;魔法名&gt;</code></td><td>魔法詠唱（Power Wordsでも可）</td><td>skills.magic</td></tr>
+                <tr><td><code>/cast cancel</code></td><td>詠唱キャンセル</td><td>skills.magic</td></tr>
+                <tr><td><code>/scribe &lt;魔法名&gt;</code></td><td>スクロール作成</td><td>skills.magic</td></tr>
+                <tr><td><code>/scribe list</code></td><td>作成可能なスクロール一覧</td><td>skills.magic</td></tr>
+                <tr><td><code>/spellbook [魔法名]</code></td><td>魔法の書取得</td><td>skills.magic</td></tr>
+                <tr><td><code>/spellbook all</code></td><td>全魔法の書取得</td><td>skills.magic</td></tr>
+                <tr><td><code>/spellbook list</code></td><td>魔法一覧表示</td><td>skills.magic</td></tr>
+                <tr><td><code>/evaluate</code></td><td>相手のマナ確認</td><td>skills.magic</td></tr>
             </table>
 
             <h3>シーフコマンド</h3>
             <table>
-                <tr>
-                    <th>コマンド</th>
-                    <th>説明</th>
-                </tr>
-                <tr><td><code>/hide</code></td><td>隠れる</td></tr>
-                <tr><td><code>/detect</code></td><td>隠れているプレイヤーを発見</td></tr>
-                <tr><td><code>/snoop</code></td><td>プレイヤーのインベントリを覗く</td></tr>
-                <tr><td><code>/poison</code></td><td>武器に毒を塗る</td></tr>
+                <tr><th>コマンド</th><th>説明</th><th>権限</th></tr>
+                <tr><td><code>/hide</code></td><td>隠れる</td><td>skills.thief</td></tr>
+                <tr><td><code>/detect</code></td><td>隠れた人を発見</td><td>skills.thief</td></tr>
+                <tr><td><code>/snoop</code></td><td>インベントリ覗き</td><td>skills.thief</td></tr>
+                <tr><td><code>/poison</code></td><td>武器に毒付与</td><td>skills.thief</td></tr>
             </table>
 
-            <h3>テイムコマンド</h3>
+            <h3>テイミングコマンド</h3>
             <table>
-                <tr>
-                    <th>コマンド</th>
-                    <th>説明</th>
-                </tr>
-                <tr><td><code>/tame</code></td><td>生物をテイム</td></tr>
-                <tr><td><code>/lore</code></td><td>生物の情報を表示</td></tr>
-                <tr><td><code>/evaluate</code></td><td>対象のマナを確認</td></tr>
+                <tr><th>コマンド</th><th>説明</th><th>権限</th></tr>
+                <tr><td><code>/tame</code></td><td>テイム開始</td><td>skills.taming</td></tr>
+                <tr><td><code>/lore</code></td><td>Mob情報確認</td><td>skills.taming</td></tr>
             </table>
 
-            <h3>管理者コマンド</h3>
+            <h3>パーティコマンド</h3>
             <table>
-                <tr>
-                    <th>コマンド</th>
-                    <th>説明</th>
-                </tr>
-                <tr><td><code>/skilladmin check &lt;プレイヤー&gt;</code></td><td>プレイヤーのスキルを確認</td></tr>
-                <tr><td><code>/skilladmin setstat &lt;プレイヤー&gt; &lt;ステータス&gt; &lt;値&gt;</code></td><td>ステータスを設定</td></tr>
+                <tr><th>コマンド</th><th>説明</th><th>権限</th></tr>
+                <tr><td><code>/party invite &lt;プレイヤー&gt;</code></td><td>プレイヤーを招待</td><td>skills.party</td></tr>
+                <tr><td><code>/party accept</code></td><td>招待を承諾</td><td>skills.party</td></tr>
+                <tr><td><code>/party decline</code></td><td>招待を拒否</td><td>skills.party</td></tr>
+                <tr><td><code>/party leave</code></td><td>パーティを離脱</td><td>skills.party</td></tr>
+                <tr><td><code>/party kick &lt;プレイヤー&gt;</code></td><td>メンバーをキック（リーダーのみ）</td><td>skills.party</td></tr>
+                <tr><td><code>/party disband</code></td><td>パーティを解散（リーダーのみ）</td><td>skills.party</td></tr>
+                <tr><td><code>/party list</code></td><td>メンバー一覧表示</td><td>skills.party</td></tr>
+                <tr><td><code>/party leader &lt;プレイヤー&gt;</code></td><td>リーダー移譲（リーダーのみ）</td><td>skills.party</td></tr>
+                <tr><td><code>/party tp &lt;プレイヤー&gt;</code></td><td>メンバーへテレポート</td><td>skills.party</td></tr>
+                <tr><td><code>/pc &lt;メッセージ&gt;</code></td><td>パーティチャット</td><td>skills.party</td></tr>
+            </table>
+
+            <h3>ドラゴンコマンド</h3>
+            <table>
+                <tr><th>コマンド</th><th>説明</th><th>権限</th></tr>
+                <tr><td><code>/dragoninfo</code></td><td>エンダードラゴンの状態確認</td><td>skills.use</td></tr>
+            </table>
+
+            <h3>管理コマンド</h3>
+            <table>
+                <tr><th>コマンド</th><th>説明</th><th>権限</th></tr>
+                <tr><td><code>/skillcheck &lt;プレイヤー&gt;</code></td><td>対象のスキル確認</td><td>skills.admin</td></tr>
+                <tr><td><code>/skillset &lt;プレイヤー&gt; &lt;スキル&gt; &lt;値&gt;</code></td><td>スキル値設定</td><td>skills.admin</td></tr>
+                <tr><td><code>/skillreset &lt;プレイヤー&gt;</code></td><td>スキルリセット</td><td>skills.admin</td></tr>
             </table>
         </section>
 
-        <!-- 変更履歴 -->
+        <!-- ===== 権限 ===== -->
+        <section id="permissions">
+            <h2>権限一覧</h2>
+            <table>
+                <tr><th>権限</th><th>説明</th></tr>
+                <tr><td><code>skills.use</code></td><td>基本機能使用（/skills, /stats, /arms, /dragoninfo等）</td></tr>
+                <tr><td><code>skills.magic</code></td><td>魔法関連コマンド（/cast, /scribe, /spellbook, /evaluate）</td></tr>
+                <tr><td><code>skills.thief</code></td><td>シーフ関連コマンド（/hide, /detect, /snoop, /poison）</td></tr>
+                <tr><td><code>skills.taming</code></td><td>テイミング関連コマンド（/tame, /lore）</td></tr>
+                <tr><td><code>skills.party</code></td><td>パーティ関連コマンド（/party, /pc）</td></tr>
+                <tr><td><code>skills.admin</code></td><td>管理コマンド（/skillcheck, /skillset, /skillreset）</td></tr>
+                <tr><td><code>skills.*</code></td><td>全権限</td></tr>
+            </table>
+        </section>
+
+        <!-- ===== 変更履歴 ===== -->
         <section id="changelog">
             <h2>変更履歴</h2>
 
             <div class="changelog-entry">
-                <h4>v0.4.7</h4>
-                <span class="date">2026-01-11</span>
+                <h4>v0.4.20 - パーティシステム</h4>
+                <p class="date">2026年3月</p>
                 <ul>
-                    <li><strong>DEX必要値追加</strong> - 防具にDEX必要値を追加（UOスタイル）。STR/INT特化ビルドはプレート防具を装備できず、チェーン/革を使用する必要がある</li>
-                    <li><strong>End Cityスクロールドロップ</strong> - C5-C8に特化（エンドゲームコンテンツとして）、ドロップ確率を上方修正（C5-C6: 10%, C7: 5%, C8: 2%）</li>
+                    <li>パーティシステムを実装（招待、フレンドリファイヤー無効、パーティTP、パーティチャット）</li>
+                    <li>パーティメンバーのネームタグ色変更（水色）</li>
+                    <li>Hiding中のパーティメンバー位置表示（パーティクル）</li>
+                    <li>パーティメンバーへのシーフスキルブロック</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v0.4.4</h4>
-                <span class="date">2026-01-06</span>
+                <h4>v0.4.19 - Fly魔法と継続効果システム</h4>
+                <p class="date">2026年3月</p>
                 <ul>
-                    <li><strong>/runeコマンド</strong> - Power Words詠唱専用コマンド（例: /rune In Mani でHeal）</li>
-                    <li><strong>コマンド分離</strong> - /castは英語名のみ、/runeはPower Words用</li>
-                    <li><strong>魔導書改善</strong> - 対象タイプ表示、1ページ1魔法、レイアウト改善</li>
-                    <li><strong>修正:</strong> 複数単語Power Wordsのタブ補完</li>
+                    <li>Fly魔法（5th Circle）を実装: 0.2MP/秒消費の継続飛行</li>
+                    <li>汎用継続効果管理システム（OngoingSpellEffect）を追加</li>
+                    <li>Fly終了時のSlow Fallingによる安全着地</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v0.4.2</h4>
-                <span class="date">2026-01-05</span>
+                <h4>v0.4.18 - エンダードラゴン スケーリングリスポーン</h4>
+                <p class="date">2026年3月</p>
                 <ul>
-                    <li><strong>チャンクモブ制限</strong> - 繁殖施設やスポナーによるサーバー負荷を軽減するためチャンク単位でモブ数を制限（受動: 24, 敵対: 32, 環境: 8, 水棲: 8/16）</li>
-                    <li><strong>保護対象エンティティ</strong> - ボスモブと村人は制限対象外</li>
-                    <li><strong>繁殖通知</strong> - チャンク制限により繁殖がブロックされた場合にプレイヤーに通知</li>
+                    <li>エンダードラゴン討伐後の自動リスポーン（24時間）</li>
+                    <li>討伐回数に応じたステータススケーリング</li>
+                    <li>6段階のドラゴンスキル（ハメ技対策）</li>
+                    <li>装備・スクロールドロップ報酬</li>
+                    <li><code>/dragoninfo</code> コマンド追加</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v0.4.1</h4>
-                <span class="date">2026-01-05</span>
+                <h4>v0.4.17 - 戦闘スキル上限</h4>
+                <p class="date">2026年3月</p>
                 <ul>
-                    <li><strong>トライアルチャンバーのスクロールドロップ</strong> - トライアルチャンバー宝物庫からスクロールが入手可能に（C1〜C8）</li>
-                    <li><strong>修正:</strong> トライアルチャンバーVault干渉 - トライアルキーが正常に消費されるように</li>
+                    <li>アーマースタンドでの戦闘スキル上昇をスキル70で上限に制限</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v0.4.0</h4>
-                <span class="date">2026-01-04</span>
+                <h4>v0.4.16 - Parryingバグ修正と大幅強化</h4>
+                <p class="date">2026年2月</p>
                 <ul>
-                    <li><strong>魔法拡張</strong> - 23種類の新魔法を追加（Clumsy, Weaken, Agility, Strength, Cunning, Poison, Wall of Stone, Arch Cure, Curse, Mana Drain, Dispel, Mass Curse, Reveal, Paralyze Field, Chain Lightning, Flamestrike, Energy Field, Mana Vampire, Mass Dispel, Summon Creature, Earthquake, Word of Death, Mass Sleep）</li>
-                    <li><strong>召喚システム</strong> - スキルに応じたクリーチャーを召喚するSummonManager追加</li>
-                    <li><strong>魔法ビジュアル改善</strong> - FireballはSmallFireballエンティティ使用、Meteor Swarmは落下する隕石、Wall of Stoneは実際のブロック生成、ExplosionはTNT爆発エフェクト</li>
-                    <li><strong>Resisting Spells強化</strong> - スキル100での最大ダメージ軽減を50%から70%に増加</li>
-                    <li><strong>修正:</strong> 透明化（Invisibility/Hide）が攻撃とブロック破壊で解除されるように</li>
+                    <li>Parryingスキルのバグ修正と大幅強化</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v0.3.1</h4>
-                <span class="date">2026-01-04</span>
+                <h4>v0.4.13 - SkillsAPI</h4>
+                <p class="date">2026年2月</p>
                 <ul>
-                    <li><strong>睡眠スキップコマンド</strong> - /sleep でベッドなしでも睡眠中としてカウント（夜＋誰かがベッドで寝ている時のみ使用可能）</li>
+                    <li>外部プラグイン向けAPI（SkillsAPI）をServicesManagerで公開</li>
                 </ul>
             </div>
 
             <div class="changelog-entry">
-                <h4>v0.3.0</h4>
-                <span class="date">2026-01-04</span>
+                <h4>以前のバージョン</h4>
+                <p class="date">2025年〜2026年初頭</p>
                 <ul>
-                    <li><strong>HQ/EX食べ物のHealth Boost</strong> - HQ食べ物で+2ハート(30秒)、EX食べ物で+2ハート(1分)</li>
-                    <li><strong>GM（スキル100）完全免疫</strong> - サバイバルスキル100で完全免疫、画面揺れなし</li>
-                    <li><strong>サバイバルスキルリバランス</strong> - 環境ダメージがバニラと同等の致死性を維持するようSTRスケーリングを導入</li>
-                    <li><strong>修正:</strong> 食べ物のスタック問題（浮動小数点精度）</li>
-                    <li><strong>修正:</strong> 管理コマンドのスペース入りスキル名パース</li>
-                </ul>
-            </div>
-
-            <div class="changelog-entry">
-                <h4>v0.2.9</h4>
-                <span class="date">2026-01-04</span>
-                <ul>
-                    <li><strong>UOスタイル ルーンの書</strong> - 最大16個のルーンを保存、GUIからRecall/Gate Travel詠唱可能</li>
-                    <li><strong>修正:</strong> Gate Travel持続時間を30秒に固定</li>
-                    <li><strong>修正:</strong> ルーンの書のメモリリーク対策</li>
-                </ul>
-            </div>
-
-            <div class="changelog-entry">
-                <h4>v0.2.8</h4>
-                <span class="date">2026-01-03</span>
-                <ul>
-                    <li><strong>スキル統合</strong> - BowcraftとTinkeringがCraftsmanshipに統合</li>
-                    <li><strong>スタック上限ボーナス</strong> - 生産スキル（Craftsmanship + Blacksmithy + Cooking + Alchemy）に応じてアイテムが99までスタック可能に</li>
-                    <li><strong>Craftsmanship更新</strong> - 弓・矢・ツールをカバー、ステータス寄与がSTR 50% + DEX 50%に変更</li>
-                </ul>
-            </div>
-
-            <div class="changelog-entry">
-                <h4>v0.2.7</h4>
-                <span class="date">2026-01-02</span>
-                <ul>
-                    <li><strong>シャベル掘削システム</strong> - シャベルでソフトブロックを掘るとMiningスキルが上昇、耐久消費軽減と採掘速度上昇ボーナス付き</li>
-                    <li><strong>採集速度ボーナス</strong> - Mining、Lumberjacking、掘削時にスキルに応じた採掘速度上昇効果を適用</li>
-                    <li><strong>Cookingスキル効果</strong> - 調理した食べ物にCookingスキルと品質に基づく回復ボーナスを付与</li>
-                    <li><strong>Alchemyスキル効果</strong> - 醸造したポーションにAlchemyスキルに基づく効果時間延長を付与</li>
-                    <li><strong>Tinkeringスキル効果</strong> - 対象アイテムの修繕成功率がTinkeringスキルに依存</li>
-                    <li><strong>Spearスキル</strong> - 槍武器用の新しい戦闘スキル（1.21.5+）</li>
-                    <li><strong>修理劣化システム</strong> - 金床修理で最大耐久度が減少</li>
-                    <li><strong>修繕＋スキル連携</strong> - 修繕の成功率が生産スキルに依存</li>
-                    <li><strong>スタミナシステム</strong> - モンスターハンター風のスタミナ管理</li>
-                    <li><strong>Farmingスキル</strong> - 農業用の新しい採集スキル</li>
-                    <li><strong>弓/クロスボウバランス</strong> - 距離減衰と移動ペナルティ</li>
-                    <li><strong>Energy Bolt魔法</strong> - 新しい5thサークルの攻撃魔法</li>
-                    <li><strong>パワーワード</strong> - 詠唱時の呪文詠唱</li>
-                    <li><strong>司書取引</strong> - 村人からスペルブックとスクロールを購入可能</li>
-                    <li><strong>修正:</strong> MiniMessageレガシーフォーマットエラー - 全てのテキストがAdventure Componentsを使用するように変更</li>
-                </ul>
-            </div>
-
-            <div class="changelog-entry">
-                <h4>v0.2.2</h4>
-                <span class="date">2025-12-27</span>
-                <ul>
-                    <li>VengefulMobsのMob別攻撃クールダウン</li>
-                    <li>STR変更時の防具バリデーション</li>
-                    <li>バニラクリティカルヒットの精度修正</li>
-                </ul>
-            </div>
-
-            <div class="changelog-entry">
-                <h4>v1.0.0 - 初回リリース</h4>
-                <ul>
-                    <li>クラシックMMORPGにインスパイアされた38スキル</li>
-                    <li>STR/DEX/INTステータスシステム</li>
-                    <li>内部HP/マナシステム</li>
-                    <li>スキルキャップシステム（合計700、各スキル100）</li>
-                    <li>8サークルの20以上の魔法</li>
-                    <li>クラフト品質システム</li>
-                    <li>シーフシステム（隠れる、窃盗、毒）</li>
-                    <li>テイムシステム</li>
-                    <li>英語・日本語対応</li>
+                    <li>37スキルの基本実装</li>
+                    <li>内部HP / マナ / スタミナシステム</li>
+                    <li>UOスタイルの魔法システム（8サークル、40以上の魔法）</li>
+                    <li>品質クラフトシステム（LQ / NQ / HQ / EX）</li>
+                    <li>連鎖伐採、自動釣り、自動農業</li>
+                    <li>シーフシステム（Hiding, Stealth, Snooping, Stealing, Poisoning）</li>
+                    <li>テイミングシステム</li>
+                    <li>防具システム（AR、STR/DEX必要値）</li>
+                    <li>スコアボードカスタマイズ（セクション別ON/OFF）</li>
+                    <li>VengefulMobs、チャンクモブ制限</li>
+                    <li>i18n対応（日本語/英語）</li>
                 </ul>
             </div>
         </section>
+
     </main>
 
     <footer>
-        <p>Skills プラグイン ドキュメント</p>
-        <p>クラシックMMORPGにインスパイア | Minecraft用に開発</p>
+        <p>Skills Plugin &copy; 2025-2026 HackLab</p>
+        <p>Kotlin 2.3.0 / Paper API 1.21.x / JVM 21</p>
     </footer>
 </body>
 </html>
