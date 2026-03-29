@@ -81,7 +81,6 @@ class ScrollManager(private val plugin: Skills) {
     fun craftScroll(player: Player, spell: SpellType): Boolean {
         val data = plugin.playerDataManager.getPlayerData(player)
         val inscriptionSkill = data.getSkillValue(SkillType.INSCRIPTION)
-        val magerySkill = data.getSkillValue(SkillType.MAGERY)
 
         // Check if player knows the spell (needs it in spellbook)
         if (!plugin.spellbookManager.hasSpell(player, spell)) {
@@ -91,11 +90,14 @@ class ScrollManager(private val plugin: Skills) {
 
         // Check materials (paper + reagents for the spell)
         if (!player.inventory.contains(Material.PAPER)) {
+            plugin.messageSender.send(player, MessageKey.SCRIBE_NO_PAPER)
             return false
         }
 
         if (!plugin.reagentManager.hasReagents(player, spell)) {
-            plugin.messageSender.send(player, MessageKey.MAGIC_NO_REAGENTS)
+            val missing = plugin.reagentManager.getMissingReagents(player, spell)
+            val missingNames = missing.joinToString(", ") { formatMaterialName(it) }
+            plugin.messageSender.send(player, MessageKey.SCRIBE_NO_REAGENTS, "reagents" to missingNames)
             return false
         }
 
@@ -104,25 +106,42 @@ class ScrollManager(private val plugin: Skills) {
         val difficulty = spell.circle.number * 10
         val successChance = (inscriptionSkill - difficulty + 50).coerceIn(10.0, 95.0)
 
-        // Consume materials regardless of success
+        // Show attempt message with success chance
+        plugin.messageSender.send(player, MessageKey.SCRIBE_ATTEMPTING,
+            "spell" to spell.displayName,
+            "chance" to String.format("%.0f", successChance))
+
+        // Consume paper (always consumed on attempt)
         player.inventory.removeItem(ItemStack(Material.PAPER, 1))
-        plugin.reagentManager.consumeReagents(player, spell)
 
         // Try skill gain
         plugin.skillManager.tryGainSkill(player, SkillType.INSCRIPTION, difficulty)
 
         // Roll for success
         if (Random.nextDouble() * 100 > successChance) {
-            plugin.messageSender.send(player, MessageKey.SCROLL_FAILED)
+            // Failed: only paper is consumed, reagents are NOT consumed (per spec)
+            plugin.messageSender.send(player, MessageKey.SCRIBE_FAILED)
             return false
         }
+
+        // Success: consume reagents
+        plugin.reagentManager.consumeReagents(player, spell)
 
         // Create and give scroll
         val scroll = createScroll(spell)
         player.inventory.addItem(scroll)
 
-        plugin.messageSender.send(player, MessageKey.SCROLL_CREATED, "spell" to spell.displayName)
+        plugin.messageSender.send(player, MessageKey.SCRIBE_SUCCESS, "spell" to spell.displayName)
         return true
+    }
+
+    /**
+     * Format material name for display (e.g., SPIDER_EYE -> Spider Eye)
+     */
+    private fun formatMaterialName(material: Material): String {
+        return material.name.lowercase().split("_").joinToString(" ") { word ->
+            word.replaceFirstChar { it.uppercase() }
+        }
     }
 
     /**

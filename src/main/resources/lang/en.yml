@@ -421,6 +421,11 @@ scribe:
   available_header: "<gold>=== Available Spells for Scribing ==="
   unknown_spell: "<red>Unknown spell: {spell}"
   unknown_spell_hint: "<gray>Use /scribe list to see available spells."
+  no_paper: "<red>You need paper to scribe a scroll."
+  no_reagents: "<red>Missing reagents: {reagents}"
+  attempting: "<yellow>Scribing {spell}... (Success rate: {chance}%)"
+  success: "<green>Successfully created scroll of {spell}!"
+  failed: "<red>Failed to scribe the scroll. Paper was consumed."
 
 # Arms command
 arms:

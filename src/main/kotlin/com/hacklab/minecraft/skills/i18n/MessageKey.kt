@@ -394,6 +394,11 @@ enum class MessageKey(val path: String) {
     SCRIBE_AVAILABLE_HEADER("scribe.available_header"),
     SCRIBE_UNKNOWN_SPELL("scribe.unknown_spell"),
     SCRIBE_UNKNOWN_SPELL_HINT("scribe.unknown_spell_hint"),
+    SCRIBE_NO_PAPER("scribe.no_paper"),
+    SCRIBE_NO_REAGENTS("scribe.no_reagents"),
+    SCRIBE_ATTEMPTING("scribe.attempting"),
+    SCRIBE_SUCCESS("scribe.success"),
+    SCRIBE_FAILED("scribe.failed"),
 
     // Arms command
     ARMS_HOLD_ITEM("arms.hold_item"),

@@ -1,6 +1,7 @@
 package com.hacklab.minecraft.skills.integration
 
 import com.hacklab.minecraft.skills.Skills
+import org.bukkit.Location
 import org.bukkit.plugin.Plugin
 import java.util.*
 
@@ -13,6 +14,8 @@ class NotorietyIntegration(private val plugin: Skills) {
     private var notorietyPlugin: Plugin? = null
     private var apiInstance: Any? = null
     private var addAlignmentMethod: java.lang.reflect.Method? = null
+    private var recordCrimeMethod: java.lang.reflect.Method? = null
+    private var crimeTypeClass: Class<*>? = null
 
     /**
      * Initialize the integration by finding the Notoriety plugin
@@ -35,6 +38,22 @@ class NotorietyIntegration(private val plugin: Skills) {
                 UUID::class.java,
                 Int::class.javaPrimitiveType
             )
+
+            // Get the recordCrime method
+            // recordCrime(criminal: UUID, crimeType: CrimeType, victim: UUID?, location: Location?, detail: String?)
+            try {
+                crimeTypeClass = Class.forName("com.hacklab.minecraft.notoriety.crime.CrimeType")
+                recordCrimeMethod = apiInstance?.javaClass?.getMethod(
+                    "recordCrime",
+                    UUID::class.java,
+                    crimeTypeClass,
+                    UUID::class.java,
+                    Location::class.java,
+                    String::class.java
+                )
+            } catch (e: Exception) {
+                plugin.logger.warning("recordCrime method not found (older Notoriety version?): ${e.message}")
+            }
 
             plugin.logger.info("Notoriety integration enabled.")
             return true
@@ -63,10 +82,29 @@ class NotorietyIntegration(private val plugin: Skills) {
         }
     }
 
+    /**
+     * Record a crime in the Notoriety crime history.
+     * @param crimeTypeName CrimeType enum name (e.g., "THEFT", "ATTACK")
+     */
+    fun recordCrime(criminal: UUID, crimeTypeName: String, victim: UUID?, location: Location?, detail: String?) {
+        if (recordCrimeMethod == null || crimeTypeClass == null) return
+
+        try {
+            val crimeType = java.lang.Enum.valueOf(crimeTypeClass as Class<out Enum<*>>, crimeTypeName)
+            recordCrimeMethod?.invoke(apiInstance, criminal, crimeType, victim, location, detail)
+        } catch (e: Exception) {
+            plugin.logger.warning("Failed to record crime: ${e.message}")
+        }
+    }
+
     companion object {
-        // Standard penalties
-        const val SNOOP_PENALTY = -5
-        const val STEAL_PENALTY = -10
-        const val STEAL_FAILED_PENALTY = -5
+        // Note: recordCrime already applies CrimeType.THEFT.defaultPenalty (-5) internally.
+        // Only use addAlignment for EXTRA penalties beyond the default.
+
+        // Extra penalty for successful theft (on top of recordCrime's -5, total = -10)
+        const val STEAL_SUCCESS_EXTRA_PENALTY = -5
+
+        // Crime type names (must match Notoriety's CrimeType enum)
+        const val CRIME_THEFT = "THEFT"
     }
 }

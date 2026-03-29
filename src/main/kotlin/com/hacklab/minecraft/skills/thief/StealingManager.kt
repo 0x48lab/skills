@@ -136,12 +136,28 @@ class StealingManager(private val plugin: Skills) {
     }
 
     /**
-     * Report theft to notoriety system
+     * Report theft to notoriety system.
+     * recordCrime applies alignment penalty internally via CrimeType.defaultPenalty (-5).
+     * For successful theft, apply additional penalty to total -10.
      */
     private fun reportCrime(thief: Player, victim: Player, item: ItemStack, success: Boolean) {
         if (plugin.notorietyIntegration.isAvailable()) {
-            val penalty = if (success) NotorietyIntegration.STEAL_PENALTY else NotorietyIntegration.STEAL_FAILED_PENALTY
-            plugin.notorietyIntegration.addAlignment(thief.uniqueId, penalty)
+            val status = if (success) "Success" else "Failed"
+            val itemName = item.type.name.lowercase().replace("_", " ")
+
+            // recordCrime applies CrimeType.THEFT defaultPenalty (-5) internally
+            plugin.notorietyIntegration.recordCrime(
+                criminal = thief.uniqueId,
+                crimeTypeName = NotorietyIntegration.CRIME_THEFT,
+                victim = victim.uniqueId,
+                location = thief.location,
+                detail = "Stealing ($status): $itemName from ${victim.name}"
+            )
+
+            // Successful theft gets additional penalty (-5 more, total -10)
+            if (success) {
+                plugin.notorietyIntegration.addAlignment(thief.uniqueId, NotorietyIntegration.STEAL_SUCCESS_EXTRA_PENALTY)
+            }
         }
     }
 }

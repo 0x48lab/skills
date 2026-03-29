@@ -425,6 +425,11 @@ scribe:
   available_header: "<gold>=== 書写可能な魔法 ==="
   unknown_spell: "<red>不明な魔法: {spell}"
   unknown_spell_hint: "<gray>/scribe list で利用可能な魔法を確認できます。"
+  no_paper: "<red>スクロールを書写するには紙が必要です。"
+  no_reagents: "<red>触媒が不足しています: {reagents}"
+  attempting: "<yellow>{spell}を書写中... (成功率: {chance}%)"
+  success: "<green>{spell}のスクロールを作成しました！"
+  failed: "<red>書写に失敗しました。紙を消費しました。"
 
 # アームズコマンド
 arms:

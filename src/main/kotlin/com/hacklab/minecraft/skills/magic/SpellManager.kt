@@ -188,6 +188,10 @@ class SpellManager(private val plugin: Skills) {
                 plugin.reagentManager.consumeReagents(caster, spell)
             }
             plugin.manaManager.consumeMana(caster, spell)
+            // Magery skill gain on failure too (UO spec: success/failure both trigger gain)
+            if (!useScroll) {
+                plugin.skillManager.tryGainSkill(caster, SkillType.MAGERY, spell.difficulty)
+            }
             return false
         }
 
@@ -1444,16 +1448,16 @@ class SpellManager(private val plugin: Skills) {
             )
             plugin.combatManager.applyInternalDamage(target, defenseResult.damage)
 
-            // Try eval int skill gain for caster (if online)
-            caster?.let {
-                plugin.skillManager.tryGainSkill(it, SkillType.EVALUATING_INTELLIGENCE, 50)
-            }
-
             // Try resisting spells skill gain for target (when taking magic damage)
             plugin.skillManager.tryGainSkill(target, SkillType.RESISTING_SPELLS, 50)
         } else {
             // Direct damage to mobs
             target.damage(damage, caster)
+        }
+
+        // Eval Int skill gain: triggers on ANY magic damage (PvE only, not PvP)
+        if (caster != null && target !is Player) {
+            plugin.skillManager.tryGainSkill(caster, SkillType.EVALUATING_INTELLIGENCE, 50)
         }
     }
 }

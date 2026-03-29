@@ -147,6 +147,8 @@ class CombatListener(private val plugin: Skills) : Listener {
 
         // Player being attacked - apply to internal HP
         if (target is Player) {
+            // 既に死亡しているプレイヤーへのダメージ処理をスキップ（多重死亡防止）
+            if (target.isDead) return
 
             val isMagic = event.cause == EntityDamageEvent.DamageCause.MAGIC ||
                     event.cause == EntityDamageEvent.DamageCause.DRAGON_BREATH
@@ -194,6 +196,9 @@ class CombatListener(private val plugin: Skills) : Listener {
 
         // Handle environmental damage to players (fall, fire, drowning, etc.)
         if (entity is Player) {
+            // 既に死亡しているプレイヤーへのダメージ処理をスキップ（多重死亡防止）
+            if (entity.isDead) return
+
             val data = plugin.playerDataManager.getPlayerData(entity)
             val internalDamage = event.damage * plugin.skillsConfig.baseDamageMultiplier
             data.damage(internalDamage)

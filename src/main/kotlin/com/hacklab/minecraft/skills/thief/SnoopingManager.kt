@@ -47,9 +47,15 @@ class SnoopingManager(private val plugin: Skills) {
         val snoopDifficulty = (targetData.getTotalSkillPoints() / SkillType.entries.size).toInt()
         plugin.skillManager.tryGainSkill(snooper, SkillType.SNOOPING, snoopDifficulty)
 
-        // Apply alignment penalty for snooping (criminal act)
+        // Record crime for snooping (recordCrime applies alignment penalty internally via CrimeType.defaultPenalty)
         if (plugin.notorietyIntegration.isAvailable()) {
-            plugin.notorietyIntegration.addAlignment(snooper.uniqueId, SNOOP_ALIGNMENT_PENALTY)
+            plugin.notorietyIntegration.recordCrime(
+                criminal = snooper.uniqueId,
+                crimeTypeName = com.hacklab.minecraft.skills.integration.NotorietyIntegration.CRIME_THEFT,
+                victim = target.uniqueId,
+                location = snooper.location,
+                detail = "Snooping: ${target.name}"
+            )
         }
 
         if (Random.nextDouble() * 100 > successChance) {

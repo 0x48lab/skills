@@ -120,6 +120,9 @@ object StatCalculator {
      * Sync internal HP to vanilla health
      */
     fun syncHealthToVanilla(player: Player, data: PlayerData) {
+        // 既に死亡しているプレイヤーにhealth=0を再設定すると多重死亡が発生するため、スキップ
+        if (player.isDead) return
+
         val hpPercent = data.getHpPercentage()
         val maxHealth = player.getAttribute(Attribute.MAX_HEALTH)?.value ?: 20.0
         player.health = (maxHealth * hpPercent).coerceIn(0.0, maxHealth)
