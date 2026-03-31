@@ -22,6 +22,7 @@ import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.entity.EntityRegainHealthEvent
 import org.bukkit.event.entity.EntityShootBowEvent
 import org.bukkit.event.entity.ProjectileHitEvent
+import org.bukkit.event.player.PlayerItemDamageEvent
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.potion.PotionEffectType
 import java.util.UUID
@@ -171,6 +172,16 @@ class CombatListener(private val plugin: Skills) : Listener {
             // Cancel vanilla damage - we handle HP ourselves
             event.damage = 0.0
 
+            // Manually apply durability damage since vanilla won't do it with damage=0
+            // Defender's armor takes durability damage
+            if (defenseResult.damage > 0) {
+                applyArmorDurability(target)
+            }
+            // Attacker's weapon takes durability damage (melee only)
+            if (damager is Player && !isRangedAttack) {
+                applyWeaponDurability(damager)
+            }
+
             // Sync internal HP to vanilla (this will show the correct health)
             plugin.server.scheduler.runTask(plugin, Runnable {
                 if (target.isOnline) {
@@ -308,6 +319,64 @@ class CombatListener(private val plugin: Skills) : Listener {
             world.spawnParticle(Particle.FLAME, loc, 30, 0.5, 0.5, 0.5, 0.1)
             world.spawnParticle(Particle.LAVA, loc, 15, 0.4, 0.4, 0.4, 0.0)
             world.playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 0.6f, 1.2f)
+        }
+    }
+
+    /**
+     * Check if durability damage should be applied, considering Unbreaking enchantment.
+     * Vanilla formula: chance to consume durability = 1 / (unbreaking_level + 1)
+     * Unbreaking 0: 100%, I: 50%, II: 33%, III: 25%
+     */
+    private fun passesUnbreakingCheck(item: org.bukkit.inventory.ItemStack): Boolean {
+        val unbreakingLevel = item.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.UNBREAKING)
+        if (unbreakingLevel <= 0) return true
+        return kotlin.random.Random.nextDouble() < 1.0 / (unbreakingLevel + 1)
+    }
+
+    /**
+     * Apply durability damage to a single item, firing PlayerItemDamageEvent
+     * for quality bonus processing. Unbreaking is checked before this.
+     * @return true if item broke
+     */
+    private fun damageItem(player: Player, item: org.bukkit.inventory.ItemStack): Boolean {
+        val damageEvent = PlayerItemDamageEvent(player, item, 1, 1)
+        plugin.server.pluginManager.callEvent(damageEvent)
+        if (damageEvent.isCancelled) return false
+
+        val meta = item.itemMeta as? org.bukkit.inventory.meta.Damageable ?: return false
+        meta.damage = meta.damage + damageEvent.damage
+        item.itemMeta = meta
+        return meta.damage >= item.type.maxDurability
+    }
+
+    /**
+     * Manually apply durability damage to defender's armor pieces.
+     * Called because vanilla skips durability when event.damage = 0.
+     */
+    private fun applyArmorDurability(player: Player) {
+        val slots = intArrayOf(39, 38, 37, 36) // helmet, chest, legs, boots
+        for (slot in slots) {
+            val armor = player.inventory.getItem(slot) ?: continue
+            if (armor.type.isAir || armor.type.maxDurability <= 0) continue
+            if (!passesUnbreakingCheck(armor)) continue
+            if (damageItem(player, armor)) {
+                player.inventory.setItem(slot, null)
+                player.world.playSound(player.location, Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f)
+            }
+        }
+    }
+
+    /**
+     * Manually apply durability damage to attacker's weapon.
+     * Called because vanilla skips durability when event.damage = 0 (target is Player).
+     */
+    private fun applyWeaponDurability(player: Player) {
+        val weapon = player.inventory.itemInMainHand
+        if (weapon.type.isAir || weapon.type.maxDurability <= 0) return
+        if (!passesUnbreakingCheck(weapon)) return
+        if (damageItem(player, weapon)) {
+            player.inventory.setItemInMainHand(null)
+            player.world.playSound(player.location, Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f)
         }
     }
 }

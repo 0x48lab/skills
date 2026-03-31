@@ -513,8 +513,7 @@ class CombatManager(private val plugin: Skills) {
             }
 
             // Try skill gain on every physical hit (PvE only)
-            // Parrying is a powerful defensive skill, so gain rate is halved (50% chance to attempt)
-            if (parryChance > 0 && attacker !is Player && Random.nextDouble() < 0.5) {
+            if (parryChance > 0 && attacker !is Player) {
                 plugin.skillManager.tryGainSkill(defender, SkillType.PARRYING, parryDifficulty)
             }
 

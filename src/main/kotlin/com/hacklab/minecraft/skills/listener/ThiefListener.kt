@@ -76,6 +76,12 @@ class ThiefListener(private val plugin: Skills) : Listener {
             StealResult.NO_SESSION -> {
                 // Session ended unexpectedly
             }
+            StealResult.OUT_OF_RANGE -> {
+                // Already handled in SnoopingManager
+            }
+            StealResult.SKILL_TOO_LOW -> {
+                // Already handled in StealingManager
+            }
         }
     }
 

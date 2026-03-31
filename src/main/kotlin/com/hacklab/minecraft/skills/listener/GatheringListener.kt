@@ -1,6 +1,7 @@
 package com.hacklab.minecraft.skills.listener
 
 import com.hacklab.minecraft.skills.Skills
+import com.hacklab.minecraft.skills.crafting.QualityType
 import com.hacklab.minecraft.skills.gathering.GatheringDifficulty
 import org.bukkit.GameMode
 import org.bukkit.Material
@@ -360,6 +361,33 @@ class GatheringListener(private val plugin: Skills) : Listener {
             val reductionChance = plugin.gatheringManager.getShovelDurabilityReduction(player)
             if (Random.nextDouble() < reductionChance) {
                 event.isCancelled = true
+            }
+            return
+        }
+
+        // Quality-based durability bonus for all items (weapons, armor, tools)
+        val quality = plugin.qualityManager.getQuality(item)
+        when (quality) {
+            QualityType.EXCEPTIONAL -> {
+                // EX: 50% chance to cancel durability damage
+                if (Random.nextDouble() < 0.50) {
+                    event.isCancelled = true
+                }
+            }
+            QualityType.HIGH_QUALITY -> {
+                // HQ: 33% chance to cancel durability damage
+                if (Random.nextDouble() < 0.33) {
+                    event.isCancelled = true
+                }
+            }
+            QualityType.LOW_QUALITY -> {
+                // LQ: 25% chance to take double durability damage
+                if (Random.nextDouble() < 0.25) {
+                    event.damage = event.damage + 1
+                }
+            }
+            QualityType.NORMAL_QUALITY -> {
+                // NQ: no modification
             }
         }
     }

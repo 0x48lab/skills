@@ -34,6 +34,13 @@ class SnoopingManager(private val plugin: Skills) {
             return SnoopResult.INVALID_TARGET
         }
 
+        // Distance check
+        val snoopRange = plugin.skillsConfig.snoopRange
+        if (snooper.world != target.world || snooper.location.distance(target.location) > snoopRange) {
+            plugin.messageSender.send(snooper, MessageKey.THIEF_TOO_FAR)
+            return SnoopResult.INVALID_TARGET
+        }
+
         val snooperData = plugin.playerDataManager.getPlayerData(snooper)
         val targetData = plugin.playerDataManager.getPlayerData(target)
 
@@ -56,6 +63,8 @@ class SnoopingManager(private val plugin: Skills) {
                 location = snooper.location,
                 detail = "Snooping: ${target.name}"
             )
+            // Direct crime against a player: ensure snooper becomes gray immediately
+            plugin.notorietyIntegration.ensureGray(snooper.uniqueId)
         }
 
         if (Random.nextDouble() * 100 > successChance) {
@@ -67,7 +76,7 @@ class SnoopingManager(private val plugin: Skills) {
         }
 
         // Success - open inventory view
-        val snoopInventory = createSnoopInventory(target)
+        val snoopInventory = createSnoopInventory(snooper, target)
         snooper.openInventory(snoopInventory)
 
         // Track session for stealing
@@ -84,8 +93,10 @@ class SnoopingManager(private val plugin: Skills) {
      * Rows 1-4: Main inventory (slots 0-35)
      * Row 5: Separator (gray glass panes, slots 36-44)
      * Row 6: Equipment (slots 45-48: helmet/chest/legs/boots, slot 49: offhand, 50-53: empty)
+     *
+     * Snooping skill < 50: equipment slots are hidden
      */
-    private fun createSnoopInventory(target: Player): Inventory {
+    private fun createSnoopInventory(snooper: Player, target: Player): Inventory {
         val inventory = Bukkit.createInventory(null, 54, "${target.name}'s Inventory")
 
         // Copy main inventory items (slots 0-35)
@@ -104,14 +115,17 @@ class SnoopingManager(private val plugin: Skills) {
             inventory.setItem(i, separator)
         }
 
-        // Equipment slots (slots 45-49)
-        // 45: Helmet, 46: Chestplate, 47: Leggings, 48: Boots, 49: Offhand
-        target.inventory.helmet?.let { inventory.setItem(45, it.clone()) }
-        target.inventory.chestplate?.let { inventory.setItem(46, it.clone()) }
-        target.inventory.leggings?.let { inventory.setItem(47, it.clone()) }
-        target.inventory.boots?.let { inventory.setItem(48, it.clone()) }
-        target.inventory.itemInOffHand.let {
-            if (!it.type.isAir) inventory.setItem(49, it.clone())
+        // Equipment slots (slots 45-49) - requires Snooping 50+
+        val snoopingSkill = plugin.playerDataManager.getPlayerData(snooper).getSkillValue(SkillType.SNOOPING)
+        if (snoopingSkill >= 50.0) {
+            // 45: Helmet, 46: Chestplate, 47: Leggings, 48: Boots, 49: Offhand
+            target.inventory.helmet?.let { inventory.setItem(45, it.clone()) }
+            target.inventory.chestplate?.let { inventory.setItem(46, it.clone()) }
+            target.inventory.leggings?.let { inventory.setItem(47, it.clone()) }
+            target.inventory.boots?.let { inventory.setItem(48, it.clone()) }
+            target.inventory.itemInOffHand.let {
+                if (!it.type.isAir) inventory.setItem(49, it.clone())
+            }
         }
 
         return inventory
@@ -124,6 +138,15 @@ class SnoopingManager(private val plugin: Skills) {
     fun handleSnoopClick(snooper: Player, slot: Int): StealResult {
         val targetUuid = snoopingSessions[snooper.uniqueId] ?: return StealResult.NO_SESSION
         val target = plugin.server.getPlayer(targetUuid) ?: return StealResult.TARGET_OFFLINE
+
+        // Distance check - can't steal from someone far away
+        val snoopRange = plugin.skillsConfig.snoopRange
+        if (snooper.world != target.world || snooper.location.distance(target.location) > snoopRange) {
+            snooper.closeInventory()
+            snoopingSessions.remove(snooper.uniqueId)
+            plugin.messageSender.send(snooper, MessageKey.THIEF_TOO_FAR)
+            return StealResult.OUT_OF_RANGE
+        }
 
         // Ignore separator and empty slots
         if (slot in 36..44 || slot in 50..53) {

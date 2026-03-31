@@ -27,6 +27,21 @@ class StealingManager(private val plugin: Skills) {
         val stealingSkill = thiefData.getSkillValue(SkillType.STEALING)
         val targetDetectingHidden = targetData.getSkillValue(SkillType.DETECTING_HIDDEN)
 
+        // Equipment steal requires Stealing 80+
+        if (isEquipment && stealingSkill < 80.0) {
+            plugin.messageSender.send(thief, MessageKey.THIEF_STEAL_EQUIP_SKILL_TOO_LOW,
+                "required" to 80)
+            return StealResult.SKILL_TOO_LOW
+        }
+
+        // Item tier restriction based on Stealing skill
+        val requiredSkill = getRequiredSkillForItem(item)
+        if (stealingSkill < requiredSkill) {
+            plugin.messageSender.send(thief, MessageKey.THIEF_STEAL_SKILL_TOO_LOW,
+                "required" to requiredSkill)
+            return StealResult.SKILL_TOO_LOW
+        }
+
         // Calculate difficulty based on item weight/value
         var itemDifficulty = calculateItemDifficulty(item)
         if (isEquipment) {
@@ -119,6 +134,32 @@ class StealingManager(private val plugin: Skills) {
     }
 
     /**
+     * Get the minimum Stealing skill required to steal this item.
+     * Tier 0 (skill 0+):  Common items (food, blocks, basic materials)
+     * Tier 1 (skill 30+): Iron/gold items
+     * Tier 2 (skill 50+): Diamond items, enchanted items
+     * Tier 3 (skill 70+): Netherite, totem, elytra
+     * Equipment steal requires skill 80+ (checked separately)
+     */
+    private fun getRequiredSkillForItem(item: ItemStack): Int {
+        // Tier 3: Legendary items (skill 70+)
+        if (item.type.name.contains("NETHERITE")) return 70
+        if (item.type == org.bukkit.Material.TOTEM_OF_UNDYING) return 70
+        if (item.type == org.bukkit.Material.ELYTRA) return 70
+
+        // Tier 2: High-value items (skill 50+)
+        if (item.type.name.contains("DIAMOND")) return 50
+        if (item.itemMeta?.hasEnchants() == true) return 50
+
+        // Tier 1: Mid-value items (skill 30+)
+        if (item.type.name.contains("IRON")) return 30
+        if (item.type.name.contains("GOLD") || item.type.name.contains("GOLDEN")) return 30
+
+        // Tier 0: Common items (skill 0+)
+        return 0
+    }
+
+    /**
      * Calculate item difficulty for stealing
      */
     private fun calculateItemDifficulty(item: ItemStack): Int {
@@ -128,9 +169,9 @@ class StealingManager(private val plugin: Skills) {
             item.type.name.contains("DIAMOND") -> 40
             item.type.name.contains("GOLD") || item.type.name.contains("GOLDEN") -> 25
             item.type.name.contains("IRON") -> 20
-            item.type.name.contains("ENCHANTED") -> 35
             item.type == org.bukkit.Material.TOTEM_OF_UNDYING -> 60
             item.type == org.bukkit.Material.ELYTRA -> 60
+            item.itemMeta?.hasEnchants() == true -> 35
             else -> 10
         }
     }
@@ -158,6 +199,9 @@ class StealingManager(private val plugin: Skills) {
             if (success) {
                 plugin.notorietyIntegration.addAlignment(thief.uniqueId, NotorietyIntegration.STEAL_SUCCESS_EXTRA_PENALTY)
             }
+
+            // Direct crime against a player: ensure thief becomes gray immediately
+            plugin.notorietyIntegration.ensureGray(thief.uniqueId)
         }
     }
 }
@@ -168,5 +212,7 @@ enum class StealResult {
     NO_SESSION,
     TARGET_OFFLINE,
     NO_ITEM,
-    ITEM_MOVED
+    ITEM_MOVED,
+    OUT_OF_RANGE,
+    SKILL_TOO_LOW
 }

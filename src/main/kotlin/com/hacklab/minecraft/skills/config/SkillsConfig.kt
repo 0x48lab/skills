@@ -40,6 +40,7 @@ class SkillsConfig(private val plugin: Skills) {
     val hideTimeoutBase: Int get() = config.getInt("thief.hide_timeout_base", 30)
     val hideTimeoutMax: Int get() = config.getInt("thief.hide_timeout_max", 300)
     val hideTimeoutWarning: Int get() = config.getInt("thief.hide_timeout_warning", 10)
+    val snoopRange: Double get() = config.getDouble("thief.snoop_range", 5.0)
     val equipmentStealPenalty: Int get() = config.getInt("thief.equipment_steal_penalty", 20)
 
     // Taming settings
