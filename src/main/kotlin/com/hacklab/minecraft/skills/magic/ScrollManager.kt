@@ -16,6 +16,7 @@ import kotlin.random.Random
 class ScrollManager(private val plugin: Skills) {
     private val scrollKey = NamespacedKey(plugin, "scroll")
     private val scrollSpellKey = NamespacedKey(plugin, "scroll_spell")
+    val scrollQualityKey = NamespacedKey(plugin, "scroll_quality")
 
     /**
      * Check if an item is a spell scroll
@@ -44,35 +45,66 @@ class ScrollManager(private val plugin: Skills) {
     }
 
     /**
-     * Create a spell scroll
+     * Create a spell scroll with optional quality
      */
-    fun createScroll(spell: SpellType): ItemStack {
+    fun createScroll(spell: SpellType, quality: String? = null): ItemStack {
         val scroll = ItemStack(Material.PAPER)
         val meta = scroll.itemMeta ?: return scroll
 
-        // Set display name based on circle
+        // Set display name based on circle and quality
         val color = getCircleColor(spell.circle)
+        val qualityLabel = quality?.let { " [$it]" } ?: ""
         meta.displayName(
-            Component.text("Scroll of ${spell.displayName}")
+            Component.text("Scroll of ${spell.displayName}$qualityLabel")
                 .color(color)
                 .decoration(TextDecoration.ITALIC, false)
         )
 
         // Set lore
-        meta.lore(listOf(
+        val loreList = mutableListOf(
             Component.text("${spell.circle.name.lowercase().replaceFirstChar { it.uppercase() }} Circle Spell")
                 .color(NamedTextColor.GRAY),
             Component.text(""),
             Component.text("Right-click to cast").color(NamedTextColor.DARK_GRAY),
             Component.text("Mana cost: ${spell.baseMana / 2}").color(NamedTextColor.BLUE)
-        ))
+        )
+        if (quality != null) {
+            val bonus = getQualityBonusFromName(quality)
+            loreList.add(Component.text("Success bonus: +${bonus.toInt()}%").color(NamedTextColor.GREEN))
+        }
+        meta.lore(loreList)
 
         // Store scroll data
         meta.persistentDataContainer.set(scrollKey, PersistentDataType.BYTE, 1)
         meta.persistentDataContainer.set(scrollSpellKey, PersistentDataType.STRING, spell.name)
+        if (quality != null) {
+            meta.persistentDataContainer.set(scrollQualityKey, PersistentDataType.STRING, quality)
+        }
 
         scroll.itemMeta = meta
         return scroll
+    }
+
+    /**
+     * Get scroll quality from item
+     */
+    fun getScrollQuality(item: ItemStack): String? {
+        if (!isScroll(item)) return null
+        return item.itemMeta?.persistentDataContainer?.get(scrollQualityKey, PersistentDataType.STRING)
+    }
+
+    /**
+     * Get success bonus percentage for a quality name
+     * LQ: +10%, NQ: +20%, HQ: +30%, EX: +40%
+     */
+    fun getQualityBonusFromName(quality: String): Double {
+        return when (quality) {
+            "LQ" -> 10.0
+            "NQ" -> 20.0
+            "HQ" -> 30.0
+            "EX" -> 40.0
+            else -> 0.0
+        }
     }
 
     /**
@@ -127,8 +159,16 @@ class ScrollManager(private val plugin: Skills) {
         // Success: consume reagents
         plugin.reagentManager.consumeReagents(player, spell)
 
-        // Create and give scroll
-        val scroll = createScroll(spell)
+        // Determine scroll quality based on Inscription skill
+        val quality = when {
+            inscriptionSkill >= 90 -> "EX"
+            inscriptionSkill >= 70 -> "HQ"
+            inscriptionSkill >= 50 -> "NQ"
+            else -> "LQ"
+        }
+
+        // Create and give scroll with quality
+        val scroll = createScroll(spell, quality)
         player.inventory.addItem(scroll)
 
         plugin.messageSender.send(player, MessageKey.SCRIBE_SUCCESS, "spell" to spell.displayName)

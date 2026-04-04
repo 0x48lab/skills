@@ -9,10 +9,10 @@ enum class QualityType(
     val modifier: Double,
     val color: TextColor
 ) {
-    LOW_QUALITY("Low Quality", "LQ", 0.8, NamedTextColor.GRAY),
+    LOW_QUALITY("Low Quality", "LQ", 0.85, NamedTextColor.GRAY),
     NORMAL_QUALITY("Normal Quality", "NQ", 1.0, NamedTextColor.WHITE),
-    HIGH_QUALITY("High Quality", "HQ", 1.2, NamedTextColor.BLUE),
-    EXCEPTIONAL("Exceptional", "EX", 1.5, NamedTextColor.GOLD);
+    HIGH_QUALITY("High Quality", "HQ", 1.15, NamedTextColor.BLUE),
+    EXCEPTIONAL("Exceptional", "EX", 1.25, NamedTextColor.GOLD);
 
     companion object {
         /**

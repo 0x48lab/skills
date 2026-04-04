@@ -160,8 +160,10 @@ class CombatListener(private val plugin: Skills) : Listener {
                 is Projectile -> damager.shooter as? Entity
                 else -> damager
             }
+            // When attacker is a player, AR is already applied in processPlayerAttack/processRangedAttack
+            val attackerIsPlayer = attacker != null
             val defenseResult = plugin.combatManager.processPlayerDefense(
-                target, actualAttacker, event.damage, isMagic, isRangedAttack
+                target, actualAttacker, event.damage, isMagic, isRangedAttack, attackerIsPlayer
             )
 
             // Apply damage to internal HP

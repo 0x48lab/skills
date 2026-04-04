@@ -48,7 +48,7 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         }
 
         // Apply damage with STR scaling
-        val damageMultiplier = calculateEnvironmentalDamageMultiplier(data.maxInternalHp, athleticsSkill)
+        val damageMultiplier = calculateEnvironmentalDamageMultiplier(athleticsSkill)
         event.damage = event.damage * damageMultiplier
     }
 
@@ -120,7 +120,7 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         }
 
         // Apply damage with STR scaling
-        val damageMultiplier = calculateEnvironmentalDamageMultiplier(data.maxInternalHp, swimmingSkill)
+        val damageMultiplier = calculateEnvironmentalDamageMultiplier(swimmingSkill)
         event.damage = event.damage * damageMultiplier
     }
 
@@ -168,7 +168,7 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         }
 
         // Apply damage with STR scaling
-        val damageMultiplier = calculateEnvironmentalDamageMultiplier(data.maxInternalHp, heatResistSkill)
+        val damageMultiplier = calculateEnvironmentalDamageMultiplier(heatResistSkill)
         event.damage = event.damage * damageMultiplier
 
         // Reduce fire ticks (burn time) based on skill
@@ -213,7 +213,7 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         }
 
         // Apply damage with STR scaling
-        val damageMultiplier = calculateEnvironmentalDamageMultiplier(data.maxInternalHp, coldResistSkill)
+        val damageMultiplier = calculateEnvironmentalDamageMultiplier(coldResistSkill)
         event.damage = event.damage * damageMultiplier
 
         // Reduce freeze ticks based on skill
@@ -275,7 +275,7 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         }
 
         // Apply damage with STR scaling
-        val damageMultiplier = calculateEnvironmentalDamageMultiplier(data.maxInternalHp, resistSpellsSkill)
+        val damageMultiplier = calculateEnvironmentalDamageMultiplier(resistSpellsSkill)
         event.damage = event.damage * damageMultiplier
     }
 
@@ -322,7 +322,7 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         }
 
         // Apply damage with STR scaling
-        val damageMultiplier = calculateEnvironmentalDamageMultiplier(data.maxInternalHp, enduranceSkill)
+        val damageMultiplier = calculateEnvironmentalDamageMultiplier(enduranceSkill)
         event.damage = event.damage * damageMultiplier
     }
 
@@ -353,7 +353,7 @@ class SurvivalListener(private val plugin: Skills) : Listener {
         }
 
         // Apply damage with STR scaling
-        val damageMultiplier = calculateEnvironmentalDamageMultiplier(data.maxInternalHp, enduranceSkill)
+        val damageMultiplier = calculateEnvironmentalDamageMultiplier(enduranceSkill)
         event.damage = event.damage * damageMultiplier
     }
 
@@ -371,20 +371,24 @@ class SurvivalListener(private val plugin: Skills) : Listener {
     }
 
     /**
-     * Calculate damage multiplier for environmental damage with STR scaling.
+     * Calculate damage multiplier for environmental damage (spec-compliant).
      *
-     * STR increases maxHp, which would make environmental damage less deadly.
-     * To keep damage roughly vanilla-equivalent, we scale damage with maxHp.
-     * STR benefit is limited to 20% (80% of HP bonus is applied to damage scaling).
+     * Formula (from spec):
+     *   基本軽減 = 0.1 (90% base reduction to normalize 10x internal damage to vanilla-equivalent)
+     *   スキル軽減 = スキル値 × 0.9% (max 90%)
+     *   最終ダメージ = 内部ダメージ × 基本軽減 × (1 - スキル軽減/100)
      *
-     * Example: STR 25 (maxHp 125) → only 5% damage reduction instead of 25%
+     * Since this runs BEFORE CombatListener's 10x multiplication:
+     *   multiplier = 0.1 × (1 - skill×0.9/100)
+     *
+     * Skill 0:   multiplier = 0.1   → internal = vanilla (vanilla-equivalent)
+     * Skill 50:  multiplier = 0.055 → ~55% of vanilla
+     * Skill 100: multiplier = 0.01  → ~1% of vanilla (near immune)
      */
-    private fun calculateEnvironmentalDamageMultiplier(maxHp: Double, skillValue: Double): Double {
-        val hpRatio = maxHp / 100.0
-        val strScaleFactor = 1.0 + ((hpRatio - 1.0) * 0.8)  // 80% of HP bonus scales damage
-        val baseMultiplier = 0.5 * strScaleFactor
-        val skillReductionPercent = skillValue.coerceAtMost(100.0)
-        return baseMultiplier * (1.0 - (skillReductionPercent / 100.0))
+    private fun calculateEnvironmentalDamageMultiplier(skillValue: Double): Double {
+        val baseReduction = 0.1  // 90% base reduction (normalizes 10x internal damage)
+        val skillReductionPercent = (skillValue * 0.9).coerceAtMost(90.0)
+        return baseReduction * (1.0 - (skillReductionPercent / 100.0))
     }
 
 

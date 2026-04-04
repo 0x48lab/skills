@@ -100,9 +100,9 @@ class CombatManager(private val plugin: Skills) {
     }
 
     /**
-     * Calculate parry chance based on equipment
-     * - Shield: Parrying * 0.7 (max 70%)
-     * - Weapon only: Parrying * 0.4 (max 40%)
+     * Calculate parry chance based on equipment (UO-style)
+     * - Shield: Parrying * 0.5% (max 50%)
+     * - Weapon only: Parrying * 0.25% (max 25%)
      * - Unarmed: 0%
      */
     fun calculateParryChance(player: Player, parryingSkill: Double): Double {
@@ -117,12 +117,12 @@ class CombatManager(private val plugin: Skills) {
 
         return when {
             hasShield -> {
-                // Shield parry: skill * 0.7, max 70%
-                (parryingSkill * 0.7).coerceAtMost(70.0)
+                // Shield parry: skill * 0.5, max 50%
+                (parryingSkill * 0.5).coerceAtMost(50.0)
             }
             hasWeapon -> {
-                // Weapon parry: skill * 0.4, max 40%
-                (parryingSkill * 0.4).coerceAtMost(40.0)
+                // Weapon parry: skill * 0.25, max 25%
+                (parryingSkill * 0.25).coerceAtMost(25.0)
             }
             else -> {
                 // Unarmed: cannot parry
@@ -134,7 +134,7 @@ class CombatManager(private val plugin: Skills) {
     /**
      * Calculate parry chance for projectiles (arrows/bolts)
      * Only shields can block projectiles - weapons cannot parry arrows
-     * - Shield: Parrying * 0.8 (max 80%) - shields excel at blocking arrows
+     * - Shield: Parrying * 0.6% (max 60%)
      * - No shield: 0%
      */
     fun calculateProjectileParryChance(player: Player, parryingSkill: Double): Double {
@@ -142,8 +142,8 @@ class CombatManager(private val plugin: Skills) {
 
         // Only shields can block projectiles
         return if (offHand.type == org.bukkit.Material.SHIELD) {
-            // Shield block: skill * 0.8, max 80%
-            (parryingSkill * 0.8).coerceAtMost(80.0)
+            // Shield block: skill * 0.6, max 60%
+            (parryingSkill * 0.6).coerceAtMost(60.0)
         } else {
             // Cannot block projectiles without shield
             0.0
@@ -151,11 +151,11 @@ class CombatManager(private val plugin: Skills) {
     }
 
     /**
-     * Calculate parry damage reduction based on skill level
-     * Reduction scales with skill: 30% + (skill * 0.4)% = 30% to 70%
+     * Calculate parry damage reduction (UO-style flat 50%)
+     * Successful parry always reduces damage by 50%
      */
-    fun calculateParryReduction(parryingSkill: Double): Double {
-        return (30.0 + parryingSkill * 0.4).coerceAtMost(70.0) / 100.0
+    fun calculateParryReduction(@Suppress("UNUSED_PARAMETER") parryingSkill: Double): Double {
+        return 0.5
     }
 
     /**
@@ -473,16 +473,19 @@ class CombatManager(private val plugin: Skills) {
     /**
      * Process damage received by player
      * @param isProjectile true if damage is from arrow/bolt (can be parried with shield)
+     * @param attackerIsPlayer true if the original attacker is a player (AR already applied in processPlayerAttack)
      */
     fun processPlayerDefense(
         defender: Player,
         attacker: Entity?,
         baseDamage: Double,
         isMagicDamage: Boolean = false,
-        isProjectile: Boolean = false
+        isProjectile: Boolean = false,
+        attackerIsPlayer: Boolean = false
     ): DefenseResult {
         val defenderData = plugin.playerDataManager.getPlayerData(defender)
         var finalDamage = baseDamage
+        var wasParried = false
 
         // Check parrying (only for physical damage - UO style)
         // Projectiles can be parried with shield only
@@ -506,9 +509,10 @@ class CombatManager(private val plugin: Skills) {
             } else 30
 
             if (parryChance > 0 && Random.nextDouble() * 100 < parryChance) {
-                // Successful parry - reduce damage by skill-scaled amount (30% to 70%)
+                // Successful parry - flat 50% damage reduction (UO-style)
                 val parryReduction = calculateParryReduction(parryingSkill)
                 finalDamage *= (1.0 - parryReduction)
+                wasParried = true
                 plugin.messageSender.sendActionBar(defender, MessageKey.COMBAT_PARRY)
             }
 
@@ -517,7 +521,17 @@ class CombatManager(private val plugin: Skills) {
                 plugin.skillManager.tryGainSkill(defender, SkillType.PARRYING, parryDifficulty)
             }
 
-            if (finalDamage < baseDamage) {
+            // Apply AR (Armor Rating) reduction for non-player attackers
+            // When attacker is a player, AR is already applied in processPlayerAttack/processRangedAttack
+            if (!attackerIsPlayer) {
+                val ar = plugin.armorManager.getTotalAR(defender).toInt()
+                if (ar > 0) {
+                    val arReduction = ar / (ar + 50.0)
+                    finalDamage *= (1.0 - arReduction)
+                }
+            }
+
+            if (wasParried) {
                 return DefenseResult(
                     damage = finalDamage,
                     wasParried = true,
@@ -529,14 +543,6 @@ class CombatManager(private val plugin: Skills) {
         // Check magic resistance
         if (isMagicDamage) {
             val resistSkill = defenderData.getSkillValue(SkillType.RESISTING_SPELLS)
-
-            // Get magic defense from mob config for attacker
-            val magicDefenseBonus = if (attacker != null && attacker !is Player) {
-                // Use defender's resist skill, not attacker's magic defense
-                0.0
-            } else {
-                0.0
-            }
 
             val resistReduction = resistSkill * 0.7 / 100.0  // Max 70% reduction at skill 100
             finalDamage *= (1.0 - resistReduction)

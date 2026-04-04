@@ -167,7 +167,12 @@ class SpellManager(private val plugin: Skills) {
     ): Boolean {
         val data = plugin.playerDataManager.getPlayerData(caster)
 
-        // Consume scroll first (consumed on both success and failure, but not on cancel)
+        // Read scroll quality BEFORE consuming (consuming removes item from hand)
+        val scrollQualityBonus = if (useScroll) {
+            getScrollQualityBonus(caster, spell)
+        } else 0.0
+
+        // Consume scroll (consumed on both success and failure, but not on cancel)
         if (useScroll) {
             plugin.scrollManager.consumeScroll(caster, spell)
         }
@@ -176,7 +181,8 @@ class SpellManager(private val plugin: Skills) {
         val magerySkill = data.getSkillValue(SkillType.MAGERY)
         val intBonus = data.int / 5.0  // +20% at INT 100
         val baseSuccess = 50.0 + magerySkill - (spell.circle.number * 10) + intBonus
-        val successChance = baseSuccess.coerceIn(5.0, 95.0)
+        // Scroll quality bonus (LQ +10%, NQ +20%, HQ +30%, EX +40%)
+        val successChance = (baseSuccess + scrollQualityBonus).coerceIn(5.0, 100.0)
 
         // Roll for success
         if (Random.nextDouble() * 100 > successChance) {
@@ -578,7 +584,7 @@ class SpellManager(private val plugin: Skills) {
             // === Healing Spells (can target self or other players) ===
             SpellType.HEAL -> {
                 val target = (entityTarget as? Player) ?: caster
-                val healAmount = 2.0 + (magerySkill / 20.0)  // 2-7 HP
+                val healAmount = 3.0 + (magerySkill / 25.0)  // 3-7 HP (spec: 3 + Magery/25)
                 plugin.combatManager.healPlayer(target, healAmount * 10)
                 if (target == caster) {
                     plugin.messageSender.send(caster, MessageKey.HEAL_AMOUNT, "amount" to healAmount.toInt())
@@ -605,7 +611,7 @@ class SpellManager(private val plugin: Skills) {
 
             SpellType.GREATER_HEAL -> {
                 val target = (entityTarget as? Player) ?: caster
-                val healAmount = 6.0 + (magerySkill / 10.0)  // 6-16 HP
+                val healAmount = 8.0 + (magerySkill / 15.0)  // 8-14.7 HP (spec: 8 + Magery/15)
                 plugin.combatManager.healPlayer(target, healAmount * 10)
                 if (target == caster) {
                     plugin.messageSender.send(caster, MessageKey.HEAL_AMOUNT, "amount" to healAmount.toInt())
@@ -623,7 +629,7 @@ class SpellManager(private val plugin: Skills) {
             // === Buff Spells (can target self or other players) ===
             SpellType.BLESS -> {
                 val target = (entityTarget as? Player) ?: caster
-                val duration = 1200 + (magerySkill * 12).toInt()  // 1-3 minutes
+                val duration = 600 + (magerySkill * 4).toInt()  // 30s + Magery/5 sec (spec)
                 target.addPotionEffect(PotionEffect(PotionEffectType.STRENGTH, duration, 0))
                 // Visual: Golden blessing on target
                 target.world.spawnParticle(Particle.ENCHANT, target.location.add(0.0, 1.5, 0.0), 40, 0.5, 0.8, 0.5, 0.5)
@@ -643,7 +649,7 @@ class SpellManager(private val plugin: Skills) {
 
             SpellType.PROTECTION -> {
                 val target = (entityTarget as? Player) ?: caster
-                val duration = 1200 + (magerySkill * 12).toInt()  // 1-3 minutes
+                val duration = 600 + (magerySkill * 4).toInt()  // 30s + Magery/5 sec (spec)
                 target.addPotionEffect(PotionEffect(PotionEffectType.RESISTANCE, duration, 0))
                 // Visual: Shield effect on target
                 target.world.spawnParticle(Particle.ENCHANTED_HIT, target.location.add(0.0, 1.0, 0.0), 30, 0.5, 0.8, 0.5, 0.3)
@@ -653,7 +659,7 @@ class SpellManager(private val plugin: Skills) {
 
             SpellType.INVISIBILITY -> {
                 val target = (entityTarget as? Player) ?: caster
-                val duration = 600 + (magerySkill * 6).toInt()  // 30s-1.5 minutes
+                val duration = 400 + (magerySkill * 4).toInt()  // 20s + Magery/5 sec (spec)
                 target.addPotionEffect(PotionEffect(PotionEffectType.INVISIBILITY, duration, 0))
                 // Visual: Fade effect on target
                 target.world.spawnParticle(Particle.SNEEZE, target.location.add(0.0, 1.0, 0.0), 20, 0.4, 0.6, 0.4, 0.02)
@@ -682,7 +688,7 @@ class SpellManager(private val plugin: Skills) {
 
             SpellType.NIGHT_SIGHT -> {
                 val target = (entityTarget as? Player) ?: caster
-                val duration = 6000 + (magerySkill * 60).toInt()  // 5-10 minutes
+                val duration = 1200 + (magerySkill * 4).toInt()  // 60s + Magery/5 sec (spec)
                 target.addPotionEffect(PotionEffect(PotionEffectType.NIGHT_VISION, duration, 0))
                 // Visual: Eye glow
                 target.world.spawnParticle(Particle.END_ROD, target.eyeLocation, 10, 0.1, 0.1, 0.1, 0.02)
@@ -691,7 +697,7 @@ class SpellManager(private val plugin: Skills) {
 
             SpellType.FEATHER_FALL -> {
                 val target = (entityTarget as? Player) ?: caster
-                val duration = 1200 + (magerySkill * 12).toInt()  // 60-120 seconds
+                val duration = 600 + (magerySkill * 4).toInt()  // 30s + Magery/5 sec
                 target.addPotionEffect(PotionEffect(PotionEffectType.SLOW_FALLING, duration, 0))
                 // Visual: Feather effect
                 target.world.spawnParticle(Particle.CLOUD, target.location.add(0.0, 0.5, 0.0), 20, 0.4, 0.2, 0.4, 0.02)
@@ -701,7 +707,7 @@ class SpellManager(private val plugin: Skills) {
 
             SpellType.WATER_BREATHING -> {
                 val target = (entityTarget as? Player) ?: caster
-                val duration = 3600 + (magerySkill * 36).toInt()  // 3-6 minutes
+                val duration = 1200 + (magerySkill * 4).toInt()  // 60s + Magery/5 sec
                 target.addPotionEffect(PotionEffect(PotionEffectType.WATER_BREATHING, duration, 0))
                 // Visual: Bubble effect
                 target.world.spawnParticle(Particle.BUBBLE_POP, target.location.add(0.0, 1.0, 0.0), 25, 0.3, 0.5, 0.3, 0.02)
@@ -844,7 +850,7 @@ class SpellManager(private val plugin: Skills) {
             // === 2nd Circle - Buff Spells ===
             SpellType.AGILITY -> {
                 val target = (entityTarget as? Player) ?: caster
-                val duration = 400 + (magerySkill * 8).toInt()  // 20-60 seconds
+                val duration = 400 + (magerySkill * 4).toInt()  // 20s + Magery/5 sec
                 target.addPotionEffect(PotionEffect(PotionEffectType.SPEED, duration, 0))
                 plugin.messageSender.send(caster, MessageKey.MAGIC_AGILITY_CAST)
                 // Visual: Swift wind effect
@@ -855,7 +861,7 @@ class SpellManager(private val plugin: Skills) {
 
             SpellType.STRENGTH -> {
                 val target = (entityTarget as? Player) ?: caster
-                val duration = 400 + (magerySkill * 8).toInt()  // 20-60 seconds
+                val duration = 400 + (magerySkill * 4).toInt()  // 20s + Magery/5 sec
                 target.addPotionEffect(PotionEffect(PotionEffectType.STRENGTH, duration, 0))
                 plugin.messageSender.send(caster, MessageKey.MAGIC_STRENGTH_CAST)
                 // Visual: Power aura
@@ -866,7 +872,7 @@ class SpellManager(private val plugin: Skills) {
 
             SpellType.CUNNING -> {
                 val target = (entityTarget as? Player) ?: caster
-                val duration = 400 + (magerySkill * 8).toInt()  // 20-60 seconds
+                val duration = 400 + (magerySkill * 4).toInt()  // 20s + Magery/5 sec
                 target.addPotionEffect(PotionEffect(PotionEffectType.LUCK, duration, 0))
                 plugin.messageSender.send(caster, MessageKey.MAGIC_CUNNING_CAST)
                 // Visual: Mind sharpening
@@ -1438,6 +1444,27 @@ class SpellManager(private val plugin: Skills) {
             val point = from.clone().add(direction.clone().multiply(step * i))
             world.spawnParticle(particle, point, 1, 0.0, 0.0, 0.0, 0.0)
         }
+    }
+
+    /**
+     * Get scroll quality bonus for casting success rate
+     * Reads quality from the scroll item in player's inventory
+     */
+    private fun getScrollQualityBonus(caster: Player, spell: SpellType): Double {
+        // Check main hand
+        val mainHand = caster.inventory.itemInMainHand
+        if (plugin.scrollManager.isScroll(mainHand) && plugin.scrollManager.getSpell(mainHand) == spell) {
+            val quality = plugin.scrollManager.getScrollQuality(mainHand)
+            if (quality != null) return plugin.scrollManager.getQualityBonusFromName(quality)
+        }
+        // Check off hand
+        val offHand = caster.inventory.itemInOffHand
+        if (plugin.scrollManager.isScroll(offHand) && plugin.scrollManager.getSpell(offHand) == spell) {
+            val quality = plugin.scrollManager.getScrollQuality(offHand)
+            if (quality != null) return plugin.scrollManager.getQualityBonusFromName(quality)
+        }
+        // Default NQ bonus for scrolls without quality data (legacy scrolls)
+        return 20.0
     }
 
     fun applyMagicDamage(caster: Player?, target: LivingEntity, damage: Double) {

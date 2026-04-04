@@ -11,7 +11,7 @@ armor:
   NETHERITE_HELMET:
     ar: 8
     str_required: 80
-    dex_required: 40
+    dex_required: 35
     dex_penalty: 5
     special:
       knockback_resistance: 0.1
@@ -42,7 +42,7 @@ armor:
   DIAMOND_HELMET:
     ar: 7
     str_required: 65
-    dex_required: 35
+    dex_required: 30
     dex_penalty: 4
   DIAMOND_CHESTPLATE:
     ar: 16
@@ -65,7 +65,7 @@ armor:
   IRON_HELMET:
     ar: 5
     str_required: 40
-    dex_required: 25
+    dex_required: 20
     dex_penalty: 3
   IRON_CHESTPLATE:
     ar: 12
