@@ -62,23 +62,30 @@ data class PlayerData(
 
     fun getAllSkills(): Map<SkillType, SkillData> = skills.toMap()
 
-    // Find the skill to decrease (for skill seesaw)
-    // Priority: DOWN mode skills first, then UP mode, never LOCKED
-    fun getSkillToDecrease(exclude: SkillType? = null): SkillType? {
-        // First try skills set to DOWN mode (least recently used)
-        val downModeSkill = skills.entries
+    // Find skills to decrease (for skill seesaw), ordered by priority
+    // Priority: DOWN mode skills first (least recently used), then UP mode, never LOCKED
+    // Returns a list so the caller can try multiple candidates if floating-point
+    // edge cases cause one to fail the value check
+    fun getSkillsToDecrease(exclude: SkillType? = null): List<SkillType> {
+        // DOWN mode skills sorted by least recently used
+        val downModeSkills = skills.entries
             .filter { it.key != exclude && it.value.value > 0 && it.value.lockMode == SkillLockMode.DOWN }
-            .minByOrNull { it.value.lastUsed }
-            ?.key
-        if (downModeSkill != null) return downModeSkill
+            .sortedBy { it.value.lastUsed }
+            .map { it.key }
 
-        // Then try skills set to UP mode (least recently used)
-        return skills.entries
+        // UP mode skills sorted by least recently used
+        val upModeSkills = skills.entries
             .filter { it.key != exclude && it.value.value > 0 && it.value.lockMode == SkillLockMode.UP }
-            .minByOrNull { it.value.lastUsed }
-            ?.key
-        // LOCKED skills are never decreased
+            .sortedBy { it.value.lastUsed }
+            .map { it.key }
+
+        // DOWN first, then UP; LOCKED skills are never decreased
+        return downModeSkills + upModeSkills
     }
+
+    // Backwards-compatible single-result version
+    fun getSkillToDecrease(exclude: SkillType? = null): SkillType? =
+        getSkillsToDecrease(exclude).firstOrNull()
 
     // Skill lock operations
     fun getSkillLock(skillType: SkillType): SkillLockMode = getSkill(skillType).lockMode

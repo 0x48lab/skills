@@ -67,24 +67,28 @@ class SkillManager(private val plugin: Skills) {
         val totalSkills = data.getTotalSkillPoints()
         if (totalSkills + gainAmount > SkillType.TOTAL_SKILL_CAP) {
             // Need to decrease another skill (respects lock mode)
-            val skillToDecrease = data.getSkillToDecrease(exclude = skillType)
-            if (skillToDecrease != null) {
-                val decreaseData = data.getSkill(skillToDecrease)
-                if (decreaseData.value >= gainAmount && decreaseData.canDecrease()) {
+            // Try multiple candidates to avoid floating-point edge cases
+            // where a value like 0.0999... (displayed as 0.1) fails the >= 0.1 check
+            val candidates = data.getSkillsToDecrease(exclude = skillType)
+            var decreased = false
+            for (candidate in candidates) {
+                val decreaseData = data.getSkill(candidate)
+                // Use epsilon comparison to handle floating-point imprecision
+                // (e.g., 0.3 - 0.1 - 0.1 = 0.0999... in IEEE 754)
+                if (decreaseData.value >= gainAmount - 0.001 && decreaseData.canDecrease()) {
                     decreaseData.addValue(-gainAmount)
                     plugin.messageSender.send(
                         player, MessageKey.SKILL_DECREASE,
-                        "skill" to skillToDecrease.displayName,
+                        "skill" to candidate.displayName,
                         "amount" to gainAmount,
                         "current" to String.format("%.1f", decreaseData.value)
                     )
-                } else {
-                    // Not enough to decrease or locked, cap reached
-                    plugin.messageSender.send(player, MessageKey.SKILL_CAP_REACHED)
-                    return false
+                    decreased = true
+                    break
                 }
-            } else {
-                // No skill available to decrease (all locked)
+            }
+            if (!decreased) {
+                // No skill available to decrease (all locked or at zero)
                 plugin.messageSender.send(player, MessageKey.SKILL_CAP_REACHED)
                 return false
             }
