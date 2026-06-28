@@ -13,4 +13,7 @@ interface Database {
     fun deletePlayerData(uuid: UUID)
 
     fun playerExists(uuid: UUID): Boolean
+
+    /** All player UUIDs known to this database. Used by data migration. */
+    fun getAllPlayerUuids(): List<UUID>
 }

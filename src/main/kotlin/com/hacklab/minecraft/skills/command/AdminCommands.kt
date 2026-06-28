@@ -35,6 +35,7 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
             "reset" -> handleReset(sender, args.drop(1))
             "reload" -> handleReload(sender)
             "give" -> handleGive(sender, args.drop(1))
+            "migrate" -> handleMigrate(sender)
             else -> showHelp(sender)
         }
 
@@ -53,6 +54,10 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
         plugin.messageSender.send(sender, MessageKey.ADMIN_HELP_GIVE_RUNE)
         plugin.messageSender.send(sender, MessageKey.ADMIN_HELP_GIVE_REAGENTS)
         plugin.messageSender.send(sender, MessageKey.ADMIN_HELP_GIVE_SCROLL)
+        sender.sendMessage(
+            Component.text("/skilladmin migrate - Migrate SQLite data into the active MySQL/PostgreSQL database")
+                .color(NamedTextColor.GRAY)
+        )
     }
 
     private fun handleCheck(sender: CommandSender, args: List<String>) {
@@ -251,6 +256,31 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
         plugin.messageSender.send(sender, MessageKey.ADMIN_CONFIG_RELOADED)
     }
 
+    /**
+     * Copy data from the legacy SQLite file into the currently active database
+     * (MySQL / PostgreSQL). Intended to be run once, with the server otherwise
+     * idle. The source skills.db is archived (not deleted) on success.
+     */
+    private fun handleMigrate(sender: CommandSender) {
+        val online = Bukkit.getOnlinePlayers().size
+        if (online > 0) {
+            sender.sendMessage(
+                Component.text(
+                    "⚠ $online player(s) online. For a safe migration, run this with everyone offline."
+                ).color(NamedTextColor.YELLOW)
+            )
+        }
+        sender.sendMessage(
+            Component.text("Starting database migration (SQLite → active backend)...")
+                .color(NamedTextColor.GRAY)
+        )
+        val result = plugin.migrationManager.migrateSqliteToActive()
+        sender.sendMessage(
+            Component.text(result.message)
+                .color(if (result.success) NamedTextColor.GREEN else NamedTextColor.RED)
+        )
+    }
+
     private fun handleGive(sender: CommandSender, args: List<String>) {
         if (args.size < 2) {
             plugin.messageSender.send(sender, MessageKey.ADMIN_USAGE_GIVE)
@@ -340,7 +370,7 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
 
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<String>): List<String> {
         return when (args.size) {
-            1 -> listOf("check", "set", "setstat", "reset", "reload", "give").filter { it.startsWith(args[0].lowercase()) }
+            1 -> listOf("check", "set", "setstat", "reset", "reload", "give", "migrate").filter { it.startsWith(args[0].lowercase()) }
             2 -> when (args[0].lowercase()) {
                 "check", "set", "setstat", "reset", "give" -> Bukkit.getOnlinePlayers().map { it.name }
                     .filter { it.lowercase().startsWith(args[1].lowercase()) }

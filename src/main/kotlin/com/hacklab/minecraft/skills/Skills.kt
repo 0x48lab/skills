@@ -18,7 +18,9 @@ import com.hacklab.minecraft.skills.crafting.QualityManager
 import com.hacklab.minecraft.skills.crafting.StackBonusManager
 import com.hacklab.minecraft.skills.data.PlayerDataManager
 import com.hacklab.minecraft.skills.database.Database
-import com.hacklab.minecraft.skills.database.SQLiteDatabase
+import com.hacklab.minecraft.skills.database.DatabaseFactory
+import com.hacklab.minecraft.skills.database.DatabaseType
+import com.hacklab.minecraft.skills.database.MigrationManager
 import com.hacklab.minecraft.skills.gathering.AutoFarmingManager
 import com.hacklab.minecraft.skills.gathering.AutoFishingManager
 import com.hacklab.minecraft.skills.gathering.ChainChoppingManager
@@ -67,6 +69,8 @@ class Skills : JavaPlugin() {
 
     // Database
     lateinit var database: Database
+        private set
+    lateinit var migrationManager: MigrationManager
         private set
 
     // i18n
@@ -240,10 +244,11 @@ class Skills : JavaPlugin() {
         localeManager = PlayerLocaleManager(this)
         messageSender = MessageSender(this)
 
-        // Initialize database
-        database = SQLiteDatabase(this)
+        // Initialize database (SQLite / MySQL / PostgreSQL, selected via config.yml)
+        database = createDatabase()
         database.connect()
         database.createTables()
+        migrationManager = MigrationManager(this)
 
         // Initialize data manager
         playerDataManager = PlayerDataManager(this, database)
@@ -562,6 +567,24 @@ class Skills : JavaPlugin() {
         getCommand("party")?.setExecutor(partyCmd)
         getCommand("party")?.tabCompleter = partyCmd
         getCommand("pc")?.setExecutor(PartyChatCommand(this))
+    }
+
+    private fun createDatabase(): Database {
+        val type = DatabaseType.fromConfig(skillsConfig.databaseType)
+        val settings = DatabaseFactory.ConnectionSettings(
+            type = type,
+            sqliteFile = java.io.File(dataFolder, "skills.db"),
+            host = skillsConfig.databaseHost,
+            port = skillsConfig.databasePort,
+            databaseName = skillsConfig.databaseName,
+            user = skillsConfig.databaseUser,
+            password = skillsConfig.databasePassword,
+            poolMaxSize = skillsConfig.databasePoolMaxSize,
+            poolMinIdle = skillsConfig.databasePoolMinIdle,
+            connectionTimeoutMs = skillsConfig.databaseConnectionTimeoutMs
+        )
+        logger.info("Using ${type.name} database backend")
+        return DatabaseFactory.createDatabase(settings, logger)
     }
 
     private fun startScheduledTasks() {

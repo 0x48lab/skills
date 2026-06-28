@@ -2,13 +2,23 @@
 
 # Database settings
 database:
-  type: sqlite  # sqlite or mysql
-  # MySQL settings (only used if type is mysql)
+  # Backend: sqlite (default, file-based, no server) / mysql / postgresql
+  type: sqlite
+  # Connection settings (used only for mysql / postgresql)
   host: localhost
-  port: 3306
+  port: 3306          # mysql: 3306, postgresql: 5432
   name: skills
   user: root
   password: ""
+  # Connection pool (used only for mysql / postgresql)
+  pool:
+    max_size: 10
+    min_idle: 2
+    connection_timeout_ms: 10000
+  # To switch from sqlite to mysql/postgresql later:
+  #   1. Stop the server (so all players are offline)
+  #   2. Set type + connection settings above, then start the server
+  #   3. Run /skilladmin migrate to copy skills.db into the new database
 
 # Skill settings
 skills:

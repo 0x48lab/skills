@@ -14,6 +14,10 @@ class SkillsConfig(private val plugin: Skills) {
     val databaseName: String get() = config.getString("database.name", "skills") ?: "skills"
     val databaseUser: String get() = config.getString("database.user", "root") ?: "root"
     val databasePassword: String get() = config.getString("database.password", "") ?: ""
+    // Connection pool (used for mysql / postgresql)
+    val databasePoolMaxSize: Int get() = config.getInt("database.pool.max_size", 10)
+    val databasePoolMinIdle: Int get() = config.getInt("database.pool.min_idle", 2)
+    val databaseConnectionTimeoutMs: Long get() = config.getLong("database.pool.connection_timeout_ms", 10_000)
 
     // Skill settings
     val skillCap: Double get() = config.getDouble("skills.total_cap", 600.0)
