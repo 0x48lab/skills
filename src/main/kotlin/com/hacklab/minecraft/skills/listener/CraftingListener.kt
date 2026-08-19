@@ -1,6 +1,7 @@
 package com.hacklab.minecraft.skills.listener
 
 import com.hacklab.minecraft.skills.Skills
+import com.hacklab.minecraft.skills.crafting.CookingDifficulty
 import com.hacklab.minecraft.skills.i18n.MessageKey
 import com.hacklab.minecraft.skills.skill.SkillType
 import org.bukkit.entity.Player
@@ -29,8 +30,10 @@ class CraftingListener(private val plugin: Skills) : Listener {
 
         val isShiftClick = event.click.isShiftClick
 
-        // For non-stackable items with shift-click, handle manually to apply individual quality
-        if (isShiftClick && result.maxStackSize == 1) {
+        // Shift-click must be handled manually: vanilla quick-move re-crafts from the
+        // recipe and overwrites any modification to the result slot (see
+        // InventoryClickEvent docs), so quality / food bonus would be lost.
+        if (isShiftClick && (result.maxStackSize == 1 || CookingDifficulty.isCraftedFood(result.type))) {
             // Calculate how many items can be crafted
             val craftCount = calculateCraftCount(event)
             if (craftCount <= 0) return
@@ -41,15 +44,18 @@ class CraftingListener(private val plugin: Skills) : Listener {
             // Consume materials
             consumeMaterials(event, craftCount)
 
-            // Create each item with individual quality and add to inventory
-            repeat(craftCount) {
-                val processedResult = plugin.craftingManager.processCraft(player, result.clone(), true)
-                val leftover = player.inventory.addItem(processedResult)
-
-                // Drop any items that don't fit
-                leftover.values.forEach { item ->
-                    plugin.stackBonusManager.applyStackBonusWithSync(item, player)
-                    player.world.dropItemNaturally(player.location, item)
+            if (result.maxStackSize == 1) {
+                // Create each item with individual quality and add to inventory
+                repeat(craftCount) {
+                    val processedResult = plugin.craftingManager.processCraft(player, result.clone(), true)
+                    giveOrDrop(player, processedResult)
+                }
+            } else {
+                // Crafted food: process the batch with a single skill snapshot so
+                // every item gets the same bonus and the whole batch stacks
+                val processedResult = plugin.craftingManager.processCraft(player, result.clone(), true, craftCount)
+                repeat(craftCount) {
+                    giveOrDrop(player, processedResult.clone())
                 }
             }
         } else {
@@ -57,6 +63,17 @@ class CraftingListener(private val plugin: Skills) : Listener {
             val craftCount = if (isShiftClick) calculateCraftCount(event) else 1
             val processedResult = plugin.craftingManager.processCraft(player, result.clone(), isShiftClick, craftCount)
             event.inventory.result = processedResult
+        }
+    }
+
+    /**
+     * Add an item to the player's inventory, dropping whatever doesn't fit
+     */
+    private fun giveOrDrop(player: Player, item: org.bukkit.inventory.ItemStack) {
+        val leftover = player.inventory.addItem(item)
+        leftover.values.forEach { drop ->
+            plugin.stackBonusManager.applyStackBonusWithSync(drop, player)
+            player.world.dropItemNaturally(player.location, drop)
         }
     }
 
@@ -157,8 +174,16 @@ class CraftingListener(private val plugin: Skills) : Listener {
             // Process the food with cooking skill (skill gain for each item)
             val processedItem = plugin.craftingManager.processCooking(player, item.clone(), amount)
 
-            // Replace the item in the slot
-            event.currentItem = processedItem
+            if (event.click.isShiftClick) {
+                // Shift-click: vanilla quick-move overwrites slot modifications
+                // (see InventoryClickEvent docs), so extract manually
+                event.isCancelled = true
+                event.inventory.setItem(2, null)
+                giveOrDrop(player, processedItem)
+            } else {
+                // Replace the item in the slot
+                event.currentItem = processedItem
+            }
         }
     }
 
@@ -246,8 +271,16 @@ class CraftingListener(private val plugin: Skills) : Listener {
                     // Process the potion with alchemy skill
                     val processedPotion = plugin.craftingManager.processBrewing(player, potion.clone())
 
-                    // Replace the item in the slot
-                    event.currentItem = processedPotion
+                    if (event.click.isShiftClick) {
+                        // Shift-click: vanilla quick-move overwrites slot modifications
+                        // (see InventoryClickEvent docs), so extract manually
+                        event.isCancelled = true
+                        event.inventory.setItem(event.rawSlot, null)
+                        giveOrDrop(player, processedPotion)
+                    } else {
+                        // Replace the item in the slot
+                        event.currentItem = processedPotion
+                    }
                 }
             }
         }
