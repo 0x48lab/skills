@@ -107,10 +107,9 @@ class CombatManager(private val plugin: Skills) {
      */
     fun calculateParryChance(player: Player, parryingSkill: Double): Double {
         val mainHand = player.inventory.itemInMainHand
-        val offHand = player.inventory.itemInOffHand
 
-        // Check if holding a shield
-        val hasShield = offHand.type == org.bukkit.Material.SHIELD
+        // Check if holding a shield (either hand - vanilla allows blocking with both)
+        val hasShield = hasShield(player)
 
         // Check if holding a weapon
         val hasWeapon = plugin.combatConfig.isWeapon(mainHand)
@@ -138,15 +137,34 @@ class CombatManager(private val plugin: Skills) {
      * - No shield: 0%
      */
     fun calculateProjectileParryChance(player: Player, parryingSkill: Double): Double {
-        val offHand = player.inventory.itemInOffHand
-
         // Only shields can block projectiles
-        return if (offHand.type == org.bukkit.Material.SHIELD) {
+        return if (hasShield(player)) {
             // Shield block: skill * 0.6, max 60%
             (parryingSkill * 0.6).coerceAtMost(60.0)
         } else {
             // Cannot block projectiles without shield
             0.0
+        }
+    }
+
+    /**
+     * Check if player is holding a shield in either hand
+     */
+    private fun hasShield(player: Player): Boolean {
+        return player.inventory.itemInOffHand.type == Material.SHIELD ||
+            player.inventory.itemInMainHand.type == Material.SHIELD
+    }
+
+    /**
+     * Check if player's equipment allows a parry attempt, regardless of skill value.
+     * Used to gate Parrying skill gain - gating on parry chance instead would
+     * deadlock at skill 0 (chance 0% -> no gain check -> skill stays 0).
+     */
+    fun canAttemptParry(player: Player, isProjectile: Boolean): Boolean {
+        return if (isProjectile) {
+            hasShield(player)
+        } else {
+            hasShield(player) || plugin.combatConfig.isWeapon(player.inventory.itemInMainHand)
         }
     }
 
@@ -517,7 +535,9 @@ class CombatManager(private val plugin: Skills) {
             }
 
             // Try skill gain on every physical hit (PvE only)
-            if (parryChance > 0 && attacker !is Player) {
+            // Gate on equipment, not parry chance: at skill 0 the chance is 0%
+            // and gating on it would make the skill impossible to raise
+            if (canAttemptParry(defender, isProjectile) && attacker !is Player) {
                 plugin.skillManager.tryGainSkill(defender, SkillType.PARRYING, parryDifficulty)
             }
 
