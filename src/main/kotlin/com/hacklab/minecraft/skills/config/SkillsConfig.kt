@@ -99,6 +99,7 @@ class SkillsConfig(private val plugin: Skills) {
     // Ender Dragon Scaling
     val enderDragonScalingEnabled: Boolean get() = config.getBoolean("ender_dragon_scaling.enabled", true)
     val enderDragonRespawnIntervalHours: Int get() = config.getInt("ender_dragon_scaling.respawn_interval_hours", 24)
+    val enderDragonBlockManualRespawn: Boolean get() = config.getBoolean("ender_dragon_scaling.block_manual_respawn", true)
     val enderDragonHpPerKill: Int get() = config.getInt("ender_dragon_scaling.hp_per_kill", 50)
     val enderDragonMaxHp: Int get() = config.getInt("ender_dragon_scaling.max_hp", 1000)
     val enderDragonDamageScalePerKill: Double get() = config.getDouble("ender_dragon_scaling.damage_scale_per_kill", 0.15)

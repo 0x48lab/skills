@@ -448,6 +448,7 @@ dragon:
   defeated: "<gold>エンダードラゴン <red>(Lv.{level})</red> が討伐されました！<gray>次回は{hours}時間後にさらに強化されてリスポーンします"
   respawn_soon: "<dark_red>⚠ エンダードラゴンが{minutes}分後にリスポーンします！"
   respawned: "<dark_red>🐉 エンダードラゴン (Lv.{level}) がリスポーンしました！<gray>HP: {hp}"
+  respawn_blocked: "<red>ドラゴンはまだ眠りから覚めない。<gray>リスポーンまで あと{hours}時間{minutes}分"
   info_header: "<gold>=== エンダードラゴン情報 ==="
   info_kill_count: "<gray>討伐回数: <white>{count}"
   info_next_respawn: "<gray>次回リスポーン: <white>{time}"

@@ -209,6 +209,9 @@ ender_dragon_scaling:
   enabled: true
   # Hours between dragon kills and respawn
   respawn_interval_hours: 24
+  # Block manual respawn (end crystals on the exit portal) during the cooldown
+  # Disabling this lets players bypass respawn_interval_hours entirely
+  block_manual_respawn: true
   # HP increase per kill (base: 200)
   hp_per_kill: 50
   # Maximum dragon HP

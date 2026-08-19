@@ -1,6 +1,7 @@
 package com.hacklab.minecraft.skills.listener
 
 import com.hacklab.minecraft.skills.Skills
+import com.hacklab.minecraft.skills.i18n.MessageKey
 import org.bukkit.Material
 import org.bukkit.entity.AreaEffectCloud
 import org.bukkit.entity.EnderCrystal
@@ -8,7 +9,9 @@ import org.bukkit.entity.EnderDragon
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
+import org.bukkit.event.block.Action
 import org.bukkit.event.entity.*
+import org.bukkit.event.player.PlayerInteractEvent
 
 class EnderDragonListener(private val plugin: Skills) : Listener {
 
@@ -92,6 +95,34 @@ class EnderDragonListener(private val plugin: Skills) : Listener {
                 dragonManager.onDragonSpawned(entity)
             }
         }, 5L)
+    }
+
+    /**
+     * Block manual dragon respawn (end crystals on the exit portal) while the
+     * managed respawn cooldown is still running.
+     * Without this the cooldown can be bypassed indefinitely by summoning the
+     * dragon by hand right after each kill.
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    fun onEndCrystalPlace(event: PlayerInteractEvent) {
+        if (!plugin.skillsConfig.enderDragonBlockManualRespawn) return
+        if (event.action != Action.RIGHT_CLICK_BLOCK) return
+        if (event.item?.type != Material.END_CRYSTAL) return
+
+        val block = event.clickedBlock ?: return
+        if (block.type != Material.BEDROCK) return
+        if (!dragonManager.isRespawnCooldownActive()) return
+        if (!dragonManager.isNearEndPortal(block.location)) return
+
+        event.isCancelled = true
+
+        val remaining = dragonManager.getRemainingRespawnMillis()
+        plugin.messageSender.send(
+            event.player,
+            MessageKey.DRAGON_RESPAWN_BLOCKED,
+            "hours" to remaining / 3600_000L,
+            "minutes" to (remaining % 3600_000L) / 60_000L
+        )
     }
 
     /**

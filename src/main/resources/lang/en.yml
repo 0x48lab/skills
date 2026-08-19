@@ -448,6 +448,7 @@ dragon:
   defeated: "<gold>Ender Dragon <red>(Lv.{level})</red> has been defeated! <gray>It will respawn stronger in {hours} hours"
   respawn_soon: "<dark_red>⚠ Ender Dragon will respawn in {minutes} minutes!"
   respawned: "<dark_red>🐉 Ender Dragon (Lv.{level}) has respawned! <gray>HP: {hp}"
+  respawn_blocked: "<red>The dragon still slumbers. <gray>Respawn in {hours}h {minutes}m"
   info_header: "<gold>=== Ender Dragon Info ==="
   info_kill_count: "<gray>Kill Count: <white>{count}"
   info_next_respawn: "<gray>Next Respawn: <white>{time}"

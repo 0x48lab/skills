@@ -414,6 +414,7 @@ enum class MessageKey(val path: String) {
     DRAGON_DEFEATED("dragon.defeated"),
     DRAGON_RESPAWN_SOON("dragon.respawn_soon"),
     DRAGON_RESPAWNED("dragon.respawned"),
+    DRAGON_RESPAWN_BLOCKED("dragon.respawn_blocked"),
     DRAGON_INFO_HEADER("dragon.info_header"),
     DRAGON_INFO_KILL_COUNT("dragon.info_kill_count"),
     DRAGON_INFO_NEXT_RESPAWN("dragon.info_next_respawn"),

@@ -10,6 +10,11 @@ import kotlin.math.min
 
 class EnderDragonManager(private val plugin: Skills) {
 
+    private companion object {
+        /** Horizontal radius around the End exit portal treated as respawn area */
+        const val PORTAL_RADIUS = 8.0
+    }
+
     private var dragonData: DragonData = DragonData()
     private var respawnTask: BukkitRunnable? = null
     private val preAnnounceTasks = mutableListOf<BukkitRunnable>()
@@ -112,6 +117,36 @@ class EnderDragonManager(private val plugin: Skills) {
 
     fun getNextRespawnTime(): Long? = dragonData.nextRespawnTime
 
+    /**
+     * Whether the managed respawn cooldown is still running.
+     * Manual (end crystal) summoning must be blocked while this is true.
+     */
+    fun isRespawnCooldownActive(): Boolean {
+        if (dragonData.dragonAlive) return false
+        val next = dragonData.nextRespawnTime ?: return false
+        return next > System.currentTimeMillis()
+    }
+
+    fun getRemainingRespawnMillis(): Long {
+        val next = dragonData.nextRespawnTime ?: return 0L
+        return (next - System.currentTimeMillis()).coerceAtLeast(0L)
+    }
+
+    /**
+     * Whether the location is close enough to the End exit portal to be a respawn attempt
+     */
+    fun isNearEndPortal(location: org.bukkit.Location): Boolean {
+        val world = location.world ?: return false
+        if (world.environment != World.Environment.THE_END) return false
+
+        val portal = world.enderDragonBattle?.endPortalLocation
+        val centerX = portal?.x ?: 0.0
+        val centerZ = portal?.z ?: 0.0
+
+        return kotlin.math.abs(location.x - centerX) <= PORTAL_RADIUS &&
+            kotlin.math.abs(location.z - centerZ) <= PORTAL_RADIUS
+    }
+
     // === Respawn Processing ===
 
     private fun scheduleRespawn() {
@@ -196,6 +231,14 @@ class EnderDragonManager(private val plugin: Skills) {
     // === Dragon Event Handlers ===
 
     fun onDragonSpawned(dragon: EnderDragon) {
+        if (isRespawnCooldownActive()) {
+            // Should be prevented by EnderDragonListener - log so unexpected sources are visible
+            plugin.logger.warning(
+                "Dragon spawned while respawn cooldown was still active " +
+                    "(${getRemainingRespawnMillis() / 60_000L} minutes left) - cooldown discarded"
+            )
+        }
+
         applyDragonStats(dragon)
 
         dragonData.dragonAlive = true
