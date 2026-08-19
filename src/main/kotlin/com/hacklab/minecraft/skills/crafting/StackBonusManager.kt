@@ -29,6 +29,9 @@ class StackBonusManager(private val plugin: Skills) {
         const val BONUS_STACK_SIZE = MAX_STACK_SIZE - BASE_STACK_SIZE // 35
         const val MAX_SKILL_SUM = 300.0 // 3 skills * 100 each
 
+        /** Hotbar + main storage slots (armor and off-hand come after these) */
+        const val STORAGE_SLOT_COUNT = 36
+
         // Skills that contribute to stack size bonus
         val CONTRIBUTING_SKILLS = listOf(
             SkillType.CRAFTING,
@@ -218,6 +221,113 @@ class StackBonusManager(private val plugin: Skills) {
         }
 
         return item
+    }
+
+    /**
+     * Bring a player's whole inventory in line with their current stack bonus.
+     *
+     * Runs in two steps per material type:
+     * 1. Unify MaxStackSize, so items of the same type are stackable with each other.
+     * 2. Optionally merge stacks that sit below the raised limit.
+     *
+     * Step 2 is what repairs shift-click results: the vanilla quick-move happens
+     * after the click event, so a stack can still end up split at the old limit.
+     * Raising MaxStackSize afterwards does not re-merge those stacks by itself,
+     * which looks to the player like the bonus "did not apply".
+     *
+     * @param player The player whose inventory is normalized
+     * @param consolidate Whether to merge stacks left below the raised limit
+     */
+    fun normalizeInventory(player: Player, consolidate: Boolean) {
+        if (!player.isOnline) return
+
+        val inventory = player.inventory
+        val calculatedMax = calculateMaxStackSize(player)
+
+        // Group slots by material type
+        val slotsByType = mutableMapOf<Material, MutableList<Int>>()
+        for (i in 0 until inventory.size) {
+            val item = inventory.getItem(i) ?: continue
+            if (item.type.maxStackSize <= 1) continue
+            if (isExcludedMaterial(item.type)) continue
+            slotsByType.getOrPut(item.type) { mutableListOf() }.add(i)
+        }
+
+        var changed = false
+
+        for ((type, slots) in slotsByType) {
+            // Never lower an item that already carries a higher limit
+            var targetMax = calculatedMax
+            for (slot in slots) {
+                val item = inventory.getItem(slot) ?: continue
+                targetMax = maxOf(targetMax, getMaxStackSize(item))
+            }
+            if (targetMax <= BASE_STACK_SIZE) continue
+
+            // Food bonus values must match exactly for items to be stackable
+            if (type.isEdible) {
+                normalizeFoodBonusInInventory(inventory, type)
+            }
+
+            for (slot in slots) {
+                val item = inventory.getItem(slot) ?: continue
+                if (getMaxStackSize(item) != targetMax) {
+                    setMaxStackSize(item, targetMax)
+                    inventory.setItem(slot, item)
+                    changed = true
+                }
+            }
+
+            if (consolidate && consolidateStacks(inventory, slots, targetMax)) {
+                changed = true
+            }
+        }
+
+        // Keep the client in sync - the inventory may be open while this runs
+        if (changed) {
+            player.updateInventory()
+        }
+    }
+
+    /**
+     * Merge stacks of the same item that are below the target stack size.
+     * Only storage and hotbar slots are touched - armor and off-hand slots are
+     * left alone so equipped items are never moved.
+     */
+    private fun consolidateStacks(inventory: PlayerInventory, slots: List<Int>, targetMax: Int): Boolean {
+        val storageSlots = slots.filter { it < STORAGE_SLOT_COUNT }
+        var merged = false
+
+        for (i in storageSlots.indices) {
+            val destSlot = storageSlots[i]
+            var dest = inventory.getItem(destSlot) ?: continue
+            if (dest.amount >= targetMax) continue
+
+            for (j in i + 1 until storageSlots.size) {
+                val srcSlot = storageSlots[j]
+                val src = inventory.getItem(srcSlot) ?: continue
+
+                // isSimilar compares everything except amount, so differing
+                // quality / crafter / food bonus items are never merged
+                if (!dest.isSimilar(src)) continue
+
+                val space = targetMax - dest.amount
+                if (space <= 0) break
+
+                val moved = minOf(space, src.amount)
+                dest.amount += moved
+                src.amount -= moved
+
+                inventory.setItem(destSlot, dest)
+                inventory.setItem(srcSlot, if (src.amount <= 0) null else src)
+                merged = true
+
+                dest = inventory.getItem(destSlot) ?: break
+                if (dest.amount >= targetMax) break
+            }
+        }
+
+        return merged
     }
 
     /**
