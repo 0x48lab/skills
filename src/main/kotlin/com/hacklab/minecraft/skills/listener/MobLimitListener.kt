@@ -1,14 +1,14 @@
 package com.hacklab.minecraft.skills.listener
 
 import com.hacklab.minecraft.skills.Skills
-import com.hacklab.minecraft.skills.moblimit.ProtectedEntityTypes
+import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.CreatureSpawnEvent
 import org.bukkit.event.entity.EntityBreedEvent
-import org.bukkit.event.entity.EntityDeathEvent
+import org.bukkit.event.entity.EntityRemoveEvent
 import org.bukkit.event.world.ChunkLoadEvent
 import org.bukkit.event.world.ChunkUnloadEvent
 
@@ -55,23 +55,23 @@ class MobLimitListener(private val plugin: Skills) : Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onCreatureSpawnMonitor(event: CreatureSpawnEvent) {
-        val entity = event.entity
-
-        // Skip protected entities (they don't count toward limits)
-        if (ProtectedEntityTypes.isExempt(entity, event.spawnReason)) return
-
-        // Update cache
-        plugin.mobLimitManager.onMobSpawned(entity)
+        plugin.mobLimitManager.onMobSpawned(event.entity)
     }
 
     /**
-     * Update cache when an entity dies.
+     * Update cache when an entity leaves the world for any reason:
+     * death, despawn, a bee entering a hive, plugin removal, ...
+     *
+     * Tracking only deaths leaks counts - most notably bees, which are removed
+     * from the world when they enter a hive and re-spawned when they leave it.
+     * That alone inflates a chunk's passive count until breeding is impossible.
      */
     @EventHandler(priority = EventPriority.MONITOR)
-    fun onEntityDeath(event: EntityDeathEvent) {
-        val entity = event.entity
+    fun onEntityRemove(event: EntityRemoveEvent) {
+        // Chunk unload drops the whole cache entry, no per-entity work needed
+        if (event.cause == EntityRemoveEvent.Cause.UNLOAD) return
 
-        // Update cache
+        val entity = event.entity as? LivingEntity ?: return
         plugin.mobLimitManager.onMobRemoved(entity)
     }
 

@@ -40,6 +40,8 @@ object ProtectedEntityTypes {
         SpawnReason.BUILD_SNOWMAN,     // Snow golem construction
         SpawnReason.BUILD_IRONGOLEM,   // Iron golem construction
         SpawnReason.BUILD_WITHER,      // Wither construction
+        SpawnReason.BEEHIVE,           // Bee leaving a hive (not a new mob)
+        SpawnReason.SHOULDER_ENTITY,   // Parrot leaving a player's shoulder (not a new mob)
         SpawnReason.CURED,             // Zombie villager cured
         SpawnReason.DROWNED,           // Mob conversion (drowning)
         SpawnReason.PIGLIN_ZOMBIFIED,  // Piglin to zombified piglin

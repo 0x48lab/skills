@@ -253,6 +253,8 @@ class SkillAdminCommand(private val plugin: Skills) : CommandExecutor, TabComple
     private fun handleReload(sender: CommandSender) {
         plugin.skillsConfig.reload()
         plugin.messageManager.reload()
+        // Limits may have changed - drop cached chunk counts so they are re-scanned
+        plugin.mobLimitManager.clearCache()
         plugin.messageSender.send(sender, MessageKey.ADMIN_CONFIG_RELOADED)
     }
 
