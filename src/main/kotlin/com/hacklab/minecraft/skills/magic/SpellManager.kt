@@ -21,6 +21,13 @@ import kotlin.random.Random
 
 class SpellManager(private val plugin: Skills) {
 
+    companion object {
+        // Negative Jump Boost amplifier disables jumping.
+        // Since 1.20.5 the amplifier is sent as a VarInt, so the old "128 wraps to -128"
+        // trick no longer works and would instead grant a huge jump boost.
+        const val NO_JUMP_AMPLIFIER = -128
+    }
+
     // PDC keys for spell projectiles
     val spellCasterKey = NamespacedKey(plugin, "spell_caster")
     val spellDamageKey = NamespacedKey(plugin, "spell_damage")
@@ -773,7 +780,7 @@ class SpellManager(private val plugin: Skills) {
                     if (target is LivingEntity) {
                         val duration = 40 + (magerySkill / 2).toInt()  // 2-4.5 seconds
                         target.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, duration, 100))
-                        target.addPotionEffect(PotionEffect(PotionEffectType.JUMP_BOOST, duration, 128))
+                        target.addPotionEffect(PotionEffect(PotionEffectType.JUMP_BOOST, duration, NO_JUMP_AMPLIFIER))
                         // Visual: Freeze effect
                         target.world.spawnParticle(Particle.SNOWFLAKE, target.location.add(0.0, 1.0, 0.0), 30, 0.4, 0.6, 0.4, 0.02)
                         target.world.spawnParticle(Particle.ELECTRIC_SPARK, target.location.add(0.0, 1.0, 0.0), 15, 0.3, 0.5, 0.3, 0.05)
@@ -1268,7 +1275,7 @@ class SpellManager(private val plugin: Skills) {
                                     .filter { it !is Player || !plugin.partyManager.isInSameParty(caster.uniqueId, it.uniqueId) }
                                     .forEach { entity ->
                                         entity.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, paralyzeDuration, 100))
-                                        entity.addPotionEffect(PotionEffect(PotionEffectType.JUMP_BOOST, paralyzeDuration, 128))
+                                        entity.addPotionEffect(PotionEffect(PotionEffectType.JUMP_BOOST, paralyzeDuration, NO_JUMP_AMPLIFIER))
                                     }
                             }
                         }
@@ -1412,7 +1419,7 @@ class SpellManager(private val plugin: Skills) {
                         target.addPotionEffect(PotionEffect(PotionEffectType.SLOWNESS, sleepDuration, 100))
                         target.addPotionEffect(PotionEffect(PotionEffectType.BLINDNESS, sleepDuration, 0))
                         target.addPotionEffect(PotionEffect(PotionEffectType.WEAKNESS, sleepDuration, 2))
-                        target.addPotionEffect(PotionEffect(PotionEffectType.JUMP_BOOST, sleepDuration, 128))
+                        target.addPotionEffect(PotionEffect(PotionEffectType.JUMP_BOOST, sleepDuration, NO_JUMP_AMPLIFIER))
 
                         sleepCount++
 

@@ -14,6 +14,12 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.random.Random
 
 class HidingManager(private val plugin: Skills) {
+
+    companion object {
+        // Plugin-managed invisibility uses Int.MAX_VALUE; anything longer than this
+        // (about 1 day in ticks) cannot be a vanilla potion and is treated as ours.
+        const val STALE_EFFECT_DURATION_THRESHOLD = 20 * 60 * 60 * 24
+    }
     // Track hidden players and their stealth distance
     private val hiddenPlayers: MutableMap<UUID, HiddenState> = ConcurrentHashMap()
 
@@ -167,7 +173,25 @@ class HidingManager(private val plugin: Skills) {
      * Clean up when player disconnects
      */
     fun removePlayer(playerId: UUID) {
-        hiddenPlayers.remove(playerId)
+        if (hiddenPlayers.remove(playerId) != null) {
+            // The invisibility is applied with Int.MAX_VALUE duration and would be
+            // persisted in the player's NBT on quit, leaving them permanently invisible.
+            plugin.server.getPlayer(playerId)?.removePotionEffect(PotionEffectType.INVISIBILITY)
+        }
+    }
+
+    /**
+     * Remove a stale plugin-managed invisibility left over from a previous session
+     * (e.g. the player logged out while hidden before it was cleaned up on quit).
+     * Only effects with a near-permanent duration are treated as ours; a normal
+     * invisibility potion is left alone.
+     */
+    fun clearStaleInvisibility(player: Player) {
+        if (hiddenPlayers.containsKey(player.uniqueId)) return
+        val effect = player.getPotionEffect(PotionEffectType.INVISIBILITY) ?: return
+        if (effect.duration > STALE_EFFECT_DURATION_THRESHOLD) {
+            player.removePotionEffect(PotionEffectType.INVISIBILITY)
+        }
     }
 
     /**

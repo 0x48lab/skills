@@ -34,8 +34,11 @@ class PlayerListener(private val plugin: Skills) : Listener {
         val armorDexPenalty = plugin.armorManager.getTotalDexPenalty(player)
         StatCalculator.applyAttributeModifiers(player, data, armorDexPenalty)
 
-        // Initialize stamina
+        // Initialize stamina (also repairs movement penalties persisted from a previous session)
         plugin.staminaManager.initializePlayer(player)
+
+        // Remove invisibility left over from logging out while hidden
+        plugin.hidingManager.clearStaleInvisibility(player)
 
         // Give guide book to new players
         if (isNewPlayer) {

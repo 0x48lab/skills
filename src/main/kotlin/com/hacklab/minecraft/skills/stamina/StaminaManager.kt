@@ -48,6 +48,10 @@ class StaminaManager(private val plugin: Skills) {
         // Exhausted walking speed (half speed)
         const val EXHAUSTED_WALK_SPEED = 0.1f
 
+        // Jump Boost amplifier used to disable jumping while exhausted.
+        // Distinct from Paralyze/Sleep (-128) so cleanup never touches those.
+        const val EXHAUSTED_JUMP_AMPLIFIER = -200
+
         // Horizontal speed threshold to detect sprinting (blocks/tick)
         // Normal walking ~0.1, sprinting ~0.26
         const val SPRINT_SPEED_THRESHOLD = 0.2
@@ -110,6 +114,14 @@ class StaminaManager(private val plugin: Skills) {
     fun stopUpdateTask() {
         updateTask?.cancel()
         updateTask = null
+
+        // Restore every exhausted player so a reload/shutdown never persists
+        // the exhausted penalties into their saved data.
+        for (uuid in exhaustedPlayers.toList()) {
+            Bukkit.getPlayer(uuid)?.let { removeExhaustedState(it) }
+        }
+        exhaustedPlayers.clear()
+        originalWalkSpeed.clear()
     }
 
     /**
@@ -223,7 +235,7 @@ class StaminaManager(private val plugin: Skills) {
             PotionEffect(
                 PotionEffectType.JUMP_BOOST,
                 Int.MAX_VALUE,  // Permanent until removed
-                -200,           // Negative level = can't jump
+                EXHAUSTED_JUMP_AMPLIFIER,  // Negative level = can't jump
                 false,          // No ambient particles
                 false,          // No particles
                 false           // No icon
@@ -240,12 +252,42 @@ class StaminaManager(private val plugin: Skills) {
         exhaustedPlayers.remove(player.uniqueId)
         pantingCounter.remove(player.uniqueId)
 
-        // Restore original walk speed
+        restoreMovement(player)
+    }
+
+    /**
+     * Restore movement for a player whose exhausted state is tracked in memory.
+     * Uses the walk speed captured when the exhaustion started.
+     */
+    private fun restoreMovement(player: Player) {
         val originalSpeed = originalWalkSpeed.remove(player.uniqueId) ?: NORMAL_WALK_SPEED
         player.walkSpeed = originalSpeed
+        removeExhaustedJumpRestriction(player)
+    }
 
-        // Remove jump restriction
-        player.removePotionEffect(PotionEffectType.JUMP_BOOST)
+    /**
+     * Repair exhausted penalties persisted from a previous session.
+     *
+     * Walk speed and potion effects are saved by vanilla in the player's NBT, so a
+     * player who logged out (or a server that stopped) while exhausted keeps the
+     * 0.1 walk speed and the permanent Jump Boost forever. The in-memory state is
+     * gone by then, so we detect our own markers instead. Only the exact values
+     * this manager applies are reverted: a walk speed set by another plugin and
+     * a Paralyze/Sleep jump restriction are left untouched.
+     */
+    private fun repairPersistedExhaustion(player: Player) {
+        if (player.walkSpeed == EXHAUSTED_WALK_SPEED) {
+            player.walkSpeed = NORMAL_WALK_SPEED
+        }
+        removeExhaustedJumpRestriction(player)
+    }
+
+    /** Remove only the Jump Boost applied by the exhausted state. */
+    private fun removeExhaustedJumpRestriction(player: Player) {
+        val jump = player.getPotionEffect(PotionEffectType.JUMP_BOOST) ?: return
+        if (jump.amplifier == EXHAUSTED_JUMP_AMPLIFIER) {
+            player.removePotionEffect(PotionEffectType.JUMP_BOOST)
+        }
     }
 
     /**
@@ -359,6 +401,11 @@ class StaminaManager(private val plugin: Skills) {
      * Cleanup when player leaves
      */
     fun cleanup(playerId: UUID) {
+        // Restore movement before dropping state, otherwise the exhausted
+        // penalties are saved into the player's NBT on quit.
+        if (exhaustedPlayers.contains(playerId)) {
+            Bukkit.getPlayer(playerId)?.let { restoreMovement(it) }
+        }
         sprintDuration.remove(playerId)
         exhaustedPlayers.remove(playerId)
         pantingCounter.remove(playerId)
@@ -377,7 +424,11 @@ class StaminaManager(private val plugin: Skills) {
         if (data.stamina <= 0) {
             data.stamina = data.maxStamina
         }
-        // Clear any exhausted state and restore normal movement
-        removeExhaustedState(player)
+        // Clear any exhausted state and repair penalties persisted from a previous
+        // session (e.g. logged out while exhausted before quit cleanup existed).
+        exhaustedPlayers.remove(player.uniqueId)
+        pantingCounter.remove(player.uniqueId)
+        originalWalkSpeed.remove(player.uniqueId)
+        repairPersistedExhaustion(player)
     }
 }
