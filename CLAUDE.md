@@ -3805,6 +3805,10 @@ Skills (メインプラグイン)
 - SQLite (既存の player_skills, player_data テーブル) (001-spellbook-scroll-acquisition)
 
 ## Recent Changes
+- 0.4.26: 魔法の書の詠唱時間をMageryの二次カーブで短縮（下限200ms）、スクロールは固定時間
+- 0.4.26: 疲労状態・Hidingのデバフがログアウト後も永久に残る問題を修正、Paralyze/SleepのJump Boostを-128に修正
+- 0.4.26: エンダードラゴンの手動リスポーンをクールダウン中はブロック
+- 0.4.26: Parrying上昇デッドロック、スタック上限ボーナス・食料品質のシフトクリック反映漏れ、チャンクMob制限のカウントリークを修正
 - 023-party-system: パーティシステム追加（招待/FF無効/パーティTP/パーティチャット/シーフブロック/Hiding可視性/ネームタグ色/Notoriety連携）
 - 023-party-system: スコアボードセクション別表示制御（title/hms/gold/stats/party）、プレイヤーごとのON/OFF設定（/skills sb <section>）
 - 023-party-system: Fly魔法のマナ消費を0.1→0.2/秒に修正（INT 100で無限飛行の仕様に合致）
