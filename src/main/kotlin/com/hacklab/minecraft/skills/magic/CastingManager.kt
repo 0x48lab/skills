@@ -42,14 +42,7 @@ class CastingManager(private val plugin: Skills) {
         cancelCasting(player.uniqueId, silent = true)
 
         // Calculate casting time based on circle and magery skill
-        val data = plugin.playerDataManager.getPlayerData(player)
-        val magerySkill = data.getSkillValue(com.hacklab.minecraft.skills.skill.SkillType.MAGERY)
-
-        val baseCastTime = plugin.skillsConfig.castingTimeBase
-        val circlePenalty = spell.circle.number * 500L
-        // Skill reduces casting time (up to 30% reduction at skill 100)
-        val skillReduction = (magerySkill / 100.0 * 0.3).coerceIn(0.0, 0.3)
-        val castTime = ((baseCastTime + circlePenalty) * (1.0 - skillReduction)).toLong()
+        val castTime = calculateCastTime(player, spell, useScroll)
 
         // Create boss bar for casting display
         val bossBar = BossBar.bossBar(
@@ -86,6 +79,32 @@ class CastingManager(private val plugin: Skills) {
         player.world.playSound(player.location, Sound.BLOCK_ENCHANTMENT_TABLE_USE, 0.5f, 1.2f)
 
         return true
+    }
+
+    /**
+     * Calculate casting time.
+     *
+     * Scroll: fixed time (no skill scaling) - the spell is already inscribed.
+     *   T = base + circle * 500
+     *
+     * Spellbook: quadratic falloff by Magery - near-instant at GM.
+     *   T = (base + circle * 500) * (1 - Magery / 100)^2, floored at MIN_CAST_TIME_MS
+     */
+    private fun calculateCastTime(player: Player, spell: SpellType, useScroll: Boolean): Long {
+        val baseCastTime = plugin.skillsConfig.castingTimeBase
+        val circlePenalty = spell.circle.number * 500L
+        val rawCastTime = baseCastTime + circlePenalty
+
+        if (useScroll) return rawCastTime
+
+        val data = plugin.playerDataManager.getPlayerData(player)
+        val magerySkill = data.getSkillValue(com.hacklab.minecraft.skills.skill.SkillType.MAGERY)
+            .coerceIn(0.0, 100.0)
+
+        val remaining = 1.0 - magerySkill / 100.0
+        val castTime = (rawCastTime * remaining * remaining).toLong()
+
+        return castTime.coerceAtLeast(MIN_CAST_TIME_MS)
     }
 
     private fun startCastingProgress(player: Player, state: CastingState) {
@@ -341,5 +360,10 @@ class CastingManager(private val plugin: Skills) {
         if (caster !in nearbyPlayers) {
             caster.sendMessage(message)
         }
+    }
+
+    companion object {
+        /** Lower bound for casting time. The boss bar updates every 2 ticks (100ms). */
+        private const val MIN_CAST_TIME_MS = 200L
     }
 }

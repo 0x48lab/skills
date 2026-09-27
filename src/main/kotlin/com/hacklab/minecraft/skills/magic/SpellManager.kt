@@ -72,17 +72,13 @@ class SpellManager(private val plugin: Skills) {
         // Start casting
         plugin.messageSender.send(player, MessageKey.MAGIC_CAST_START, "spell" to spell.displayName)
 
-        // Calculate casting time based on circle
-        val baseCastTime = plugin.skillsConfig.castingTimeBase
-        val castTime = baseCastTime + (spell.circle.number * 500L)
-
-        // Start cast sequence
-        startCastSequence(player, spell, castTime, useScroll, targetPlayer)
+        // Start cast sequence (casting time is calculated by CastingManager)
+        startCastSequence(player, spell, useScroll, targetPlayer)
 
         return CastResult.CASTING
     }
 
-    private fun startCastSequence(player: Player, spell: SpellType, castTime: Long, useScroll: Boolean, targetPlayer: Player? = null) {
+    private fun startCastSequence(player: Player, spell: SpellType, useScroll: Boolean, targetPlayer: Player? = null) {
         // Use the new CastingManager for casting with BossBar display
         plugin.castingManager.startCasting(player, spell, useScroll, targetPlayer)
     }
